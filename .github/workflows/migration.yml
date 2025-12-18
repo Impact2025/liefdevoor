@@ -86,7 +86,7 @@ jobs:
           echo '{"backup": "placeholder", "timestamp": "'$BACKUP_TIMESTAMP'"}' > backups/backup_$BACKUP_TIMESTAMP.json
 
       - name: Upload backup artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: database-backup-${{ env.BACKUP_TIMESTAMP }}
           path: backups/
@@ -159,7 +159,7 @@ jobs:
 
       - name: Upload migration artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: migration-results-${{ github.run_id }}
           path: |
