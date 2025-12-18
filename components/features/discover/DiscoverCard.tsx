@@ -1,0 +1,246 @@
+/**
+ * DiscoverCard Component
+ *
+ * Swipeable card showing user profile in discover feed
+ */
+
+'use client'
+
+import React, { useState } from 'react'
+import Image from 'next/image'
+import { Avatar, Badge, Button, Modal } from '@/components/ui'
+import { usePost } from '@/hooks'
+import type { DiscoverUser, SwipeResult } from '@/lib/types'
+
+export interface DiscoverCardProps {
+  user: DiscoverUser
+  onSwipe?: (userId: string, isLike: boolean) => void
+  onMatch?: (match: any) => void
+}
+
+export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [showBio, setShowBio] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null)
+  const [imageError, setImageError] = useState(false)
+
+  const { post, isLoading } = usePost<SwipeResult>('/api/swipe', {
+    onSuccess: (data) => {
+      if (data?.isMatch && data.match) {
+        onMatch?.(data.match)
+      }
+    },
+  })
+
+  const calculateAge = (birthDate: string) => {
+    const birth = new Date(birthDate)
+    const today = new Date()
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age
+  }
+
+  const handleSwipe = async (isLike: boolean) => {
+    if (isLoading || isAnimating) return
+
+    setIsAnimating(true)
+    setAnimationDirection(isLike ? 'right' : 'left')
+
+    setTimeout(async () => {
+      await post({ swipedId: user.id, isLike })
+      onSwipe?.(user.id, isLike)
+      setIsAnimating(false)
+      setAnimationDirection(null)
+    }, 300)
+  }
+
+  // Use photos if available, otherwise fall back to profileImage
+  // Generate unique fallback based on user ID to ensure variety
+  const fallbackImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&size=400&background=random&color=fff`
+
+  const photoUrls = user.photos && user.photos.length > 0
+    ? user.photos.map(p => p.url)
+    : user.profileImage
+      ? [user.profileImage]
+      : [fallbackImage]
+
+  const nextPhoto = () => {
+    if (currentPhotoIndex < photoUrls.length - 1) {
+      setCurrentPhotoIndex((prev) => prev + 1)
+    }
+  }
+
+  const previousPhoto = () => {
+    if (currentPhotoIndex > 0) {
+      setCurrentPhotoIndex((prev) => prev - 1)
+    }
+  }
+
+  const currentPhoto = {
+    url: imageError ? fallbackImage : (photoUrls[currentPhotoIndex] || photoUrls[0]),
+    order: currentPhotoIndex,
+  }
+
+  const handleImageError = () => {
+    console.log('Image failed to load, using fallback')
+    setImageError(true)
+  }
+
+  return (
+    <>
+      <div
+        className={`
+          relative w-full max-w-md mx-auto aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl
+          transition-all duration-300
+          ${animationDirection === 'left' ? 'translate-x-[-150%] rotate-[-30deg] opacity-0' : ''}
+          ${animationDirection === 'right' ? 'translate-x-[150%] rotate-[30deg] opacity-0' : ''}
+        `}
+      >
+        {/* Photo */}
+        <div className="relative w-full h-full">
+          <Image
+            src={currentPhoto.url}
+            alt={user.name || 'User photo'}
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, 500px"
+            onError={handleImageError}
+            unoptimized={currentPhoto.url.includes('ui-avatars.com')}
+          />
+
+          {/* Photo navigation indicators */}
+          {photoUrls.length > 1 && (
+            <div className="absolute top-4 left-0 right-0 flex gap-1 px-4">
+              {photoUrls.map((_, index) => (
+                <div
+                  key={index}
+                  className={`flex-1 h-1 rounded-full transition-colors ${
+                    index === currentPhotoIndex ? 'bg-white' : 'bg-white/30'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Photo navigation areas */}
+          <div className="absolute inset-0 flex">
+            <button
+              onClick={previousPhoto}
+              className="flex-1 cursor-pointer focus:outline-none"
+              disabled={currentPhotoIndex === 0}
+              aria-label="Previous photo"
+            />
+            <button
+              onClick={nextPhoto}
+              className="flex-1 cursor-pointer focus:outline-none"
+              disabled={currentPhotoIndex === photoUrls.length - 1}
+              aria-label="Next photo"
+            />
+          </div>
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+          {/* User info */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div className="flex items-end justify-between mb-4">
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold mb-1">
+                  {user.name}, {user.birthDate && calculateAge(user.birthDate)}
+                </h2>
+                <div className="flex items-center gap-2 text-sm">
+                  {user.city && (
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {user.city}
+                    </span>
+                  )}
+                  {user.distance && (
+                    <Badge variant="default" size="sm">
+                      {user.distance}km away
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowBio(!showBio)}
+                className="p-3 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
+                aria-label="Show bio"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center justify-center gap-6">
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => handleSwipe(false)}
+                disabled={isLoading || isAnimating}
+                className="w-16 h-16 rounded-full shadow-lg"
+                aria-label="Pass"
+              >
+                <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => handleSwipe(true)}
+                disabled={isLoading || isAnimating}
+                className="w-20 h-20 rounded-full shadow-xl"
+                aria-label="Like"
+              >
+                <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bio Modal */}
+      <Modal
+        isOpen={showBio}
+        onClose={() => setShowBio(false)}
+        title={`Over ${user.name}`}
+        size="md"
+      >
+        <div className="space-y-4">
+          {user.bio ? (
+            <p className="text-gray-700">{user.bio}</p>
+          ) : (
+            <p className="text-gray-500 italic">Geen bio beschikbaar</p>
+          )}
+        </div>
+      </Modal>
+    </>
+  )
+}

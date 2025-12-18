@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "startTime": "2025-12-01T12:47:16.037Z",
+  "endTime": "2025-12-01T12:47:16.069Z",
+  "status": "failed",
+  "phase": "initializing",
+  "progress": {
+    "users": {
+      "total": 100,
+      "migrated": 102,
+      "skipped": 0,
+      "errors": 0
+    },
+    "photos": {
+      "total": 289,
+      "migrated": 289,
+      "skipped": 0,
+      "errors": 0
+    }
+  },
+  "performance": {
+    "duration": 0.032,
+    "recordsPerSecond": 12218.75,
+    "memoryUsage": {
+      "rss": 51,
+      "heapTotal": 13,
+      "heapUsed": 10,
+      "external": 2
+    }
+  },
+  "errors": [
+    {
+      "timestamp": "2025-12-01T10:10:18.984Z",
+      "phase": "initializing",
+      "error": "MySQL connection failed: ",
+      "context": {
+        "phase": "initializing"
+      }
+    },
+    {
+      "timestamp": "2025-12-01T10:18:07.397Z",
+      "phase": "initializing",
+      "error": "MySQL connection failed: ",
+      "context": {
+        "phase": "initializing"
+      }
+    },
+    {
+      "timestamp": "2025-12-01T10:20:03.292Z",
+      "phase": "initializing",
+      "error": "MySQL connection failed: ",
+      "context": {
+        "phase": "initializing"
+      }
+    },
+    {
+      "timestamp": "2025-12-01T10:47:03.825Z",
+      "phase": "initializing",
+      "error": "\nInvalid `prisma.user.create()` invocation in\nd:\\Datingsite2026\\simple-test.js:85:25\n\n  82 console.log('💾 Inserting test data into Prisma...');\n  83 \n  84 for (const user of testUsers) {\n→ 85   await prisma.user.create({\n         data: {\n           id: \"test-user-1\",\n           name: \"Rosie Klein\",\n           email: \"test1@example.com\",\n           passwordHash: \"B0NtDDXMYg3Q\",\n           bio: \"Varietas cultura apostolus. Carpo viriliter conturbo veniam non ascisco centum. Carpo usitas dignissimos.\",\n           birthDate: new Date(\"1977-02-17T20:35:23.340Z\"),\n           gender: \"MALE\",\n           interestedIn: [\n           ~~~~~~~~~~~~\n             \"FEMALE\"\n           ],\n           city: \"East Bernardchester\",\n           profileImage: \"https://example.com/photo1.jpg\",\n           voiceIntro: null,\n           role: \"USER\",\n           isVerified: false,\n           safetyScore: 76,\n           hasAcceptedTerms: true,\n           latitude: -47.3288,\n           longitude: 93.3993,\n           createdAt: new Date(\"2024-02-13T18:51:29.045Z\"),\n           updatedAt: new Date(\"2025-12-01T10:47:03.432Z\"),\n       ?   emailVerified?: DateTime | Null,\n       ?   image?: String | Null,\n       ?   postcode?: String | Null,\n       ?   interests?: String | Null,\n       ?   preferences?: String | Null,\n       ?   accounts?: AccountCreateNestedManyWithoutUserInput,\n       ?   sessions?: SessionCreateNestedManyWithoutUserInput,\n       ?   photos?: PhotoCreateNestedManyWithoutUserInput,\n       ?   outgoingSwipes?: SwipeCreateNestedManyWithoutSwiperInput,\n       ?   incomingSwipes?: SwipeCreateNestedManyWithoutSwipedInput,\n       ?   matches1?: MatchCreateNestedManyWithoutUser1Input,\n       ?   matches2?: MatchCreateNestedManyWithoutUser2Input,\n       ?   messages?: MessageCreateNestedManyWithoutSenderInput,\n       ?   posts?: PostCreateNestedManyWithoutAuthorInput,\n       ?   comments?: CommentCreateNestedManyWithoutAuthorInput,\n       ?   subscriptions?: SubscriptionCreateNestedManyWithoutUserInput,\n       ?   reportsSent?: ReportCreateNestedManyWithoutReporterInput,\n       ?   reportsReceived?: ReportCreateNestedManyWithoutReportedInput,\n       ?   blocksSent?: BlockCreateNestedManyWithoutBlockerInput,\n       ?   blocksReceived?: BlockCreateNestedManyWithoutBlockedInput,\n       ?   notifications?: NotificationCreateNestedManyWithoutUserInput\n         }\n       })\n\nUnknown argument `interestedIn`. Available options are marked with ?.",
+      "context": {}
+    },
+    {
+      "timestamp": "2025-12-01T12:47:16.068Z",
+      "phase": "initializing",
+      "error": "MySQL connection failed: ",
+      "context": {
+        "phase": "initializing"
+      }
+    }
+  ],
+  "warnings": []
+}

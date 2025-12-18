@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ADAPTIVE UI SYSTEM */
+@layer base {
+  :root {
+    --adaptive-text-scale: 1;
+    --adaptive-target-min: 44px;
+    --adaptive-spacing-scale: 1;
+    --adaptive-animation-duration: 200ms;
+    --color-primary: 233 30 99;
+    --color-success: 34 197 94;
+    --color-danger: 239 68 68;
+    --color-superlike: 59 130 246;
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --radius-lg: 0.75rem;
+    --radius-2xl: 1.25rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root { --adaptive-animation-duration: 0ms; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  html {
+    font-size: calc(16px * var(--adaptive-text-scale));
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { min-height: 100vh; }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center font-semibold transition-all;
+    min-height: var(--adaptive-target-min);
+    padding: calc(0.75rem * var(--adaptive-spacing-scale)) calc(1.5rem * var(--adaptive-spacing-scale));
+    border-radius: var(--radius-lg);
+  }
+  .btn:focus-visible { @apply outline-none ring-2 ring-pink-500 ring-offset-2; }
+  .btn:disabled { @apply opacity-50 cursor-not-allowed; }
+  .btn-primary {
+    @apply btn text-white shadow-lg;
+    background: linear-gradient(135deg, rgb(var(--color-primary)) 0%, #D81B60 100%);
+  }
+  .btn-primary:hover:not(:disabled) { @apply shadow-xl; transform: translateY(-1px); }
+  .btn-secondary { @apply btn bg-gray-100 text-gray-800 hover:bg-gray-200; }
+  .btn-lg { min-height: calc(var(--adaptive-target-min) * 1.25); @apply text-lg; }
+
+  .btn-action {
+    @apply rounded-full flex items-center justify-center shadow-lg transition-all;
+    width: calc(64px * var(--adaptive-spacing-scale));
+    height: calc(64px * var(--adaptive-spacing-scale));
+  }
+  .btn-action:hover:not(:disabled) { transform: scale(1.1); }
+  .btn-like {
+    @apply btn-action text-white;
+    background: linear-gradient(135deg, rgb(var(--color-success)) 0%, #16A34A 100%);
+  }
+  .btn-pass { @apply btn-action bg-white border-2 border-red-400 text-red-500; }
+  .btn-superlike {
+    @apply btn-action text-white;
+    background: linear-gradient(135deg, rgb(var(--color-superlike)) 0%, #2563EB 100%);
+  }
+
+  .card {
+    @apply bg-white overflow-hidden;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-card);
+  }
+  .card-dating { @apply card; aspect-ratio: 3 / 4; }
+
+  .input {
+    @apply w-full border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400;
+    min-height: var(--adaptive-target-min);
+    padding: calc(0.75rem * var(--adaptive-spacing-scale)) calc(1rem * var(--adaptive-spacing-scale));
+    border-radius: var(--radius-lg);
+  }
+  .input:focus { @apply outline-none ring-2 ring-pink-500 border-pink-500; }
+
+  .badge { @apply inline-flex items-center gap-1 font-semibold px-3 py-1 rounded-full text-sm; }
+  .badge-verified { @apply badge bg-blue-500 text-white; }
+  .badge-interest { @apply badge bg-pink-100 text-pink-800; }
+
+  .help-box { @apply p-4 rounded-xl border-2 bg-blue-50 border-blue-200; }
+  .skeleton { @apply bg-gray-200 rounded animate-pulse; }
+}
+
+@layer utilities {
+  .p-adaptive { padding: calc(1rem * var(--adaptive-spacing-scale)); }
+  .gap-adaptive { gap: calc(1rem * var(--adaptive-spacing-scale)); }
+  .text-adaptive { font-size: calc(1rem * var(--adaptive-text-scale)); }
+  .touch-target { min-width: var(--adaptive-target-min); min-height: var(--adaptive-target-min); }
+  .focus-ring { @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2; }
+  .glass { @apply bg-white/80 backdrop-blur-md; }
+  .glass-dark { @apply bg-black/50 backdrop-blur-md; }
+  .text-gradient { @apply bg-clip-text text-transparent; background-image: linear-gradient(135deg, #E91E63 0%, #F472B6 100%); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}

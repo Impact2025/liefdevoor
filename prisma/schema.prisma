@@ -1,0 +1,354 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+}
+
+enum Role {
+  USER
+  ADMIN
+  BANNED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  bio           String?   @db.Text
+  birthDate     DateTime?
+  gender        Gender?
+  city          String?
+  postcode      String?
+  interests     String?
+  preferences   String?
+  profileImage  String?
+  voiceIntro    String?
+  role          Role      @default(USER)
+  isVerified    Boolean   @default(false)
+  safetyScore   Int       @default(100)
+  hasAcceptedTerms Boolean @default(false)
+  latitude      Float?
+  longitude     Float?
+  twoFactorSecret String?
+  twoFactorEnabled Boolean @default(false)
+  twoFactorBackupCodes String? @db.Text
+  // Real-time presence
+  lastSeen      DateTime?
+  isOnline      Boolean   @default(false)
+  // Photo verification
+  isPhotoVerified Boolean @default(false)
+  verifiedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  photos        Photo[]
+  outgoingSwipes Swipe[]  @relation("Swiper")
+  incomingSwipes Swipe[]  @relation("Swiped")
+  matches1       Match[]  @relation("User1")
+  matches2       Match[]  @relation("User2")
+  messages       Message[]
+  posts          Post[]
+  comments       Comment[]
+  subscriptions  Subscription[]
+  reportsSent    Report[]  @relation("Reporter")
+  reportsReceived Report[] @relation("Reported")
+  blocksSent     Block[]   @relation("Blocker")
+  blocksReceived Block[]   @relation("Blocked")
+  notifications  Notification[]
+  // AI Matching relations
+  matchScoresAsUser    MatchScore[] @relation("MatchScoreUser")
+  matchScoresAsTarget  MatchScore[] @relation("MatchScoreTarget")
+  embedding            UserEmbedding?
+
+  @@index([gender])
+  @@index([birthDate])
+  @@index([city])
+  @@index([profileImage])
+  @@index([createdAt])
+  @@index([gender, birthDate, city])
+  @@index([role])
+  @@index([latitude, longitude])
+  @@index([email])
+  @@index([isOnline])
+  @@index([isPhotoVerified])
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  order     Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Swipe {
+  id        String   @id @default(cuid())
+  swiperId  String
+  swiper    User     @relation("Swiper", fields: [swiperId], references: [id], onDelete: Cascade)
+  swipedId  String
+  swiped    User     @relation("Swiped", fields: [swipedId], references: [id], onDelete: Cascade)
+  isLike    Boolean
+  createdAt DateTime @default(now())
+  @@unique([swiperId, swipedId])
+  @@index([swiperId])
+  @@index([swipedId])
+  @@index([swipedId, isLike])
+}
+
+model Match {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  user1Id   String
+  user1     User      @relation("User1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id   String
+  user2     User      @relation("User2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages  Message[]
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String?  @db.Text
+  audioUrl  String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([matchId, createdAt])
+  @@index([matchId, read])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  icon        String
+  description String?
+  color       String
+  posts       Post[]
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    @db.Text
+  slug        String?   @unique
+  excerpt     String?
+  featuredImage String?
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  comments    Comment[]
+  likeCount   Int       @default(0)
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([published, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([postId, createdAt])
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model Subscription {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  plan            String
+  status          String
+  multisafepayId  String?
+  startDate       DateTime @default(now())
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([userId, status])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  reporter    User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedId  String
+  reported    User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reason      String
+  description String?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([status])
+  @@index([status, createdAt])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  relatedId String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
+model EmailLog {
+  id            String    @id @default(cuid())
+  userId        String?
+  email         String
+  type          String
+  category      String
+  subject       String
+  status        String
+  sentAt        DateTime  @default(now())
+  deliveredAt   DateTime?
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  bouncedAt     DateTime?
+  errorMessage  String?
+
+  @@index([userId])
+  @@index([email])
+  @@index([type, category])
+  @@index([sentAt])
+  @@index([status])
+}
+
+// ============================================
+// AI SMART MATCHING MODELS
+// ============================================
+
+model MatchScore {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation("MatchScoreUser", fields: [userId], references: [id], onDelete: Cascade)
+  targetUserId  String
+  targetUser    User     @relation("MatchScoreTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  overallScore  Float
+  interestScore Float
+  bioScore      Float
+  locationScore Float
+  activityScore Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, targetUserId])
+  @@index([userId])
+  @@index([targetUserId])
+  @@index([userId, overallScore])
+}
+
+model UserEmbedding {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  embedding Json
+  bioHash   String?
+  updatedAt DateTime @updatedAt
+}
