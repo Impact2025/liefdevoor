@@ -77,7 +77,7 @@ function calculateInterestScore(userInterests: string | null, targetInterests: s
     }
   }
 
-  const categoryMatches = [...userCategories].filter(c => targetCategories.has(c)).length
+  const categoryMatches = Array.from(userCategories).filter(c => targetCategories.has(c)).length
 
   // Calculate score
   const maxPossibleDirect = Math.min(user.length, target.length)
@@ -118,8 +118,8 @@ function calculateBioScore(userBio: string | null, targetBio: string | null): nu
 
   if (userKeywords.size === 0 || targetKeywords.size === 0) return 50
 
-  const matches = [...userKeywords].filter(k => targetKeywords.has(k)).length
-  const totalUnique = new Set([...userKeywords, ...targetKeywords]).size
+  const matches = Array.from(userKeywords).filter(k => targetKeywords.has(k)).length
+  const totalUnique = new Set(Array.from(userKeywords).concat(Array.from(targetKeywords))).size
 
   return Math.round((matches / totalUnique) * 100)
 }
