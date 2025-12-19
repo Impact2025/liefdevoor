@@ -28,3 +28,6 @@ export { usePushNotifications } from './usePushNotifications'
 
 // Real-time
 export { useWebSocket, useTypingIndicator } from './useWebSocket'
+
+// Matching
+export { useCompatibility, getCompatibilityColor, getCompatibilityLabel } from './useCompatibility'

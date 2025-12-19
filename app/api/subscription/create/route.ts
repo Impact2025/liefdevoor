@@ -2,105 +2,121 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import {
+  createSubscriptionPayment,
+  SUBSCRIPTION_PLANS,
+  type PlanId,
+} from '@/lib/services/payment/multisafepay'
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
+  try {
+    const session = await getServerSession(authOptions)
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    if (!session?.user?.id || !session.user.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  const { planId } = await request.json()
+    const { planId } = await request.json()
 
-  if (!planId) {
-    return NextResponse.json({ error: 'Plan ID required' }, { status: 400 })
-  }
+    if (!planId || !(planId in SUBSCRIPTION_PLANS)) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    }
 
-  const plans = {
-    basic: { price: 0, name: 'Basic' },
-    premium: { price: 9.99, name: 'Premium' },
-    gold: { price: 19.99, name: 'Gold' }
-  }
+    const plan = SUBSCRIPTION_PLANS[planId as PlanId]
 
-  const plan = plans[planId as keyof typeof plans]
+    // Handle free plan
+    if (plan.price === 0) {
+      // Cancel any existing subscription first
+      await prisma.subscription.updateMany({
+        where: { userId: session.user.id, status: 'active' },
+        data: { status: 'cancelled', cancelledAt: new Date() },
+      })
 
-  if (!plan) {
-    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
-  }
+      // Create free subscription
+      await prisma.subscription.create({
+        data: {
+          userId: session.user.id,
+          plan: planId,
+          status: 'active',
+        },
+      })
 
-  if (plan.price === 0) {
-    // Free plan, just create subscription
-    await prisma.subscription.create({
+      return NextResponse.json({ success: true, message: 'Basic plan activated' })
+    }
+
+    // Check for existing active paid subscription
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: {
+        userId: session.user.id,
+        status: 'active',
+        plan: { in: ['premium', 'gold'] },
+      },
+    })
+
+    if (existingSubscription) {
+      // Check if upgrading or same plan
+      if (existingSubscription.plan === planId) {
+        return NextResponse.json(
+          { error: 'Je hebt dit abonnement al' },
+          { status: 400 }
+        )
+      }
+
+      // Allow upgrade from premium to gold
+      if (existingSubscription.plan === 'gold' && planId === 'premium') {
+        return NextResponse.json(
+          { error: 'Downgrade naar premium is niet mogelijk. Annuleer eerst je Gold abonnement.' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Create pending subscription
+    const subscription = await prisma.subscription.create({
       data: {
         userId: session.user.id,
         plan: planId,
-        status: 'active'
-      }
-    })
-    return NextResponse.json({ success: true })
-  }
-
-  // Check if user already has an active subscription
-  const existingSubscription = await prisma.subscription.findFirst({
-    where: {
-      userId: session.user.id,
-      status: 'active'
-    }
-  })
-
-  if (existingSubscription) {
-    return NextResponse.json({ error: 'User already has an active subscription' }, { status: 400 })
-  }
-
-  // Create subscription in db
-  const subscription = await prisma.subscription.create({
-    data: {
-      userId: session.user.id,
-      plan: planId,
-      status: 'pending'
-    }
-  })
-
-  // Create Multisafepay order
-  const orderData = {
-    order_id: subscription.id,
-    amount: Math.round(plan.price * 100), // in cents
-    currency: 'EUR',
-    description: `${plan.name} subscription - Liefde Voor Iedereen`,
-    payment_options: {
-      notification_url: `${process.env.NEXTAUTH_URL}/api/subscription/webhook`,
-      redirect_url: `${process.env.NEXTAUTH_URL}/subscription/success?order_id=${subscription.id}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/subscription/cancel`
-    }
-  }
-
-  try {
-    const res = await fetch('https://api.multisafepay.com/v1/json/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api_key': process.env.MULTISAFEPAY_API_KEY!
+        status: 'pending',
       },
-      body: JSON.stringify(orderData)
     })
 
-    if (!res.ok) {
-      const errorData = await res.text()
-      console.error('Multisafepay error:', errorData)
-      return NextResponse.json({ error: 'Payment creation failed' }, { status: 500 })
-    }
+    // Create payment with MultiSafepay
+    const { paymentUrl, orderId } = await createSubscriptionPayment(
+      session.user.id,
+      session.user.email,
+      session.user.name || null,
+      planId as PlanId,
+      subscription.id
+    )
 
-    const paymentData = await res.json()
-
-    // Update subscription with multisafepayId
+    // Update subscription with MultiSafepay order ID
     await prisma.subscription.update({
       where: { id: subscription.id },
-      data: { multisafepayId: paymentData.order_id }
+      data: { multisafepayId: orderId },
     })
 
-    return NextResponse.json({ paymentUrl: paymentData.payment_url })
+    return NextResponse.json({ paymentUrl })
   } catch (error) {
-    console.error('Payment creation error:', error)
-    return NextResponse.json({ error: 'Payment service unavailable' }, { status: 500 })
+    console.error('[Subscription] Error creating subscription:', error)
+    return NextResponse.json(
+      { error: 'Er is iets misgegaan. Probeer het opnieuw.' },
+      { status: 500 }
+    )
   }
+}
+
+/**
+ * GET /api/subscription/create
+ *
+ * Get available subscription plans
+ */
+export async function GET() {
+  const plans = Object.entries(SUBSCRIPTION_PLANS).map(([id, plan]) => ({
+    id,
+    name: plan.name,
+    price: plan.price / 100, // Convert to euros
+    features: plan.features,
+  }))
+
+  return NextResponse.json({ plans })
 }
