@@ -1,9 +1,31 @@
 'use client'
 
-import { SessionProvider } from 'next-auth/react'
+import { SessionProvider, useSession } from 'next-auth/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdaptiveUIProvider } from '@/components/adaptive'
+import { InstallPrompt, IOSInstallInstructions } from '@/components/ui'
+import { analytics, identifyUser } from '@/lib/analytics'
+
+// Analytics tracker component
+function AnalyticsTracker() {
+  const { data: session } = useSession()
+
+  useEffect(() => {
+    analytics.init()
+  }, [])
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      identifyUser(session.user.email, {
+        email: session.user.email,
+        name: session.user.name || undefined,
+      })
+    }
+  }, [session])
+
+  return null
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Create QueryClient instance per component mount
@@ -29,7 +51,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AdaptiveUIProvider>
       <QueryClientProvider client={queryClient}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <AnalyticsTracker />
+          {children}
+          <InstallPrompt delay={10000} />
+          <IOSInstallInstructions />
+        </SessionProvider>
       </QueryClientProvider>
     </AdaptiveUIProvider>
   )

@@ -6,7 +6,8 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Flag, Mic, Square, Send, X, Play, Pause } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAudioRecorder, formatDuration } from '@/hooks'
+import { useAudioRecorder, formatDuration, useTypingIndicator } from '@/hooks'
+import { TypingBubble } from '@/components/ui'
 
 interface Message {
   id: string
@@ -54,6 +55,9 @@ export default function ChatPage() {
     resetRecording,
     isPlaying: isPlayingRecorded,
   } = useAudioRecorder({ maxDuration: 60 })
+
+  // Typing indicator
+  const { isTyping: otherUserTyping, handleTyping, handleStopTyping } = useTypingIndicator(matchId)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -359,6 +363,21 @@ export default function ChatPage() {
             </motion.div>
           ))
         )}
+
+        {/* Typing indicator */}
+        <AnimatePresence>
+          {otherUserTyping && (
+            <motion.div
+              className="flex justify-start"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <TypingBubble />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -486,7 +505,15 @@ export default function ChatPage() {
               <motion.input
                 type="text"
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) => {
+                  setNewMessage(e.target.value)
+                  if (e.target.value) {
+                    handleTyping()
+                  } else {
+                    handleStopTyping()
+                  }
+                }}
+                onBlur={handleStopTyping}
                 placeholder="Typ een bericht..."
                 className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 disabled={sending}

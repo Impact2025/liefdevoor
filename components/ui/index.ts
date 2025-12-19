@@ -63,3 +63,9 @@ export type { CompatibilityBadgeProps } from './CompatibilityBadge'
 // Audio
 export { AudioRecorder } from './AudioRecorder'
 export type { AudioRecorderProps } from './AudioRecorder'
+
+// Real-time
+export { TypingIndicator, TypingBubble } from './TypingIndicator'
+
+// PWA
+export { InstallPrompt, IOSInstallInstructions } from './InstallPrompt'

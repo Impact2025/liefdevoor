@@ -21,3 +21,10 @@ export { useIntersectionObserver, useInfiniteScroll } from './useIntersectionObs
 
 // Audio Hooks
 export { useAudioRecorder, formatDuration } from './useAudioRecorder'
+
+// PWA & Notifications
+export { usePWA } from './usePWA'
+export { usePushNotifications } from './usePushNotifications'
+
+// Real-time
+export { useWebSocket, useTypingIndicator } from './useWebSocket'
