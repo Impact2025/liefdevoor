@@ -3,7 +3,20 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 
-const f = createUploadthing();
+const f = createUploadthing({
+  /**
+   * Log out more information about the error, but don't return it to the client
+   */
+  errorFormatter: (err) => {
+    console.log("UploadThing Error:", err);
+    console.log("Error message:", err.message);
+    console.log("Error cause:", err.cause);
+    console.log("Error code:", err.code);
+    return {
+      message: err.message,
+    };
+  },
+});
 
 // Auth function using NextAuth
 const auth = async (req: Request) => {

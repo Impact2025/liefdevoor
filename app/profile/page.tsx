@@ -255,7 +255,19 @@ export default function ProfilePage() {
                       }
                     }}
                     onUploadError={(error: Error) => {
-                      alert(`Upload error: ${error.message}`)
+                      console.error('Upload error:', error)
+                      alert(
+                        `❌ Upload mislukt!\n\n` +
+                        `Fout: ${error.message}\n\n` +
+                        `Dit kan komen doordat:\n` +
+                        `• De UploadThing configuratie ontbreekt op Vercel\n` +
+                        `• Je internetconnectie problemen heeft\n` +
+                        `• Het bestand te groot is (max 4MB)\n\n` +
+                        `Probeer:\n` +
+                        `1. Je internetconnectie te checken\n` +
+                        `2. Een kleiner bestand te uploaden\n` +
+                        `3. Contact op te nemen met support`
+                      )
                     }}
                   />
                   <p className="text-xs text-gray-500 mt-2">
