@@ -1,8 +1,9 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireCSRF } from '@/lib/csrf'
 import { requireAuth, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { sendMatchNotification } from '@/lib/email/notification-service'
+import { canSwipe, canSuperLike, getSubscriptionInfo } from '@/lib/subscription'
 import type { SwipeAction, SwipeResult } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
@@ -18,16 +19,52 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body: SwipeAction = await request.json()
-    const { swipedId, isLike } = body
+    const { swipedId, isLike, isSuperLike = false } = body
 
     if (!swipedId || typeof isLike !== 'boolean') {
       return validationError('swipedId', 'Invalid swipe data')
     }
 
-    // Perform swipe operation
-    const result = await performSwipe(user.id, swipedId, isLike)
+    // Check swipe limits (premium gating)
+    const swipeCheck = await canSwipe(user.id)
+    if (!swipeCheck.allowed) {
+      return NextResponse.json({
+        success: false,
+        error: 'swipe_limit_reached',
+        message: 'Je hebt je dagelijkse swipe limiet bereikt. Upgrade naar Premium voor onbeperkt swipen!',
+        remaining: 0,
+        upgradeUrl: '/subscription'
+      }, { status: 403 })
+    }
 
-    return successResponse(result)
+    // Check super like limits if this is a super like
+    if (isSuperLike && isLike) {
+      const superLikeCheck = await canSuperLike(user.id)
+      if (!superLikeCheck.allowed) {
+        return NextResponse.json({
+          success: false,
+          error: 'superlike_limit_reached',
+          message: 'Je hebt je dagelijkse Super Like limiet bereikt. Upgrade naar Gold voor onbeperkte Super Likes!',
+          remaining: 0,
+          upgradeUrl: '/subscription'
+        }, { status: 403 })
+      }
+    }
+
+    // Perform swipe operation
+    const result = await performSwipe(user.id, swipedId, isLike, isSuperLike)
+
+    // Add remaining swipes/superlikes to response
+    const updatedSwipeCheck = await canSwipe(user.id)
+    const updatedSuperLikeCheck = await canSuperLike(user.id)
+
+    return successResponse({
+      ...result,
+      limits: {
+        swipesRemaining: updatedSwipeCheck.remaining,
+        superLikesRemaining: updatedSuperLikeCheck.remaining,
+      }
+    })
   } catch (error) {
     return handleApiError(error)
   }
@@ -40,7 +77,8 @@ export async function POST(request: NextRequest) {
 async function performSwipe(
   swiperId: string,
   swipedId: string,
-  isLike: boolean
+  isLike: boolean,
+  isSuperLike: boolean = false
 ): Promise<SwipeResult> {
   // Check if swipe already exists
   const existingSwipe = await prisma.swipe.findUnique({
@@ -62,8 +100,27 @@ async function performSwipe(
       swiperId,
       swipedId,
       isLike,
+      isSuperLike: isLike && isSuperLike, // Only store superlike if it's also a like
     },
   })
+
+  // If it's a super like, create a notification for the swiped user
+  if (isLike && isSuperLike) {
+    const swiper = await prisma.user.findUnique({
+      where: { id: swiperId },
+      select: { name: true }
+    })
+
+    await prisma.notification.create({
+      data: {
+        userId: swipedId,
+        type: 'super_like',
+        title: '⭐ Super Like!',
+        message: `${swiper?.name || 'Iemand'} heeft je een Super Like gegeven! Bekijk hun profiel.`,
+        relatedId: swiperId,
+      },
+    })
+  }
 
   // Check for mutual interest and create match if it's a like
   if (!isLike) {
@@ -129,14 +186,14 @@ async function performSwipe(
       },
     })
 
-    // Create notifications for both users
+    // Create notifications for both users (Dutch)
     await Promise.all([
       tx.notification.create({
         data: {
           userId: swiperId,
           type: 'new_match',
-          title: 'New Match!',
-          message: 'You have a new match. Start chatting!',
+          title: '💕 Nieuwe Match!',
+          message: 'Je hebt een nieuwe match. Begin met chatten!',
           relatedId: newMatch.id,
         },
       }),
@@ -144,8 +201,8 @@ async function performSwipe(
         data: {
           userId: swipedId,
           type: 'new_match',
-          title: 'New Match!',
-          message: 'You have a new match. Start chatting!',
+          title: '💕 Nieuwe Match!',
+          message: 'Je hebt een nieuwe match. Begin met chatten!',
           relatedId: newMatch.id,
         },
       }),

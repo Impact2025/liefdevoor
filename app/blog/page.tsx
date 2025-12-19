@@ -76,7 +76,7 @@ export default function BlogPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto animate-spin"></div>
-          <p className="mt-4 text-gray-600">Loading blog...</p>
+          <p className="mt-4 text-gray-600">Blog laden...</p>
         </div>
       </div>
     )

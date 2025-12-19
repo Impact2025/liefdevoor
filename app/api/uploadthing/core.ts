@@ -63,6 +63,57 @@ export const ourFileRouter = {
         throw new Error("Failed to save photo to database");
       }
     }),
+
+  // Voice intro for user profile (max 60 seconds)
+  voiceIntro: f({
+    audio: {
+      maxFileSize: "8MB",
+      maxFileCount: 1,
+    }
+  })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Voice intro upload compleet voor gebruiker:", metadata.userId);
+      console.log("Audio URL:", file.url);
+
+      try {
+        // Update user's voiceIntro field
+        await prisma.user.update({
+          where: { id: metadata.userId },
+          data: { voiceIntro: file.url }
+        });
+
+        console.log("Voice intro opgeslagen in database");
+        return { url: file.url };
+      } catch (error) {
+        console.error("Fout bij opslaan voice intro:", error);
+        throw new Error("Failed to save voice intro to database");
+      }
+    }),
+
+  // Voice messages in chat
+  voiceMessage: f({
+    audio: {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    }
+  })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Voice message upload compleet voor gebruiker:", metadata.userId);
+      console.log("Audio URL:", file.url);
+
+      // Return the URL - the actual message will be created by the messages API
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
  
 export type OurFileRouter = typeof ourFileRouter;

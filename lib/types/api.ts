@@ -185,6 +185,15 @@ export interface MessageSender {
 export interface SwipeAction {
   swipedId: string
   isLike: boolean
+  isSuperLike?: boolean
+}
+
+/**
+ * Swipe limits info
+ */
+export interface SwipeLimits {
+  swipesRemaining: number  // -1 for unlimited
+  superLikesRemaining: number  // -1 for unlimited
 }
 
 /**
@@ -194,6 +203,7 @@ export interface SwipeResult {
   success: boolean
   isMatch?: boolean
   match?: Match
+  limits?: SwipeLimits
 }
 
 // ==============================================

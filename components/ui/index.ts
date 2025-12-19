@@ -60,3 +60,6 @@ export type { VerifiedBadgeProps } from './VerifiedBadge'
 export { CompatibilityBadge } from './CompatibilityBadge'
 export type { CompatibilityBadgeProps } from './CompatibilityBadge'
 
+// Audio
+export { AudioRecorder } from './AudioRecorder'
+export type { AudioRecorderProps } from './AudioRecorder'

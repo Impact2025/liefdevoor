@@ -31,7 +31,7 @@ export default function MatchesPage() {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-primary-600">
-            💬 Your Matches
+            💬 Jouw Matches
           </h1>
           <p className="text-sm text-gray-600 mt-1">
             Start een gesprek met je matches

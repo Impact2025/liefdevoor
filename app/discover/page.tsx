@@ -2,13 +2,13 @@
  * Discover Page - Adaptive Edition
  */
 "use client"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
-import { Filter, Heart, Sparkles } from "lucide-react"
+import { Filter, Heart, Sparkles, Camera } from "lucide-react"
 import { AdaptiveProfileCard, useAdaptiveUI, UIModeSelectorModal, ShowWhen, Adaptive } from "@/components/adaptive"
-import { useDiscoverUsers, usePost } from "@/hooks"
+import { useDiscoverUsers, usePost, useCurrentUser } from "@/hooks"
 import { Modal, Button, Input, Select, Alert } from "@/components/ui"
 import { Gender } from "@prisma/client"
 import type { DiscoverFilters, SwipeResult } from "@/lib/types"
@@ -17,12 +17,25 @@ export default function DiscoverPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { mode, triggerHaptic } = useAdaptiveUI()
+  const { user: currentUser } = useCurrentUser()
   const [showFilters, setShowFilters] = useState(false)
   const [showMatchModal, setShowMatchModal] = useState(false)
   const [showModeSelector, setShowModeSelector] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false)
   const [matchData, setMatchData] = useState<any>(null)
   const [filters, setFilters] = useState<DiscoverFilters>({ minAge: 18, maxAge: 99 })
   const { users, isLoading, error, refetch, setUsers } = useDiscoverUsers(filters)
+
+  // Check if user needs onboarding (no photos)
+  useEffect(() => {
+    if (currentUser && !onboardingDismissed) {
+      const hasPhotos = currentUser.photos && currentUser.photos.length > 0
+      if (!hasPhotos && !currentUser.profileImage) {
+        setShowOnboarding(true)
+      }
+    }
+  }, [currentUser, onboardingDismissed])
 
   const { post: swipePost, isLoading: isSwipeLoading } = usePost<SwipeResult>("/api/swipe", {
     onSuccess: (data) => {
@@ -79,7 +92,7 @@ export default function DiscoverPage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gradient flex items-center gap-2">
             <Heart className="w-6 h-6 text-pink-500" fill="#EC4899" />
-            <Adaptive simple={<span>Ontdek</span>} standard={<span>Discover</span>} advanced={<span>Discover</span>} />
+            <Adaptive simple={<span>Ontdek</span>} standard={<span>Ontdekken</span>} advanced={<span>Ontdekken</span>} />
           </h1>
           <div className="flex items-center gap-2">
             <button onClick={() => setShowModeSelector(true)} className="px-3 py-1.5 rounded-full text-sm bg-gray-100 hover:bg-gray-200">
@@ -127,6 +140,38 @@ export default function DiscoverPage() {
         </div>
       </Modal>
       <UIModeSelectorModal isOpen={showModeSelector} onClose={() => setShowModeSelector(false)} />
+
+      {/* Onboarding Modal - Encourage photo upload */}
+      <Modal isOpen={showOnboarding} onClose={() => { setShowOnboarding(false); setOnboardingDismissed(true) }} title="" size="md">
+        <div className="text-center py-6">
+          <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-pink-100 to-rose-200 rounded-full flex items-center justify-center">
+            <Camera className="w-12 h-12 text-pink-500" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            Voeg een foto toe!
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+            Profielen met foto's krijgen <span className="font-semibold text-pink-600">10x meer matches</span>.
+            Laat anderen zien wie je bent!
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => { setShowOnboarding(false); setOnboardingDismissed(true) }}
+              fullWidth
+            >
+              Later
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => router.push("/profile")}
+              fullWidth
+            >
+              Foto toevoegen
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

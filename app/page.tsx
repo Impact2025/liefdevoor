@@ -80,8 +80,8 @@ export default function Home() {
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center"
             >
               <Heart className="w-8 h-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold text-lg mb-2">Discover</h3>
-              <p className="text-gray-600">Find new matches</p>
+              <h3 className="font-semibold text-lg mb-2">Ontdekken</h3>
+              <p className="text-gray-600">Vind nieuwe matches</p>
             </Link>
 
             <Link
@@ -92,7 +92,7 @@ export default function Home() {
                 <span className="text-white font-bold">💬</span>
               </div>
               <h3 className="font-semibold text-lg mb-2">Matches</h3>
-              <p className="text-gray-600">Chat with your matches</p>
+              <p className="text-gray-600">Chat met je matches</p>
             </Link>
 
             <Link
@@ -107,8 +107,8 @@ export default function Home() {
                   </span>
                 )}
               </div>
-              <h3 className="font-semibold text-lg mb-2">Notifications</h3>
-              <p className="text-gray-600">View your notifications</p>
+              <h3 className="font-semibold text-lg mb-2">Meldingen</h3>
+              <p className="text-gray-600">Bekijk je meldingen</p>
             </Link>
 
             <Link
@@ -118,8 +118,8 @@ export default function Home() {
               <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-2 flex items-center justify-center">
                 <span className="text-white font-bold">👤</span>
               </div>
-              <h3 className="font-semibold text-lg mb-2">Profile</h3>
-              <p className="text-gray-600">Edit your profile</p>
+              <h3 className="font-semibold text-lg mb-2">Profiel</h3>
+              <p className="text-gray-600">Bewerk je profiel</p>
             </Link>
           </div>
 

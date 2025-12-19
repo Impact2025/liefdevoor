@@ -121,7 +121,7 @@ export default function NotificationsPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading notifications...</p>
+          <p className="mt-4 text-gray-600">Meldingen laden...</p>
         </div>
       </div>
     )
@@ -135,21 +135,21 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-primary">Notifications</h1>
+          <h1 className="text-3xl font-bold text-primary">Meldingen</h1>
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
               className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Mark All as Read ({unreadCount})
+              Alles als gelezen markeren ({unreadCount})
             </button>
           )}
         </div>
 
         {notifications.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No notifications yet!</p>
-            <p className="text-sm text-gray-400 mt-2">You'll receive notifications for new matches and messages.</p>
+            <p className="text-gray-500">Nog geen meldingen!</p>
+            <p className="text-sm text-gray-400 mt-2">Je ontvangt meldingen bij nieuwe matches en berichten.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -179,14 +179,14 @@ export default function NotificationsPage() {
                         onClick={() => markAsRead(notification.id)}
                         className="text-primary hover:text-primary/80 text-sm"
                       >
-                        Mark as Read
+                        Gelezen
                       </button>
                     )}
                     <button
                       onClick={() => deleteNotification(notification.id)}
                       className="text-red-500 hover:text-red-700 text-sm"
                     >
-                      Delete
+                      Verwijderen
                     </button>
                   </div>
                 </div>

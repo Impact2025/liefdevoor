@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
 import { auditLog, getClientInfo } from '@/lib/audit'
+import { sendEmail } from '@/lib/email/send'
+import { getPasswordResetEmailHtml, getPasswordResetEmailText } from '@/lib/email/templates'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -74,9 +76,37 @@ export async function POST(request: NextRequest) {
       clientInfo: getClientInfo(request)
     })
 
-    // TODO: Implement email sending
+    // Send password reset email
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`
-    // await sendPasswordResetEmail(normalizedEmail, resetUrl)
+
+    try {
+      await sendEmail({
+        to: normalizedEmail,
+        subject: '🔐 Wachtwoord resetten - Liefde Voor Iedereen',
+        html: getPasswordResetEmailHtml({
+          name: user.name || 'daar',
+          resetUrl,
+        }),
+        text: getPasswordResetEmailText({
+          name: user.name || 'daar',
+          resetUrl,
+        }),
+      })
+
+      auditLog('PASSWORD_RESET_EMAIL_SENT', {
+        userId: user.id,
+        details: 'Reset email sent successfully',
+        clientInfo: getClientInfo(request)
+      })
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError)
+      // Don't fail the request if email fails - token is still created
+      auditLog('PASSWORD_RESET_EMAIL_FAILED', {
+        userId: user.id,
+        details: 'Failed to send reset email',
+        clientInfo: getClientInfo(request)
+      })
+    }
 
     return successResponse
   } catch (error) {

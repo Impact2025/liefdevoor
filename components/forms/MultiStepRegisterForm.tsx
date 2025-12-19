@@ -26,7 +26,6 @@ const STEPS = [
   { id: 1, title: 'Account', description: 'Maak je account aan' },
   { id: 2, title: 'Over jou', description: 'Vertel over jezelf' },
   { id: 3, title: 'Profiel', description: 'Maak je profiel compleet' },
-  { id: 4, title: 'Foto', description: 'Voeg een foto toe (optioneel)' },
 ]
 
 export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps) {
@@ -166,9 +165,6 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
     }
   }
 
-  const handleSkipPhoto = () => {
-    handleSubmit()
-  }
 
   // Animation variants
   const slideVariants = {
@@ -511,58 +507,6 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
               </>
             )}
 
-            {/* Step 4: Photo Upload */}
-            {currentStep === 4 && (
-              <>
-                <div className="text-center py-8">
-                  <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center">
-                    <svg className="w-16 h-16 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Voeg een profielfoto toe
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Profielen met een foto krijgen 10x meer matches!
-                  </p>
-
-                  <div className="space-y-3">
-                    <Button
-                      type="button"
-                      variant="primary"
-                      fullWidth
-                      size="lg"
-                      disabled
-                    >
-                      📸 Foto uploaden
-                    </Button>
-
-                    <p className="text-xs text-gray-500">
-                      Je kunt ook later een foto toevoegen in je profiel
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800">
-                    ℹ️ Foto upload wordt in de volgende update toegevoegd. Je kunt nu eerst je account aanmaken.
-                  </p>
-                </div>
-              </>
-            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -606,19 +550,6 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
         )}
       </div>
 
-      {/* Skip photo option in step 4 */}
-      {currentStep === 4 && (
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={handleSkipPhoto}
-            disabled={isLoading}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
-          >
-            Overslaan en account aanmaken
-          </button>
-        </div>
-      )}
 
       {/* Login Link */}
       {currentStep === 1 && (

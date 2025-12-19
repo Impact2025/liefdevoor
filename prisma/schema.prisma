@@ -97,17 +97,19 @@ model Photo {
 }
 
 model Swipe {
-  id        String   @id @default(cuid())
-  swiperId  String
-  swiper    User     @relation("Swiper", fields: [swiperId], references: [id], onDelete: Cascade)
-  swipedId  String
-  swiped    User     @relation("Swiped", fields: [swipedId], references: [id], onDelete: Cascade)
-  isLike    Boolean
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  swiperId    String
+  swiper      User     @relation("Swiper", fields: [swiperId], references: [id], onDelete: Cascade)
+  swipedId    String
+  swiped      User     @relation("Swiped", fields: [swipedId], references: [id], onDelete: Cascade)
+  isLike      Boolean
+  isSuperLike Boolean  @default(false)
+  createdAt   DateTime @default(now())
   @@unique([swiperId, swipedId])
   @@index([swiperId])
   @@index([swipedId])
   @@index([swipedId, isLike])
+  @@index([swiperId, isSuperLike, createdAt])
 }
 
 model Match {

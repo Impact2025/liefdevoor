@@ -33,7 +33,7 @@ export function Navigation() {
 
   const navItems: NavItem[] = [
     {
-      name: 'Discover',
+      name: 'Ontdekken',
       href: '/discover',
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

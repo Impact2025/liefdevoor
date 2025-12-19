@@ -6,7 +6,7 @@
 
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import Image from 'next/image'
 import { Avatar, Badge, Button, Modal } from '@/components/ui'
 import { usePost } from '@/hooks'
@@ -24,6 +24,8 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
   const [isAnimating, setIsAnimating] = useState(false)
   const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null)
   const [imageError, setImageError] = useState(false)
+  const [isPlayingVoice, setIsPlayingVoice] = useState(false)
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const { post, isLoading } = usePost<SwipeResult>('/api/swipe', {
     onSuccess: (data) => {
@@ -88,6 +90,32 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
   const handleImageError = () => {
     console.log('Image failed to load, using fallback')
     setImageError(true)
+  }
+
+  // Voice intro playback functions
+  const playVoiceIntro = () => {
+    if (!user.voiceIntro) return
+
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause()
+    }
+
+    const audio = new Audio(user.voiceIntro)
+    voiceAudioRef.current = audio
+
+    audio.onended = () => setIsPlayingVoice(false)
+    audio.onerror = () => setIsPlayingVoice(false)
+
+    audio.play()
+    setIsPlayingVoice(true)
+  }
+
+  const stopVoiceIntro = () => {
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause()
+      voiceAudioRef.current.currentTime = 0
+    }
+    setIsPlayingVoice(false)
   }
 
   return (
@@ -168,26 +196,59 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
                   )}
                   {user.distance && (
                     <Badge variant="default" size="sm">
-                      {user.distance}km away
+                      {user.distance}km verwijderd
                     </Badge>
                   )}
                 </div>
               </div>
 
-              <button
-                onClick={() => setShowBio(!showBio)}
-                className="p-3 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
-                aria-label="Show bio"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
+              <div className="flex gap-2">
+                {/* Voice intro button - only show if user has voice intro */}
+                {user.voiceIntro && (
+                  <button
+                    onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
+                    className={`p-3 backdrop-blur-sm rounded-full transition-colors ${
+                      isPlayingVoice
+                        ? 'bg-pink-500 hover:bg-pink-600'
+                        : 'bg-white/20 hover:bg-white/30'
+                    }`}
+                    aria-label={isPlayingVoice ? 'Stop voice intro' : 'Play voice intro'}
+                    title="Stem introductie"
+                  >
+                    {isPlayingVoice ? (
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="4" width="4" height="16" rx="1" />
+                        <rect x="14" y="4" width="4" height="16" rx="1" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {/* Bio button */}
+                <button
+                  onClick={() => setShowBio(!showBio)}
+                  className="p-3 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
+                  aria-label="Show bio"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Action buttons */}
@@ -229,11 +290,48 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
       {/* Bio Modal */}
       <Modal
         isOpen={showBio}
-        onClose={() => setShowBio(false)}
+        onClose={() => {
+          setShowBio(false)
+          stopVoiceIntro() // Stop playing when closing modal
+        }}
         title={`Over ${user.name}`}
         size="md"
       >
         <div className="space-y-4">
+          {/* Voice intro in modal */}
+          {user.voiceIntro && (
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-xl border border-pink-100">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
+                  className={`p-3 rounded-full transition-all ${
+                    isPlayingVoice
+                      ? 'bg-pink-500 text-white shadow-lg scale-105'
+                      : 'bg-white text-pink-500 hover:bg-pink-50 shadow'
+                  }`}
+                >
+                  {isPlayingVoice ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <rect x="6" y="4" width="4" height="16" rx="1" />
+                      <rect x="14" y="4" width="4" height="16" rx="1" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  )}
+                </button>
+                <div>
+                  <p className="font-medium text-gray-800">🎤 Stem introductie</p>
+                  <p className="text-sm text-gray-500">
+                    {isPlayingVoice ? 'Aan het afspelen...' : 'Luister naar de stem van ' + user.name}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bio text */}
           {user.bio ? (
             <p className="text-gray-700">{user.bio}</p>
           ) : (

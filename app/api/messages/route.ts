@@ -73,13 +73,13 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
     })
   }
 
-  // Create notification for the other user
+  // Create notification for the other user (Dutch)
   await prisma.notification.create({
     data: {
       userId: otherUserId,
       type: 'new_message',
-      title: 'New Message',
-      message: `You have a new message from ${message.sender.name}`,
+      title: '💬 Nieuw Bericht',
+      message: `Je hebt een nieuw bericht van ${message.sender.name}`,
       relatedId: message.id,
     },
   })
