@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth, requireCSRF, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { sendMessageNotification } from '@/lib/email/notification-service'
+import { sendMessageNotification as sendMessagePush } from '@/lib/services/push/push-notifications'
 import type { Message } from '@/lib/types'
 
 interface SendMessageRequest {
@@ -83,6 +84,14 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
       relatedId: message.id,
     },
   })
+
+  // Send push notification (non-blocking)
+  sendMessagePush(
+    otherUserId,
+    message.sender.name || 'Iemand',
+    content || '🎤 Spraakbericht',
+    matchId
+  ).catch(err => console.error('[Push] Message notification failed:', err))
 
   return {
     id: message.id,

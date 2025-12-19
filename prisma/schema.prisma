@@ -72,6 +72,11 @@ model User {
   matchScoresAsUser    MatchScore[] @relation("MatchScoreUser")
   matchScoresAsTarget  MatchScore[] @relation("MatchScoreTarget")
   embedding            UserEmbedding?
+  // Engagement features
+  pushSubscriptions    PushSubscription[]
+  profileViewsSent     ProfileView[] @relation("ProfileViewer")
+  profileViewsReceived ProfileView[] @relation("ProfileViewed")
+  profileBoosts        ProfileBoost[]
 
   @@index([gender])
   @@index([birthDate])
@@ -92,8 +97,10 @@ model Photo {
   order     Int      @default(0)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([createdAt])
 }
 
 model Swipe {
@@ -356,4 +363,63 @@ model UserEmbedding {
   embedding Json
   bioHash   String?
   updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// ENGAGEMENT & PREMIUM FEATURES
+// ============================================
+
+model PushSubscription {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint     String   @unique
+  p256dh       String
+  auth         String
+  userAgent    String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model ProfileView {
+  id        String   @id @default(cuid())
+  viewerId  String
+  viewer    User     @relation("ProfileViewer", fields: [viewerId], references: [id], onDelete: Cascade)
+  viewedId  String
+  viewed    User     @relation("ProfileViewed", fields: [viewedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([viewerId, viewedId])
+  @@index([viewerId])
+  @@index([viewedId])
+  @@index([viewedId, createdAt])
+}
+
+model ProfileBoost {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+  isActive  Boolean  @default(true)
+
+  @@index([userId])
+  @@index([isActive, expiresAt])
+}
+
+model SwipeHistory {
+  id        String   @id @default(cuid())
+  swipeId   String   @unique
+  swiperId  String
+  swipedId  String
+  isLike    Boolean
+  swipedAt  DateTime
+  undoneAt  DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([swiperId, createdAt])
 }

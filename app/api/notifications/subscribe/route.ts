@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import {
+  savePushSubscription,
+  getVapidPublicKey,
+} from '@/lib/services/push/push-notifications'
+
+/**
+ * GET /api/notifications/subscribe
+ * Get VAPID public key for push subscription
+ */
+export async function GET() {
+  const publicKey = getVapidPublicKey()
+
+  if (!publicKey) {
+    return NextResponse.json(
+      { error: 'Push notifications not configured' },
+      { status: 503 }
+    )
+  }
+
+  return NextResponse.json({ publicKey })
+}
 
 /**
  * POST /api/notifications/subscribe
@@ -15,9 +36,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const subscription = await request.json()
+    const body = await request.json()
+    const { subscription } = body
 
-    if (!subscription.endpoint) {
+    if (!subscription?.endpoint || !subscription?.keys) {
       return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 })
     }
 
@@ -30,20 +52,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Store subscription in database
-    // In production, you'd have a PushSubscription model
-    // For now, we'll store it in user preferences or a separate table
-    console.log('[Push] New subscription for user:', user.id, {
-      endpoint: subscription.endpoint.substring(0, 50) + '...',
-      keys: subscription.keys ? 'present' : 'missing',
-    })
+    // Get user agent for device identification
+    const userAgent = request.headers.get('user-agent') || undefined
 
-    // Store subscription endpoint (you'd want a proper model for this)
-    // await prisma.pushSubscription.upsert({
-    //   where: { endpoint: subscription.endpoint },
-    //   update: { userId: user.id, subscription: JSON.stringify(subscription) },
-    //   create: { userId: user.id, endpoint: subscription.endpoint, subscription: JSON.stringify(subscription) },
-    // })
+    // Save subscription to database
+    await savePushSubscription(
+      user.id,
+      {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: subscription.keys.p256dh,
+          auth: subscription.keys.auth,
+        },
+      },
+      userAgent
+    )
+
+    console.log('[Push] Subscription saved for user:', user.id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

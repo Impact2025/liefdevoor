@@ -3,6 +3,10 @@ import { requireCSRF } from '@/lib/csrf'
 import { requireAuth, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { sendMatchNotification } from '@/lib/email/notification-service'
+import {
+  sendMatchNotification as sendMatchPush,
+  sendSuperLikeNotification,
+} from '@/lib/services/push/push-notifications'
 import { canSwipe, canSuperLike, getSubscriptionInfo } from '@/lib/subscription'
 import type { SwipeAction, SwipeResult } from '@/lib/types'
 
@@ -120,6 +124,13 @@ async function performSwipe(
         relatedId: swiperId,
       },
     })
+
+    // Send push notification for super like
+    sendSuperLikeNotification(
+      swipedId,
+      swiper?.name || 'Iemand',
+      swiperId
+    ).catch(err => console.error('[Push] Super like notification failed:', err))
   }
 
   // Check for mutual interest and create match if it's a like
@@ -229,6 +240,19 @@ async function performSwipe(
     }).catch(error => {
       console.error('[Match Email] Failed to send to user2:', error)
     })
+
+    // Send push notifications to BOTH users
+    sendMatchPush(
+      match.user1Id,
+      match.user2.name || 'Iemand',
+      match.id
+    ).catch(err => console.error('[Push] Match notification failed:', err))
+
+    sendMatchPush(
+      match.user2Id,
+      match.user1.name || 'Iemand',
+      match.id
+    ).catch(err => console.error('[Push] Match notification failed:', err))
 
     // Format match data for response
     const otherUser = match.user1Id === swiperId ? match.user2 : match.user1

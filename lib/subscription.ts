@@ -247,3 +247,24 @@ export function featureGateError(feature: string, requiredPlan: SubscriptionPlan
     upgradeUrl: '/subscription',
   }
 }
+
+/**
+ * Check if a user has a specific feature (alias for canUseFeature)
+ * Maps feature names to plan features
+ */
+export async function hasFeature(
+  userId: string,
+  feature: 'seeWhoLikesYou' | 'canRewind' | 'canBoost' | 'readReceipts' | 'videoChat' | 'incognitoMode'
+): Promise<boolean> {
+  const featureMap: Record<string, keyof PlanFeatures> = {
+    seeWhoLikesYou: 'canSeeWhoLikedYou',
+    canRewind: 'canRewind',
+    canBoost: 'canBoost',
+    readReceipts: 'readReceipts',
+    videoChat: 'videoChat',
+    incognitoMode: 'incognitoMode',
+  }
+
+  const mappedFeature = featureMap[feature] || feature
+  return canUseFeature(userId, mappedFeature as keyof PlanFeatures)
+}
