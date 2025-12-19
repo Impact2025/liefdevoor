@@ -89,26 +89,58 @@ const SWIPE_THRESHOLD = 100
 const SWIPE_VELOCITY_THRESHOLD = 500
 
 // ============================================================================
+// SPRING PHYSICS CONFIGURATIONS (Wereldklasse animaties)
+// ============================================================================
+
+const springConfig = {
+  type: "spring" as const,
+  stiffness: 500,
+  damping: 30,
+  mass: 0.8,
+}
+
+const gentleSpring = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 25,
+}
+
+const snappySpring = {
+  type: "spring" as const,
+  stiffness: 700,
+  damping: 35,
+  mass: 0.5,
+}
+
+// ============================================================================
 // ANIMATION VARIANTS
 // ============================================================================
 
 const cardVariants = {
   initial: { scale: 0.95, opacity: 0 },
-  animate: { scale: 1, opacity: 1, transition: { duration: 0.3 } },
-  exit: { scale: 0.95, opacity: 0, transition: { duration: 0.2 } },
+  animate: {
+    scale: 1,
+    opacity: 1,
+    transition: springConfig,
+  },
+  exit: {
+    scale: 0.95,
+    opacity: 0,
+    transition: { duration: 0.2 }
+  },
 }
 
 const overlayVariants = {
-  like: { opacity: 1, scale: 1 },
-  pass: { opacity: 1, scale: 1 },
-  superLike: { opacity: 1, scale: 1 },
-  hidden: { opacity: 0, scale: 0.8 },
+  like: { opacity: 1, scale: 1, transition: gentleSpring },
+  pass: { opacity: 1, scale: 1, transition: gentleSpring },
+  superLike: { opacity: 1, scale: 1, transition: gentleSpring },
+  hidden: { opacity: 0, scale: 0.8, transition: { duration: 0.15 } },
 }
 
 const buttonVariants = {
   idle: { scale: 1 },
-  hover: { scale: 1.1 },
-  tap: { scale: 0.95 },
+  hover: { scale: 1.1, transition: snappySpring },
+  tap: { scale: 0.95, transition: { duration: 0.1 } },
 }
 
 // ============================================================================
@@ -247,6 +279,10 @@ function PhotoGallery({
   showIndicators = true,
   showArrows = false,
 }: PhotoGalleryProps) {
+  const { preferences } = useAdaptiveUI()
+  const photoX = useMotionValue(0)
+  const [isDragging, setIsDragging] = useState(false)
+
   const handleNext = () => {
     if (currentIndex < photos.length - 1) {
       onIndexChange(currentIndex + 1)
@@ -259,20 +295,60 @@ function PhotoGallery({
     }
   }
 
-  return (
-    <div className="relative w-full h-full">
-      <Image
-        src={photos[currentIndex]}
-        alt={`Foto van ${name}`}
-        fill
-        className="object-cover"
-        priority
-        sizes="(max-width: 768px) 100vw, 500px"
-      />
+  const handlePhotoDragEnd = useCallback(
+    (_: never, info: PanInfo) => {
+      const { offset, velocity } = info
+      const PHOTO_SWIPE_THRESHOLD = 50
+      const PHOTO_VELOCITY_THRESHOLD = 300
 
-      {/* Photo Navigation Areas (invisible click zones) */}
-      {photos.length > 1 && (
-        <div className="absolute inset-0 flex">
+      if (Math.abs(offset.x) > PHOTO_SWIPE_THRESHOLD || Math.abs(velocity.x) > PHOTO_VELOCITY_THRESHOLD) {
+        if (offset.x < 0 && currentIndex < photos.length - 1) {
+          // Swipe left = next photo
+          onIndexChange(currentIndex + 1)
+        } else if (offset.x > 0 && currentIndex > 0) {
+          // Swipe right = previous photo
+          onIndexChange(currentIndex - 1)
+        }
+      }
+
+      // Reset position
+      photoX.set(0)
+      setIsDragging(false)
+    },
+    [currentIndex, photos.length, onIndexChange, photoX]
+  )
+
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      <motion.div
+        style={{ x: photoX }}
+        drag={photos.length > 1 && !preferences.reducedMotion ? "x" : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.7}
+        dragTransition={{
+          bounceStiffness: 600,
+          bounceDamping: 35,
+          power: 0.15,
+          timeConstant: 150,
+        }}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handlePhotoDragEnd}
+        className={`relative w-full h-full ${isDragging ? 'cursor-grabbing' : ''}`}
+      >
+        <Image
+          src={photos[currentIndex]}
+          alt={`Foto van ${name}`}
+          fill
+          className="object-cover select-none"
+          priority
+          sizes="(max-width: 768px) 100vw, 500px"
+          draggable={false}
+        />
+      </motion.div>
+
+      {/* Photo Navigation Areas (invisible click zones - fallback) */}
+      {photos.length > 1 && !isDragging && (
+        <div className="absolute inset-0 flex pointer-events-auto">
           <button
             onClick={handlePrev}
             disabled={currentIndex === 0}
@@ -645,6 +721,12 @@ export function AdaptiveProfileCard({
         drag={!preferences.reducedMotion && !isLoading}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         dragElastic={0.9}
+        dragTransition={{
+          bounceStiffness: 500,
+          bounceDamping: 30,
+          power: 0.2,
+          timeConstant: 200,
+        }}
         onDragEnd={handleDragEnd}
         className={`
           w-full max-w-md mx-auto cursor-grab active:cursor-grabbing
@@ -824,6 +906,12 @@ export function AdaptiveProfileCard({
       drag={!preferences.reducedMotion && !isLoading}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.9}
+      dragTransition={{
+        bounceStiffness: 500,
+        bounceDamping: 30,
+        power: 0.2,
+        timeConstant: 200,
+      }}
       onDragEnd={handleDragEnd}
       className={`
         w-full max-w-md mx-auto cursor-grab active:cursor-grabbing

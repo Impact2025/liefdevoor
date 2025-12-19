@@ -12,6 +12,7 @@ import { useDiscoverUsers, usePost, useCurrentUser } from "@/hooks"
 import { Modal, Button, Input, Select, Alert } from "@/components/ui"
 import { Gender } from "@prisma/client"
 import type { DiscoverFilters, SwipeResult } from "@/lib/types"
+import confetti from "canvas-confetti"
 
 export default function DiscoverPage() {
   const { data: session, status } = useSession()
@@ -25,6 +26,8 @@ export default function DiscoverPage() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(false)
   const [matchData, setMatchData] = useState<any>(null)
   const [filters, setFilters] = useState<DiscoverFilters>({ minAge: 18, maxAge: 99 })
+  const [canUndo, setCanUndo] = useState(false)
+  const [lastSwipedProfile, setLastSwipedProfile] = useState<any>(null)
   const { users, isLoading, error, refetch, setUsers } = useDiscoverUsers(filters)
 
   // Check if user needs onboarding (no photos)
@@ -37,12 +40,64 @@ export default function DiscoverPage() {
     }
   }, [currentUser, onboardingDismissed])
 
+  // Confetti celebration for matches
+  const celebrateMatch = useCallback(() => {
+    const count = 200
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 9999,
+    }
+
+    function fire(particleRatio: number, opts: confetti.Options) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
+      })
+    }
+
+    // Multi-stage confetti burst (like Tinder)
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+      colors: ['#EC4899', '#F472B6', '#FCA5A5'],
+    })
+
+    fire(0.2, {
+      spread: 60,
+      colors: ['#F43F5E', '#FB7185', '#FDA4AF'],
+    })
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+      colors: ['#EC4899', '#F472B6', '#FCA5A5'],
+    })
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+      colors: ['#F43F5E', '#FB7185'],
+    })
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+      colors: ['#EC4899', '#F472B6'],
+    })
+  }, [])
+
   const { post: swipePost, isLoading: isSwipeLoading } = usePost<SwipeResult>("/api/swipe", {
     onSuccess: (data) => {
       if (data?.isMatch && data.match) {
         setMatchData(data.match)
         setShowMatchModal(true)
         triggerHaptic("heavy")
+        // Trigger confetti celebration
+        setTimeout(celebrateMatch, 100)
       }
     },
   })
@@ -64,21 +119,53 @@ export default function DiscoverPage() {
 
   const handleLike = useCallback(async () => {
     if (users.length === 0 || isSwipeLoading) return
-    await swipePost({ swipedId: users[0].id, isLike: true })
+    const currentUser = users[0]
+    setLastSwipedProfile(currentUser)
+    await swipePost({ swipedId: currentUser.id, isLike: true })
     setUsers(users.slice(1))
+    setCanUndo(true)
   }, [users, isSwipeLoading, swipePost, setUsers])
 
   const handlePass = useCallback(async () => {
     if (users.length === 0 || isSwipeLoading) return
-    await swipePost({ swipedId: users[0].id, isLike: false })
+    const currentUser = users[0]
+    setLastSwipedProfile(currentUser)
+    await swipePost({ swipedId: currentUser.id, isLike: false })
     setUsers(users.slice(1))
+    setCanUndo(true)
   }, [users, isSwipeLoading, swipePost, setUsers])
 
   const handleSuperLike = useCallback(async () => {
     if (users.length === 0 || isSwipeLoading) return
-    await swipePost({ swipedId: users[0].id, isLike: true })
+    const currentUser = users[0]
+    setLastSwipedProfile(currentUser)
+    await swipePost({ swipedId: currentUser.id, isLike: true, isSuperLike: true })
     setUsers(users.slice(1))
+    setCanUndo(true)
   }, [users, isSwipeLoading, swipePost, setUsers])
+
+  const handleUndo = useCallback(async () => {
+    if (!canUndo || !lastSwipedProfile) return
+
+    try {
+      const response = await fetch('/api/swipe/undo', { method: 'POST' })
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Add the undone profile back to the front of the stack
+        setUsers([lastSwipedProfile, ...users])
+        setCanUndo(false)
+        setLastSwipedProfile(null)
+        triggerHaptic('light')
+      } else {
+        // Handle premium feature gate or other errors
+        alert(data.message || 'Kon swipe niet ongedaan maken')
+      }
+    } catch (error) {
+      console.error('Undo error:', error)
+      alert('Er ging iets mis bij het ongedaan maken')
+    }
+  }, [canUndo, lastSwipedProfile, users, setUsers, triggerHaptic])
 
   const applyFilters = () => { refetch(filters); setShowFilters(false) }
   const clearFilters = () => { setFilters({ minAge: 18, maxAge: 99 }); refetch({ minAge: 18, maxAge: 99 }) }
@@ -116,7 +203,7 @@ export default function DiscoverPage() {
             <AnimatePresence mode="popLayout">
               {users.slice(0, 3).map((user, i) => (
                 <motion.div key={user.id} initial={{ scale: 0.95 }} animate={{ scale: 1 - i * 0.05, y: i * 10, zIndex: users.length - i }} exit={{ scale: 0.9 }} className="absolute inset-0" style={{ pointerEvents: i === 0 ? "auto" : "none" }}>
-                  {i === 0 ? <AdaptiveProfileCard profile={convertToProfileData(user)} onLike={handleLike} onPass={handlePass} onSuperLike={handleSuperLike} isLoading={isSwipeLoading} /> : <div className="card-dating bg-gray-100" />}
+                  {i === 0 ? <AdaptiveProfileCard profile={convertToProfileData(user)} onLike={handleLike} onPass={handlePass} onSuperLike={handleSuperLike} onUndo={handleUndo} showUndoButton={canUndo} isLoading={isSwipeLoading} /> : <div className="card-dating bg-gray-100" />}
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -132,12 +219,46 @@ export default function DiscoverPage() {
         </div>
       </Modal>
       <Modal isOpen={showMatchModal} onClose={() => setShowMatchModal(false)} title="" size="md">
-        <div className="text-center py-6">
-          <div className="text-8xl mb-4">💕</div>
-          <h3 className="text-3xl font-bold mb-2">Match!</h3>
-          <p className="mb-6">Match met {matchData?.otherUser?.name}!</p>
-          <div className="flex gap-3"><Button variant="secondary" onClick={() => setShowMatchModal(false)} fullWidth>Swipen</Button><Button variant="primary" onClick={() => router.push("/chat/" + matchData?.id)} fullWidth>Bericht</Button></div>
-        </div>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="text-center py-6"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 15 }}
+            className="text-8xl mb-4"
+          >
+            💕
+          </motion.div>
+          <motion.h3
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-3xl font-bold mb-2 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent"
+          >
+            It's a Match!
+          </motion.h3>
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mb-6 text-gray-600"
+          >
+            Jij en {matchData?.otherUser?.name} vinden elkaar leuk!
+          </motion.p>
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex gap-3"
+          >
+            <Button variant="secondary" onClick={() => setShowMatchModal(false)} fullWidth>Verder swipen</Button>
+            <Button variant="primary" onClick={() => router.push("/chat/" + matchData?.id)} fullWidth>Stuur bericht</Button>
+          </motion.div>
+        </motion.div>
       </Modal>
       <UIModeSelectorModal isOpen={showModeSelector} onClose={() => setShowModeSelector(false)} />
 
