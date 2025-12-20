@@ -31,3 +31,6 @@ export { useWebSocket, useTypingIndicator } from './useWebSocket'
 
 // Matching
 export { useCompatibility, getCompatibilityColor, getCompatibilityLabel } from './useCompatibility'
+
+// Onboarding
+export { useOnboardingGuard, useOnboardingPageGuard } from './useOnboardingGuard'

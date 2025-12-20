@@ -67,25 +67,41 @@ export interface MultiSafepayWebhookPayload {
   var3?: string
 }
 
-// Plan configuration
+// Plan configuration - "Vriend van de Liefde" Model
 export const SUBSCRIPTION_PLANS = {
-  basic: {
-    id: 'basic',
-    name: 'Basic',
-    price: 0,
-    features: ['25 swipes per dag', '1 superlike per dag', 'Basis zoeken'],
+  FREE: {
+    id: 'FREE',
+    name: 'Basis',
+    price: 0, // cents
+    period: 'month' as const,
+    features: ['Profiel aanmaken', '10 likes per dag', '1 chat per dag starten', 'Basis zoekfilters'],
   },
-  premium: {
-    id: 'premium',
-    name: 'Premium',
-    price: 999, // cents
-    features: ['Onbeperkt swipen', '5 superlikes per dag', 'Zie wie je leuk vindt', 'Geavanceerde filters'],
+  PLUS: {
+    id: 'PLUS',
+    name: 'Liefde Plus',
+    price: 995, // €9,95 in cents
+    period: 'month' as const,
+    features: [
+      'Onbeperkt chatten',
+      'Onbeperkt likes',
+      'Zien wie jou leuk vindt',
+      'Audioberichten sturen',
+      'Leesbevestigingen',
+      'Geen advertenties',
+    ],
   },
-  gold: {
-    id: 'gold',
-    name: 'Gold',
-    price: 1999, // cents
-    features: ['Alles van Premium', 'Onbeperkte superlikes', 'Prioriteit in zoekresultaten', 'Leesbevestigingen', 'Profiel boosts'],
+  COMPLETE: {
+    id: 'COMPLETE',
+    name: 'Liefde Compleet',
+    price: 2495, // €24,95 in cents (voor 3 maanden)
+    period: '3months' as const,
+    features: [
+      'Alles van Liefde Plus',
+      '3 Superberichten per maand',
+      'Profiel boost (1x per maand)',
+      'Prioriteit in zoekresultaten',
+      'Geavanceerde filters',
+    ],
   },
 } as const
 

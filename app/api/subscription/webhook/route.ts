@@ -5,6 +5,8 @@ import {
   verifyTransactionStatus,
   type PaymentStatus,
 } from '@/lib/services/payment/multisafepay'
+import { trackSubscriptionPurchase } from '@/lib/analytics-events'
+import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '@/lib/pricing'
 
 /**
  * POST /api/subscription/webhook
@@ -106,6 +108,20 @@ export async function POST(request: NextRequest) {
         newStatus,
         recurringId,
       })
+
+      // Track successful purchase in Google Analytics
+      if (newStatus === 'active' && subscription.status !== 'active') {
+        const planDetails = SUBSCRIPTION_PLANS.find((p: SubscriptionPlan) => p.id === subscription.plan)
+        if (planDetails) {
+          trackSubscriptionPurchase(
+            subscription.userId,
+            transactionid || order_id,
+            subscription.plan,
+            planDetails.price,
+            'multisafepay'
+          )
+        }
+      }
 
       // Create appropriate notification
       await createStatusNotification(

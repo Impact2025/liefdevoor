@@ -54,7 +54,7 @@ export const ANALYTICS_EVENTS = {
   UNBLOCK_USER: 'unblock_user',
 } as const
 
-type AnalyticsEvent = typeof ANALYTICS_EVENTS[keyof typeof ANALYTICS_EVENTS]
+export type AnalyticsEvent = typeof ANALYTICS_EVENTS[keyof typeof ANALYTICS_EVENTS]
 
 interface EventProperties {
   [key: string]: string | number | boolean | null | undefined
@@ -129,8 +129,11 @@ class AnalyticsManager {
   }
 
   track(event: AnalyticsEvent | string, properties?: EventProperties) {
-    if (!this.isInitialized && typeof window !== 'undefined') {
-      this.init()
+    // IMPORTANT: Do NOT auto-initialize! This was an AVG violation.
+    // Analytics must be explicitly initialized with user consent.
+    if (!this.isInitialized) {
+      console.log('[Analytics] Not initialized - event not tracked:', event)
+      return
     }
 
     const eventData = {

@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShieldCheck, Smile, Bell } from "lucide-react";
+import { motion } from "framer-motion";
+import { Heart, ShieldCheck, Users, MessageCircle, Bell, Check, Star, Sparkles, Lock, ArrowRight } from "lucide-react";
 import { useSession, signOut } from 'next-auth/react'
+import HowItWorksSection from '@/components/landing/HowItWorksSection'
 import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
@@ -58,75 +60,78 @@ export default function Home() {
     }
   }
 
+  // Dashboard voor ingelogde gebruikers
   if (session) {
     return (
-      <main className="min-h-screen bg-background p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="mb-6 bg-white p-4 rounded-full shadow-sm inline-block">
-              <Heart className="w-12 h-12 text-primary fill-current" />
+      <main className="min-h-screen bg-slate-50">
+        <div className="max-w-5xl mx-auto px-4 py-12">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-rose-100 rounded-full mb-6">
+              <Heart className="w-10 h-10 text-rose-600" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
-              Welkom, <span className="text-primary">{session.user?.name || 'Gebruiker'}</span>!
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+              Welkom terug, <span className="text-rose-600">{session.user?.name || 'Gebruiker'}</span>
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Je bent succesvol ingelogd bij Liefde Voor Iedereen.
+            <p className="text-lg text-slate-500">
+              Ontdek vandaag nog nieuwe matches
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <Link
               href="/discover"
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
             >
-              <Heart className="w-8 h-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold text-lg mb-2">Ontdekken</h3>
-              <p className="text-gray-600">Vind nieuwe matches</p>
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
+                <Heart className="w-7 h-7 text-rose-600" />
+              </div>
+              <h3 className="font-semibold text-slate-900 mb-1">Ontdekken</h3>
+              <p className="text-sm text-slate-500">Vind nieuwe matches</p>
             </Link>
 
             <Link
               href="/matches"
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-2 flex items-center justify-center">
-                <span className="text-white font-bold">💬</span>
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
+                <MessageCircle className="w-7 h-7 text-rose-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Matches</h3>
-              <p className="text-gray-600">Chat met je matches</p>
+              <h3 className="font-semibold text-slate-900 mb-1">Matches</h3>
+              <p className="text-sm text-slate-500">Chat met matches</p>
             </Link>
 
             <Link
               href="/notifications"
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center relative"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center relative"
             >
-              <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-2 flex items-center justify-center relative">
-                <Bell className="w-4 h-4 text-white" />
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors relative">
+                <Bell className="w-7 h-7 text-rose-600" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </div>
-              <h3 className="font-semibold text-lg mb-2">Meldingen</h3>
-              <p className="text-gray-600">Bekijk je meldingen</p>
+              <h3 className="font-semibold text-slate-900 mb-1">Meldingen</h3>
+              <p className="text-sm text-slate-500">Bekijk updates</p>
             </Link>
 
             <Link
               href="/profile"
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-2 flex items-center justify-center">
-                <span className="text-white font-bold">👤</span>
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
+                <Users className="w-7 h-7 text-rose-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Profiel</h3>
-              <p className="text-gray-600">Bewerk je profiel</p>
+              <h3 className="font-semibold text-slate-900 mb-1">Profiel</h3>
+              <p className="text-sm text-slate-500">Bewerk profiel</p>
             </Link>
           </div>
 
           <div className="text-center">
             <button
               onClick={() => signOut()}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
+              className="text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors"
             >
               Uitloggen
             </button>
@@ -136,274 +141,347 @@ export default function Home() {
     )
   }
 
+  // Landing page voor bezoekers
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <nav className="absolute top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Heart className="w-8 h-8 text-primary fill-current" />
-              <span className="text-xl font-bold text-gray-900">Liefde Voor Iedereen</span>
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-3">
+              <Heart className="w-9 h-9 text-white fill-white" />
+              <span className="text-xl font-bold text-white">Liefde Voor Iedereen</span>
             </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="/blog" className="text-gray-600 hover:text-primary transition-colors">Blog</Link>
-              <Link href="/discover" className="text-gray-600 hover:text-primary transition-colors">Ontdekken</Link>
-              <Link href="/login" className="bg-primary text-white px-6 py-2 rounded-full hover:bg-primary-hover transition-colors">
-                Inloggen
-              </Link>
-            </div>
+            <Link
+              href="/login"
+              className="px-6 py-2.5 bg-white/10 backdrop-blur-md border border-white/30 text-white font-medium rounded-full hover:bg-white/20 transition-colors"
+            >
+              Inloggen
+            </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div>
-                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Vind je <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">ware liefde</span> in een veilige omgeving
-                </h1>
-                <p className="text-xl text-gray-600 mt-6 leading-relaxed">
-                  Ontdek betekenisvolle connecties met mensen die bij je passen. Ons AI-powered platform maakt dating makkelijker, leuker en veiliger dan ooit.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/register"
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-lg font-semibold py-4 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 text-center"
-                >
-                  Start je liefdesverhaal
-                </Link>
-                <Link
-                  href="/blog"
-                  className="border-2 border-gray-300 text-gray-700 text-lg font-semibold py-4 px-8 rounded-full hover:border-primary hover:text-primary transition-colors text-center"
-                >
-                  Lees onze verhalen
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-3 gap-8 pt-8">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">10K+</div>
-                  <div className="text-sm text-gray-600">Gelukkige stellen</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">50K+</div>
-                  <div className="text-sm text-gray-600">Actieve leden</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">4.9★</div>
-                  <div className="text-sm text-gray-600">Gebruikersrating</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-300">
-                <Image
-                  src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?auto=format&fit=crop&q=80&w=800"
-                  alt="Gelukkig stel op date"
-                  width={600}
-                  height={800}
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-              </div>
-
-              {/* Floating cards */}
-              <div className="absolute -top-6 -left-6 bg-white rounded-2xl shadow-xl p-4 transform rotate-6 hover:rotate-0 transition-transform">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-bold">✓</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">100% Veilig</div>
-                    <div className="text-sm text-gray-600">Geverifieerde profielen</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl shadow-xl p-4 transform -rotate-6 hover:rotate-0 transition-transform">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600">🤖</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">AI Matching</div>
-                    <div className="text-sm text-gray-600">Slimme suggesties</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <section className="relative min-h-[95vh] flex items-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/LiefdevoorLiedereen_datingsite.png"
+            alt="Een gelukkig koppel dat lacht in een café"
+            fill
+            priority
+            className="object-cover"
+            style={{ objectPosition: "center center" }}
+          />
         </div>
 
-        {/* Wave decoration */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" className="w-full h-20 fill-white">
-            <path d="M0,32L48,37.3C96,43,192,53,288,58.7C384,64,480,64,576,58.7C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,69.3L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
-          </svg>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-transparent" />
+
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-2xl text-white"
+          >
+            {/* Trust Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
+              <ShieldCheck className="w-5 h-5 text-rose-400" />
+              <span className="text-sm font-medium tracking-wide">Veilig & Geverifieerd daten</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
+              Vind liefde <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-300">
+                zonder gedoe.
+              </span>
+            </h1>
+
+            {/* Subtext */}
+            <p className="text-xl md:text-2xl text-slate-200 mb-10 leading-relaxed max-w-lg">
+              Het datingplatform waar eerlijkheid wint. Met slimme hulp voor je profiel en focus op echte connecties.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                href="/register"
+                className="group px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white text-lg font-bold rounded-2xl shadow-lg shadow-rose-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
+              >
+                <Heart className="w-5 h-5 fill-current" />
+                Gratis Starten
+              </Link>
+
+              <Link
+                href="/prijzen"
+                className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white text-lg font-semibold rounded-2xl transition-all flex items-center justify-center gap-2"
+              >
+                Bekijk abonnementen
+              </Link>
+            </div>
+
+            {/* Social Proof */}
+            <div className="mt-10 flex items-center gap-4 text-sm text-slate-300 font-medium">
+              <div className="flex -space-x-3">
+                {[
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+                  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop",
+                  "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop",
+                ].map((src, i) => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 overflow-hidden">
+                    <Image
+                      src={src}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p>Al <strong className="text-white">10.000+</strong> matches gemaakt</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Stats Section - Upgraded */}
+      <section className="py-16 bg-slate-50 border-y border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-5xl font-black text-slate-800 mb-2">50K+</div>
+              <div className="text-slate-600 font-medium">Actieve leden</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-black text-slate-800 mb-2">10K+</div>
+              <div className="text-slate-600 font-medium">Succesvolle matches</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-black text-slate-800 mb-2 flex items-center justify-center gap-1">
+                4.9 <Star className="w-8 h-8 text-amber-400 fill-amber-400" />
+              </div>
+              <div className="text-slate-600 font-medium">Beoordeling</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-black text-slate-800 mb-2">100%</div>
+              <div className="text-slate-600 font-medium">Nederlands</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Upgraded with visuals */}
       <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Waarom kiezen voor Liefde Voor Iedereen?
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Waarom kiezen voor ons?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We combineren moderne technologie met echte menselijke connecties voor de beste dating ervaring.
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              We maken daten veilig, eerlijk en leuk voor iedereen
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-pink-50 to-purple-50 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShieldCheck className="w-8 h-8 text-white" />
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+            >
+              <div className="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mb-6">
+                <ShieldCheck className="w-8 h-8 text-rose-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">100% Veilig</h3>
-              <p className="text-gray-600">
-                Geavanceerde verificatie systemen en AI-gedreven moderatie houden onze community veilig.
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Geverifieerde profielen</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Elk profiel wordt gecontroleerd. Geen nep-accounts, alleen echte mensen die serieus op zoek zijn.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl">🎯</span>
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+            >
+              <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-6">
+                <Sparkles className="w-8 h-8 text-amber-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Slim Matching</h3>
-              <p className="text-gray-600">
-                Onze AI analyseert compatibiliteit, interesses en gedrag voor de beste matches.
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Slimme matching</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Onze technologie leert wat je leuk vindt en toont je mensen die echt bij je passen.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl">💬</span>
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+            >
+              <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-6">
+                <Lock className="w-8 h-8 text-emerald-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Betekenisvolle Gesprekken</h3>
-              <p className="text-gray-600">
-                AI-gedreven icebreakers en conversation starters maken het makkelijker om te connecteren.
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Jouw privacy voorop</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Jij bepaalt wat je deelt. We verkopen nooit je gegevens en je kunt altijd alles verwijderen.
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* How it Works - Bento Grid */}
+      <HowItWorksSection />
+
+      {/* Testimonials - With Photos */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Wat onze gebruikers zeggen
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Succesverhalen
             </h2>
+            <p className="text-xl text-slate-600">
+              Lees hoe anderen de liefde vonden
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-yellow-400">⭐</span>
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Dankzij de AI icebreakers heb ik eindelijk de moed gehad om mijn crush aan te spreken. We zijn nu 6 maanden samen!"
-              </p>
-              <div className="font-semibold text-gray-900">Sarah, 28</div>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-yellow-400">⭐</span>
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Het locatie-based matching is geweldig. Ik ontmoet alleen mensen in mijn buurt die dezelfde interesses delen."
-              </p>
-              <div className="font-semibold text-gray-900">Mike, 32</div>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-yellow-400">⭐</span>
-                ))}
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Eindelijk een dating app die serieus is over veiligheid. De verificatie en moderatie zijn top!"
-              </p>
-              <div className="font-semibold text-gray-900">Emma, 25</div>
-            </div>
+            {[
+              {
+                quote: "Na jaren van twijfelen heb ik eindelijk de stap gezet. Binnen 3 maanden vond ik mijn huidige partner. We zijn nu 2 jaar samen!",
+                name: "Sarah & Mark",
+                location: "Amsterdam",
+                image: "https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=400&h=400&fit=crop"
+              },
+              {
+                quote: "De kwaliteit van de profielen is echt veel beter dan andere apps. Eindelijk serieuze mensen die ook echt op zoek zijn naar een relatie.",
+                name: "Thomas & Lisa",
+                location: "Rotterdam",
+                image: "https://images.unsplash.com/photo-1516914943479-89db7d9ae7f2?w=400&h=400&fit=crop"
+              },
+              {
+                quote: "Wat ik fijn vind is dat de site echt focust op veiligheid. Je voelt je gerespecteerd en serieus genomen als lid.",
+                name: "Emma & David",
+                location: "Utrecht",
+                image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=400&fit=crop"
+              }
+            ].map((testimonial, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-slate-50 rounded-3xl overflow-hidden"
+              >
+                <div className="aspect-square relative">
+                  <Image
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="w-5 h-5 text-amber-400 fill-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-slate-700 mb-4 leading-relaxed">
+                    &quot;{testimonial.quote}&quot;
+                  </p>
+                  <div>
+                    <div className="font-bold text-slate-900">{testimonial.name}</div>
+                    <div className="text-sm text-slate-500">{testimonial.location}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-pink-500 to-purple-600">
+      <section className="py-24 bg-gradient-to-br from-rose-600 to-rose-700">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Klaar om je soulmate te vinden?
-          </h2>
-          <p className="text-xl text-pink-100 mb-8">
-            Sluit je aan bij duizenden singles die hun liefde gevonden hebben op ons platform.
-          </p>
-          <Link
-            href="/register"
-            className="bg-white text-primary text-xl font-bold py-4 px-12 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 inline-block"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
           >
-            Start Gratis
-          </Link>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Klaar om de liefde te vinden?
+            </h2>
+            <p className="text-xl text-rose-100 mb-10 max-w-2xl mx-auto">
+              Sluit je aan bij duizenden singles die hun match al vonden. Gratis aanmelden duurt maar 2 minuten.
+            </p>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-3 bg-white text-rose-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-rose-50 transition-colors shadow-lg"
+            >
+              Start nu gratis
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Trust Badges */}
+      <section className="py-12 bg-white border-t border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+            {["SSL Beveiligd", "AVG Compliant", "Nederlands bedrijf", "24/7 Support"].map((badge, i) => (
+              <div key={i} className="flex items-center space-x-2 text-slate-500">
+                <Check className="w-5 h-5 text-emerald-500" />
+                <span className="font-medium">{badge}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="bg-slate-900 text-white py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Heart className="w-6 h-6 text-primary fill-current" />
+              <div className="flex items-center space-x-2 mb-5">
+                <Heart className="w-7 h-7 text-rose-500 fill-rose-500" />
                 <span className="text-lg font-bold">Liefde Voor Iedereen</span>
               </div>
-              <p className="text-gray-400">
-                Het meest vertrouwde dating platform van Nederland en België.
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Het dating platform waar echte connecties ontstaan. Veilig, betrouwbaar en 100% Nederlands.
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Platform</h3>
-              <ul className="space-y-2 text-gray-400">
+              <h3 className="font-bold mb-4">Platform</h3>
+              <ul className="space-y-3 text-sm text-slate-400">
                 <li><Link href="/discover" className="hover:text-white transition-colors">Ontdekken</Link></li>
                 <li><Link href="/matches" className="hover:text-white transition-colors">Matches</Link></li>
-                <li><Link href="/profile" className="hover:text-white transition-colors">Profiel</Link></li>
+                <li><Link href="/prijzen" className="hover:text-white transition-colors">Abonnementen</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Bedrijf</h3>
-              <ul className="space-y-2 text-gray-400">
+              <h3 className="font-bold mb-4">Informatie</h3>
+              <ul className="space-y-3 text-sm text-slate-400">
                 <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-colors">Over ons</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Ondersteuning</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-white transition-colors">Help</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors">Voorwaarden</Link></li>
+              <h3 className="font-bold mb-4">Juridisch</h3>
+              <ul className="space-y-3 text-sm text-slate-400">
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacybeleid</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Algemene voorwaarden</Link></li>
+                <li><Link href="/cookies" className="hover:text-white transition-colors">Cookiebeleid</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Liefde Voor Iedereen. Alle rechten voorbehouden.</p>
+          <div className="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
+            <p>&copy; {new Date().getFullYear()} Liefde Voor Iedereen. Alle rechten voorbehouden.</p>
           </div>
         </div>
       </footer>

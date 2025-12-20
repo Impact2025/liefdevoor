@@ -5,12 +5,16 @@ declare module 'next-auth' {
     user: {
       id: string
       role: string
+      profileComplete: boolean
+      onboardingStep: number
     } & DefaultSession['user']
   }
 
   interface User {
     id: string
     role: string
+    profileComplete: boolean
+    onboardingStep: number
   }
 }
 
@@ -18,6 +22,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string
     role: string
+    profileComplete: boolean
+    onboardingStep: number
   }
 }
 

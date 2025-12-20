@@ -1,48 +1,62 @@
 /**
  * MultiStepRegisterForm Component
  *
- * World-class multi-step registration flow
- * - Simple enough for LVB users
- * - Professional enough for everyone
- * - Smooth animations & progress tracking
+ * Simplified registration flow (OurTime-inspired):
+ * - Step 1: Email
+ * - Step 2: Password with LIVE feedback
+ * - Step 3: Name + Terms
+ *
+ * Personal details (birthdate, gender, etc.) are collected in onboarding
  */
 
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Input, Button, Select, Checkbox, Alert } from '@/components/ui'
+import { Input, Button, Checkbox, Alert } from '@/components/ui'
 import { usePost } from '@/hooks'
-import type { RegisterFormData } from '@/lib/types'
-import { Gender } from '@prisma/client'
+import { Check, X, Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 
 export interface MultiStepRegisterFormProps {
   onSuccess?: () => void
 }
 
+interface FormData {
+  email: string
+  password: string
+  name: string
+  acceptedTerms: boolean
+}
+
 // Step configuration
 const STEPS = [
-  { id: 1, title: 'Account', description: 'Maak je account aan' },
-  { id: 2, title: 'Over jou', description: 'Vertel over jezelf' },
-  { id: 3, title: 'Profiel', description: 'Maak je profiel compleet' },
+  { id: 1, title: 'Email', description: 'Waar kunnen we je bereiken?' },
+  { id: 2, title: 'Wachtwoord', description: 'Kies een veilig wachtwoord' },
+  { id: 3, title: 'Je naam', description: 'Hoe mogen we je noemen?' },
+]
+
+// Password requirements
+const PASSWORD_REQUIREMENTS = [
+  { id: 'length', label: 'Minimaal 8 tekens', test: (p: string) => p.length >= 8 },
+  { id: 'lowercase', label: 'Een kleine letter (a-z)', test: (p: string) => /[a-z]/.test(p) },
+  { id: 'uppercase', label: 'Een hoofdletter (A-Z)', test: (p: string) => /[A-Z]/.test(p) },
+  { id: 'number', label: 'Een cijfer (0-9)', test: (p: string) => /[0-9]/.test(p) },
 ]
 
 export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps) {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState<RegisterFormData & { city?: string; bio?: string }>({
-    name: '',
+  const [showPassword, setShowPassword] = useState(false)
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
-    confirmPassword: '',
-    birthDate: '',
-    gender: Gender.MALE,
-    city: '',
-    bio: '',
+    name: '',
     acceptedTerms: false,
   })
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
+  const [direction, setDirection] = useState(0)
 
   const { post, isLoading, error: apiError } = usePost('/api/register', {
     onSuccess: () => {
@@ -51,68 +65,43 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
     },
   })
 
+  // Live password validation
+  const passwordChecks = useMemo(() => {
+    return PASSWORD_REQUIREMENTS.map((req) => ({
+      ...req,
+      passed: req.test(formData.password),
+    }))
+  }, [formData.password])
+
+  const isPasswordValid = passwordChecks.every((check) => check.passed)
+
   // Validation per step
   const validateStep = (step: number): boolean => {
     const newErrors: Partial<Record<string, string>> = {}
 
     if (step === 1) {
-      // Name
+      if (!formData.email) {
+        newErrors.email = 'Email is verplicht'
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Ongeldig email adres'
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.password) {
+        newErrors.password = 'Wachtwoord is verplicht'
+      } else if (!isPasswordValid) {
+        newErrors.password = 'Wachtwoord voldoet niet aan alle eisen'
+      }
+    }
+
+    if (step === 3) {
       if (!formData.name) {
         newErrors.name = 'Naam is verplicht'
       } else if (formData.name.length < 2) {
         newErrors.name = 'Naam moet minimaal 2 karakters zijn'
       }
 
-      // Email
-      if (!formData.email) {
-        newErrors.email = 'Email is verplicht'
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = 'Ongeldig email adres'
-      }
-
-      // Password
-      if (!formData.password) {
-        newErrors.password = 'Wachtwoord is verplicht'
-      } else if (formData.password.length < 8) {
-        newErrors.password = 'Wachtwoord moet minimaal 8 karakters zijn'
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-        newErrors.password = 'Wachtwoord moet een hoofdletter, kleine letter en cijfer bevatten'
-      }
-
-      // Confirm password
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Wachtwoorden komen niet overeen'
-      }
-    }
-
-    if (step === 2) {
-      // Birth date
-      if (!formData.birthDate) {
-        newErrors.birthDate = 'Geboortedatum is verplicht'
-      } else {
-        const birthDate = new Date(formData.birthDate)
-        const today = new Date()
-        const age = today.getFullYear() - birthDate.getFullYear()
-        if (age < 18) {
-          newErrors.birthDate = 'Je moet minimaal 18 jaar oud zijn'
-        } else if (age > 100) {
-          newErrors.birthDate = 'Ongeldige geboortedatum'
-        }
-      }
-    }
-
-    if (step === 3) {
-      // City (optional but recommended)
-      if (formData.city && formData.city.length < 2) {
-        newErrors.city = 'Ongeldige plaatsnaam'
-      }
-
-      // Bio (optional)
-      if (formData.bio && formData.bio.length > 500) {
-        newErrors.bio = 'Bio mag maximaal 500 karakters zijn'
-      }
-
-      // Terms (only checked in step 3)
       if (!formData.acceptedTerms) {
         newErrors.acceptedTerms = 'Je moet akkoord gaan met de voorwaarden'
       }
@@ -125,6 +114,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
   const handleNext = () => {
     if (validateStep(currentStep)) {
       if (currentStep < STEPS.length) {
+        setDirection(1)
         setCurrentStep(currentStep + 1)
       } else {
         handleSubmit()
@@ -134,6 +124,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
 
   const handleBack = () => {
     if (currentStep > 1) {
+      setDirection(-1)
       setCurrentStep(currentStep - 1)
     }
   }
@@ -143,18 +134,14 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       name: formData.name,
       email: formData.email,
       password: formData.password,
-      birthDate: formData.birthDate,
-      gender: formData.gender,
-      city: formData.city,
-      bio: formData.bio,
     })
   }
 
-  const handleChange = (field: string) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  const handleChange = (field: keyof FormData) => (
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = field === 'acceptedTerms'
-      ? (e.target as HTMLInputElement).checked
+      ? e.target.checked
       : e.target.value
 
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -165,28 +152,32 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleNext()
+    }
+  }
+
+  const handleGoogleSignIn = () => {
+    signIn('google', { callbackUrl: '/onboarding' })
+  }
 
   // Animation variants
   const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
+    enter: (dir: number) => ({
+      x: dir > 0 ? 300 : -300,
       opacity: 0,
     }),
     center: {
       x: 0,
       opacity: 1,
     },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 300 : -300,
+    exit: (dir: number) => ({
+      x: dir < 0 ? 300 : -300,
       opacity: 0,
     }),
   }
-
-  const [[page, direction], setPage] = useState([0, 0])
-
-  React.useEffect(() => {
-    setPage([currentStep, currentStep > page ? 1 : -1])
-  }, [currentStep])
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -201,21 +192,21 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
                   step.id <= currentStep
-                    ? 'bg-primary-600'
-                    : 'bg-gray-200'
+                    ? 'bg-pink-500'
+                    : 'bg-slate-200'
                 }`}
               />
             </div>
           ))}
         </div>
         <div className="text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             Stap {currentStep} van {STEPS.length}
           </p>
-          <h2 className="text-xl font-semibold text-gray-900 mt-1">
+          <h2 className="text-xl font-semibold text-slate-900 mt-1">
             {STEPS[currentStep - 1].title}
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             {STEPS[currentStep - 1].description}
           </p>
         </div>
@@ -229,7 +220,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       )}
 
       {/* Form Steps */}
-      <div className="relative overflow-hidden" style={{ minHeight: '400px' }}>
+      <div className="relative overflow-hidden" style={{ minHeight: '280px' }}>
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentStep}
@@ -244,269 +235,227 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
             }}
             className="space-y-6"
           >
-            {/* Step 1: Account Details */}
+            {/* Step 1: Email */}
             {currentStep === 1 && (
               <>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    label="Email adres"
+                    placeholder="jouw@email.nl"
+                    value={formData.email}
+                    onChange={handleChange('email')}
+                    onKeyDown={handleKeyDown}
+                    error={errors.email}
+                    fullWidth
+                    required
+                    autoComplete="email"
+                    disabled={isLoading}
+                    autoFocus
+                    startIcon={<Mail className="w-5 h-5" />}
+                  />
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <p className="text-sm text-slate-600">
+                    We sturen je een bevestigingsmail om je account te activeren.
+                  </p>
+                </div>
+
                 {/* Social Login Option */}
-                <div className="space-y-3">
+                <div className="pt-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-4 bg-white text-slate-500">
+                        Of registreer met
+                      </span>
+                    </div>
+                  </div>
+
                   <Button
                     type="button"
                     variant="secondary"
                     fullWidth
                     size="lg"
-                    onClick={() => {/* TODO: Implement Google OAuth */}}
-                    className="border-2"
+                    onClick={handleGoogleSignIn}
+                    className="mt-4 border-2 border-slate-200 hover:border-slate-300"
                   >
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
-                        fill="currentColor"
+                        fill="#4285F4"
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       />
                       <path
-                        fill="currentColor"
+                        fill="#34A853"
                         d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                       />
                       <path
-                        fill="currentColor"
+                        fill="#FBBC05"
                         d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
                       />
                       <path
-                        fill="currentColor"
+                        fill="#EA4335"
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                       />
                     </svg>
-                    Doorgaan met Google
+                    Google
                   </Button>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200" />
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-white text-gray-500">
-                        Of met email
-                      </span>
-                    </div>
-                  </div>
                 </div>
-
-                <Input
-                  id="name"
-                  type="text"
-                  label="Naam"
-                  placeholder="Je volledige naam"
-                  value={formData.name}
-                  onChange={handleChange('name')}
-                  error={errors.name}
-                  fullWidth
-                  required
-                  disabled={isLoading}
-                  autoFocus
-                  startIcon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  }
-                />
-
-                <Input
-                  id="email"
-                  type="email"
-                  label="Email adres"
-                  placeholder="jouw@email.nl"
-                  value={formData.email}
-                  onChange={handleChange('email')}
-                  error={errors.email}
-                  fullWidth
-                  required
-                  autoComplete="email"
-                  disabled={isLoading}
-                  startIcon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  }
-                />
-
-                <Input
-                  id="password"
-                  type="password"
-                  label="Wachtwoord"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange('password')}
-                  error={errors.password}
-                  fullWidth
-                  required
-                  autoComplete="new-password"
-                  disabled={isLoading}
-                  helperText="Min. 8 karakters, met hoofdletter en cijfer"
-                  startIcon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  }
-                />
-
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  label="Bevestig wachtwoord"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange('confirmPassword')}
-                  error={errors.confirmPassword}
-                  fullWidth
-                  required
-                  autoComplete="new-password"
-                  disabled={isLoading}
-                  startIcon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  }
-                />
               </>
             )}
 
-            {/* Step 2: Personal Info */}
+            {/* Step 2: Password with LIVE feedback */}
             {currentStep === 2 && (
               <>
-                <Input
-                  id="birthDate"
-                  type="date"
-                  label="Geboortedatum"
-                  value={formData.birthDate}
-                  onChange={handleChange('birthDate')}
-                  error={errors.birthDate}
-                  fullWidth
-                  required
-                  disabled={isLoading}
-                  autoFocus
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18))
-                    .toISOString()
-                    .split('T')[0]}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    label="Kies je wachtwoord"
+                    placeholder="Voer je wachtwoord in"
+                    value={formData.password}
+                    onChange={handleChange('password')}
+                    onKeyDown={handleKeyDown}
+                    error={errors.password}
+                    fullWidth
+                    required
+                    autoComplete="new-password"
+                    disabled={isLoading}
+                    autoFocus
+                    startIcon={<Lock className="w-5 h-5" />}
+                    endIcon={
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5 text-slate-400" />
+                        ) : (
+                          <Eye className="w-5 h-5 text-slate-400" />
+                        )}
+                      </button>
+                    }
+                  />
+                </div>
 
-                <Select
-                  id="gender"
-                  label="Geslacht"
-                  value={formData.gender}
-                  onChange={handleChange('gender')}
-                  fullWidth
-                  required
-                  disabled={isLoading}
-                  options={[
-                    { value: Gender.MALE, label: 'Man' },
-                    { value: Gender.FEMALE, label: 'Vrouw' },
-                    { value: Gender.NON_BINARY, label: 'Non-binair' },
-                  ]}
-                />
+                {/* Live Password Requirements - OurTime Style */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                  <p className="text-sm font-medium text-slate-700 mb-3">
+                    Je wachtwoord moet bevatten:
+                  </p>
+                  {passwordChecks.map((check) => (
+                    <div
+                      key={check.id}
+                      className={`flex items-center gap-2 text-sm transition-colors ${
+                        check.passed ? 'text-green-600' : 'text-slate-500'
+                      }`}
+                    >
+                      {check.passed ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <X className="w-4 h-4 text-slate-400" />
+                      )}
+                      <span>{check.label}</span>
+                    </div>
+                  ))}
+                </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
-                    💡 Je leeftijd wordt berekend uit je geboortedatum en wordt op je profiel getoond.
+                {/* Password Strength Indicator */}
+                <div className="space-y-2">
+                  <div className="flex gap-1">
+                    {[0, 1, 2, 3].map((idx) => {
+                      const passedCount = passwordChecks.filter((c) => c.passed).length
+                      const isActive = idx < passedCount
+                      let color = 'bg-slate-200'
+                      if (isActive) {
+                        if (passedCount <= 1) color = 'bg-red-500'
+                        else if (passedCount <= 2) color = 'bg-orange-500'
+                        else if (passedCount <= 3) color = 'bg-yellow-500'
+                        else color = 'bg-green-500'
+                      }
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex-1 h-1.5 rounded-full transition-colors ${color}`}
+                        />
+                      )
+                    })}
+                  </div>
+                  <p className="text-xs text-slate-500 text-center">
+                    {passwordChecks.filter((c) => c.passed).length === 4
+                      ? 'Sterk wachtwoord'
+                      : passwordChecks.filter((c) => c.passed).length >= 2
+                      ? 'Bijna daar...'
+                      : 'Vul alle eisen in'}
                   </p>
                 </div>
               </>
             )}
 
-            {/* Step 3: Profile Details */}
+            {/* Step 3: Name + Terms */}
             {currentStep === 3 && (
               <>
-                <Input
-                  id="city"
-                  type="text"
-                  label="Woonplaats"
-                  placeholder="Bijvoorbeeld: Amsterdam"
-                  value={formData.city}
-                  onChange={handleChange('city')}
-                  error={errors.city}
-                  fullWidth
-                  disabled={isLoading}
-                  autoFocus
-                  helperText="Optioneel, maar helpt bij het vinden van matches in de buurt"
-                  startIcon={
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  }
-                />
-
-                <div>
-                  <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-                    Over jezelf
-                  </label>
-                  <textarea
-                    id="bio"
-                    rows={4}
-                    placeholder="Vertel iets over jezelf... Wat zijn je hobby's? Waar hou je van?"
-                    value={formData.bio}
-                    onChange={handleChange('bio')}
+                <div className="relative">
+                  <Input
+                    id="name"
+                    type="text"
+                    label="Je voornaam"
+                    placeholder="Hoe heet je?"
+                    value={formData.name}
+                    onChange={handleChange('name')}
+                    onKeyDown={handleKeyDown}
+                    error={errors.name}
+                    fullWidth
+                    required
                     disabled={isLoading}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    autoFocus
+                    startIcon={<User className="w-5 h-5" />}
                   />
-                  {errors.bio && (
-                    <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
-                  )}
-                  <p className="mt-1 text-xs text-gray-500">
-                    {formData.bio?.length || 0} / 500 karakters
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <p className="text-sm text-slate-600">
+                    Dit is de naam die andere gebruikers zien. Je kunt dit later nog aanpassen.
                   </p>
                 </div>
 
-                <Checkbox
-                  id="acceptedTerms"
-                  label={
-                    <span>
-                      Ik ga akkoord met de{' '}
-                      <a href="/terms" target="_blank" className="text-primary-600 hover:underline">
-                        algemene voorwaarden
-                      </a>{' '}
-                      en{' '}
-                      <a href="/privacy" target="_blank" className="text-primary-600 hover:underline">
-                        privacybeleid
-                      </a>
-                    </span>
-                  }
-                  checked={formData.acceptedTerms}
-                  onChange={handleChange('acceptedTerms')}
-                  error={errors.acceptedTerms}
-                  disabled={isLoading}
-                />
+                <div className="pt-2">
+                  <Checkbox
+                    id="acceptedTerms"
+                    label={
+                      <span className="text-slate-700">
+                        Ik ga akkoord met de{' '}
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          className="text-pink-500 hover:text-pink-600 font-medium underline"
+                        >
+                          algemene voorwaarden
+                        </a>{' '}
+                        en{' '}
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          className="text-pink-500 hover:text-pink-600 font-medium underline"
+                        >
+                          privacybeleid
+                        </a>
+                      </span>
+                    }
+                    checked={formData.acceptedTerms}
+                    onChange={handleChange('acceptedTerms')}
+                    error={errors.acceptedTerms}
+                    disabled={isLoading}
+                  />
+                </div>
               </>
             )}
-
           </motion.div>
         </AnimatePresence>
       </div>
@@ -519,43 +468,30 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
             variant="secondary"
             onClick={handleBack}
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-50"
           >
-            ← Terug
+            Terug
           </Button>
         )}
 
-        {currentStep < STEPS.length ? (
-          <Button
-            type="button"
-            variant="primary"
-            onClick={handleNext}
-            disabled={isLoading}
-            className="flex-1"
-            size="lg"
-          >
-            Volgende →
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="primary"
-            onClick={handleNext}
-            isLoading={isLoading}
-            className="flex-1"
-            size="lg"
-          >
-            Account aanmaken
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="primary"
+          onClick={handleNext}
+          disabled={isLoading || (currentStep === 2 && !isPasswordValid)}
+          isLoading={isLoading && currentStep === STEPS.length}
+          className="flex-1 bg-pink-500 hover:bg-pink-600"
+          size="lg"
+        >
+          {currentStep < STEPS.length ? 'Volgende' : 'Account aanmaken'}
+        </Button>
       </div>
-
 
       {/* Login Link */}
       {currentStep === 1 && (
-        <div className="mt-6 text-center text-sm text-gray-600">
+        <div className="mt-6 text-center text-sm text-slate-600">
           Heb je al een account?{' '}
-          <a href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
+          <a href="/login" className="text-pink-500 hover:text-pink-600 font-medium">
             Log hier in
           </a>
         </div>

@@ -5,6 +5,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs'
+import { trackError } from '@/lib/gtag'
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -46,6 +47,18 @@ Sentry.init({
       const data = event.request.data as any
       if (data.password) data.password = '[Filtered]'
       if (data.email) data.email = data.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    }
+
+    // Track error in Google Analytics (if consent given)
+    if (event.exception?.values?.[0]) {
+      const error = event.exception.values[0]
+      const errorMessage = error.value || error.type || 'Unknown error'
+      const errorLevel = event.level || 'error'
+
+      trackError(
+        errorMessage,
+        errorLevel as 'warning' | 'error' | 'fatal'
+      )
     }
 
     return event

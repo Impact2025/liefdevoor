@@ -230,6 +230,7 @@ export default function SettingsPage() {
               </button>
 
               <button
+                onClick={() => router.push('/settings/privacy')}
                 className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">

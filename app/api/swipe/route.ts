@@ -9,6 +9,7 @@ import {
 } from '@/lib/services/push/push-notifications'
 import { canSwipe, canSuperLike, getSubscriptionInfo } from '@/lib/subscription'
 import type { SwipeAction, SwipeResult } from '@/lib/types'
+import { trackSwipeAction, trackMatchCreation } from '@/lib/analytics-events'
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,6 +108,10 @@ async function performSwipe(
       isSuperLike: isLike && isSuperLike, // Only store superlike if it's also a like
     },
   })
+
+  // Track swipe action in analytics
+  const swipeType = !isLike ? 'pass' : (isSuperLike ? 'super_like' : 'like')
+  trackSwipeAction(swiperId, swipeType, swipedId)
 
   // If it's a super like, create a notification for the swiped user
   if (isLike && isSuperLike) {
@@ -223,6 +228,9 @@ async function performSwipe(
   })
 
   if (match) {
+    // Track match creation in analytics
+    trackMatchCreation(swiperId, swipedId)
+
     // Send match notification emails to BOTH users (non-blocking)
     // Don't await - let emails send in background
     sendMatchNotification({

@@ -26,6 +26,8 @@ Een moderne, veilige en performante dating platform gebouwd met Next.js 14, Type
 - **Report System**: Gebruikers kunnen ongepast gedrag rapporteren
 - **Block Feature**: Directe blocking functionaliteit
 - **Safety Score**: Automatische safety score tracking per gebruiker
+- **AVG Compliance**: Cookie consent systeem met privacy controls
+- **Google OAuth**: Veilige social login met Google
 
 ### 🚀 Performance
 - **Server-side Rendering**: Optimale SEO en initial load performance
@@ -42,6 +44,7 @@ Een moderne, veilige en performante dating platform gebouwd met Next.js 14, Type
 - **Accessibility**: ARIA labels en keyboard navigation
 - **Loading States**: Skeleton loaders voor betere perceived performance
 - **Error Handling**: Gebruiksvriendelijke error messages en recovery
+- **Analytics**: Google Analytics integratie met consent-based tracking
 
 ---
 
@@ -172,9 +175,16 @@ DATABASE_URL="postgresql://user:password@host:5432/dbname"
 NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
 NEXTAUTH_URL="http://localhost:3000"
 
+# Google OAuth (Social Login)
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="GOCSPX-your-google-client-secret"
+
 # File Uploads
 UPLOADTHING_SECRET="your-uploadthing-secret"
 UPLOADTHING_TOKEN="your-uploadthing-token"
+
+# Optional: Google Analytics
+NEXT_PUBLIC_GA_MEASUREMENT_ID="G-XXXXXXXXXX"
 
 # Optional: Redis (for production)
 REDIS_URL="redis://localhost:6379"
@@ -182,6 +192,16 @@ REDIS_URL="redis://localhost:6379"
 # Optional: Sentry (for error tracking)
 NEXT_PUBLIC_SENTRY_DSN="your-sentry-dsn"
 ```
+
+**Google OAuth Setup:**
+Zie [docs/GOOGLE_OAUTH_SETUP.md](docs/GOOGLE_OAUTH_SETUP.md) voor complete setup instructies.
+
+Quick start:
+1. Ga naar [Google Cloud Console](https://console.cloud.google.com/)
+2. Maak een nieuw project
+3. Configureer OAuth consent screen
+4. Maak OAuth 2.0 credentials
+5. Voeg credentials toe aan `.env`
 
 4. **Setup database**
 ```bash
@@ -305,6 +325,7 @@ npx prisma migrate reset
 - [Testing](docs/TESTING.md) - Testing strategie en guidelines
 - [Refactoring Guide](docs/REFACTORING_GUIDE.md) - Code refactoring resultaten
 - [Production Checklist](docs/PRODUCTION_CHECKLIST.md) - Deployment checklist
+- [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md) - Google login configuratie
 
 ---
 

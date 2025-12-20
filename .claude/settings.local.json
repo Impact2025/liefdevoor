@@ -13,7 +13,15 @@
       "Bash(git push)",
       "Bash(git commit:*)",
       "Bash(git log:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(git push:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(ping:*)",
+      "Bash(npm ls:*)",
+      "Bash(tree:*)",
+      "Bash(node scripts/generate-icons.js:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

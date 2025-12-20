@@ -19,6 +19,27 @@ enum Role {
   BANNED
 }
 
+// Subscription Tiers - "Vriend van de Liefde" Model
+enum SubscriptionTier {
+  FREE      // Basis - Gratis
+  PLUS      // Liefde Plus - €9,95/maand
+  COMPLETE  // Liefde Compleet - €24,95/3 maanden
+}
+
+// Wie zoekt de gebruiker
+enum LookingFor {
+  MALE
+  FEMALE
+  BOTH
+}
+
+// Onboarding mode - bepaalt hoeveel vragen
+enum OnboardingMode {
+  SIMPLE    // Minimale vragen (snelle flow)
+  STANDARD  // Standaard flow (aanbevolen)
+  ADVANCED  // Uitgebreide flow (beste matches)
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -50,6 +71,22 @@ model User {
   // Photo verification
   isPhotoVerified Boolean @default(false)
   verifiedAt    DateTime?
+
+  // Subscription & Credits - "Vriend van de Liefde" Model
+  subscriptionTier SubscriptionTier @default(FREE)
+  credits          Int              @default(0) // Superberichten credits
+  monthlySupermessages Int          @default(0) // Maandelijkse gratis superberichten (voor COMPLETE)
+  monthlySupermessagesReset DateTime? // Wanneer maandelijkse credits resetten
+
+  // Onboarding & Profile Completion
+  lookingFor        LookingFor?                    // Wie zoekt de gebruiker
+  minAgePreference  Int              @default(18)  // Minimum leeftijd voorkeur
+  maxAgePreference  Int              @default(99)  // Maximum leeftijd voorkeur
+  onboardingStep    Int              @default(0)   // Huidige stap in onboarding (0 = niet gestart)
+  onboardingMode    OnboardingMode?                // Gekozen onboarding mode
+  profileComplete   Boolean          @default(false) // Is het profiel compleet?
+  rulesAccepted     Boolean          @default(false) // Heeft gedragsregels geaccepteerd
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -77,6 +114,19 @@ model User {
   profileViewsSent     ProfileView[] @relation("ProfileViewer")
   profileViewsReceived ProfileView[] @relation("ProfileViewed")
   profileBoosts        ProfileBoost[]
+  // Superberichten (Love Notes)
+  sentSuperMessages     SuperMessage[] @relation("SuperMessageSender")
+  receivedSuperMessages SuperMessage[] @relation("SuperMessageReceiver")
+  // Veiligheid: Spending Limit
+  spendingLimit        SpendingLimit?
+  // Credit aankopen historie
+  creditPurchases      CreditPurchase[]
+
+  // Privacy & GDPR Consent
+  privacyPolicyAccepted    Boolean   @default(false)
+  privacyPolicyVersion     String?   // Welke versie van privacy policy geaccepteerd
+  privacyPolicyAcceptedAt  DateTime?
+  marketingEmailsConsent   Boolean   @default(false)
 
   @@index([gender])
   @@index([birthDate])
@@ -89,6 +139,9 @@ model User {
   @@index([email])
   @@index([isOnline])
   @@index([isPhotoVerified])
+  @@index([subscriptionTier])
+  @@index([profileComplete])
+  @@index([onboardingStep])
 }
 
 model Photo {
@@ -422,4 +475,146 @@ model SwipeHistory {
   createdAt DateTime @default(now())
 
   @@index([swiperId, createdAt])
+}
+
+// ============================================
+// PRICING & CREDITS SYSTEM - "Vriend van de Liefde"
+// ============================================
+
+// Superbericht - Direct contact zonder match (voorheen "Love Notes")
+model SuperMessage {
+  id        String   @id @default(cuid())
+  senderId  String
+  sender    User     @relation("SuperMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  targetId  String
+  target    User     @relation("SuperMessageReceiver", fields: [targetId], references: [id], onDelete: Cascade)
+  message   String?  @db.Text // Optioneel persoonlijk bericht
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([senderId])
+  @@index([targetId])
+  @@index([targetId, isRead])
+  @@index([createdAt])
+}
+
+// Veiligheid: Dagelijkse bestedingslimiet (Circuit Breaker)
+// Beschermt gebruikers tegen impulsief koopgedrag
+model SpendingLimit {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyLimit   Float    @default(20.00) // Max €20 per dag uitgeven
+  currentSpent Float    @default(0.00)  // Vandaag uitgegeven
+  lastReset    DateTime @default(now()) // Wanneer currentSpent gereset is
+
+  @@index([lastReset])
+}
+
+// Credit aankoop historie
+model CreditPurchase {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credits       Int      // Aantal gekochte credits
+  amount        Float    // Betaald bedrag in euros
+  paymentId     String?  // MultiSafePay of andere payment provider ID
+  paymentMethod String?  // ideal, creditcard, etc.
+  status        String   @default("pending") // pending, completed, failed, refunded
+  createdAt     DateTime @default(now())
+  completedAt   DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Subscription Payment - Uitgebreide tracking
+model SubscriptionPayment {
+  id              String   @id @default(cuid())
+  subscriptionId  String
+  amount          Float
+  currency        String   @default("EUR")
+  paymentId       String?  // Payment provider ID
+  paymentMethod   String?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  paidAt          DateTime?
+
+  @@index([subscriptionId])
+  @@index([status])
+}
+
+// ============================================
+// PRIVACY & GDPR COMPLIANCE
+// ============================================
+
+// Cookie consent tracking (AVG compliant)
+model CookieConsent {
+  id              String   @id @default(cuid())
+  userId          String?  // Null voor anonieme bezoekers
+
+  // Consent categories
+  necessary       Boolean  @default(true)  // Altijd true (functionele cookies)
+  analytics       Boolean  @default(false) // Opt-in vereist
+  marketing       Boolean  @default(false) // Opt-in vereist
+
+  // Metadata voor compliance
+  consentVersion  String   @default("2.0") // Privacy policy versie
+  ipAddress       String?
+  userAgent       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Consent history (audit trail - AVG vereiste Artikel 7)
+model ConsentHistory {
+  id              String   @id @default(cuid())
+  userId          String?  // Null voor anonieme bezoekers
+  consentId       String
+  action          String   // 'granted', 'updated', 'revoked'
+  categories      Json     // Snapshot van consent state
+  ipAddress       String?
+  userAgent       String?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+// Data export requests (AVG Artikel 20 - Recht op dataportabiliteit)
+model DataExportRequest {
+  id          String    @id @default(cuid())
+  userId      String
+  status      String    @default("pending") // pending, processing, completed, failed
+  downloadUrl String?   @db.Text // Long URL for secure download
+  expiresAt   DateTime? // Download link expires after 7 days
+  errorMessage String?  @db.Text
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([userId, status])
+  @@index([createdAt])
+}
+
+// Account deletion requests (AVG Artikel 17 - Recht om vergeten te worden)
+model AccountDeletionRequest {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  reason          String?   @db.Text // Optionele reden voor verwijdering
+  scheduledFor    DateTime  // 30 dagen in de toekomst (bedenktijd)
+  cancelled       Boolean   @default(false)
+  cancelledAt     DateTime?
+  processedAt     DateTime? // Wanneer daadwerkelijk verwijderd
+  createdAt       DateTime  @default(now())
+
+  @@index([scheduledFor])
+  @@index([cancelled])
 }
