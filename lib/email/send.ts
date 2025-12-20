@@ -19,6 +19,11 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
 
   if (resendApiKey) {
     // Use Resend when API key is configured
+    console.log('[Email] 📧 Sending email via Resend...')
+    console.log('[Email] To:', to)
+    console.log('[Email] From:', process.env.EMAIL_FROM || 'Liefde Voor Iedereen <noreply@liefdevooriedereen.nl>')
+    console.log('[Email] Subject:', subject)
+
     try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -27,7 +32,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'Liefde Voor Iedereen <noreply@liefdevoorlvb.nl>',
+          from: process.env.EMAIL_FROM || 'Liefde Voor Iedereen <noreply@liefdevooriedereen.nl>',
           to: [to],
           subject,
           html,
@@ -37,8 +42,12 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
 
       if (!response.ok) {
         const error = await response.json()
-        console.error('[Email] Failed to send via Resend:', error)
-        throw new Error('Failed to send email')
+        console.error('[Email] ❌ Failed to send via Resend')
+        console.error('[Email] Status:', response.status, response.statusText)
+        console.error('[Email] Error details:', JSON.stringify(error, null, 2))
+        console.error('[Email] To:', to)
+        console.error('[Email] From:', process.env.EMAIL_FROM || 'Liefde Voor Iedereen <noreply@liefdevooriedereen.nl>')
+        throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`)
       }
 
       const result = await response.json()

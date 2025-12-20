@@ -8,6 +8,9 @@
 export { DiscoverCard } from './discover/DiscoverCard'
 export type { DiscoverCardProps } from './discover/DiscoverCard'
 
+export { DiscoverProfileCard } from './discover/DiscoverProfileCard'
+export type { DiscoverProfileCardProps, DiscoverProfile } from './discover/DiscoverProfileCard'
+
 // Matches
 export { MatchCard } from './matches/MatchCard'
 export type { MatchCardProps } from './matches/MatchCard'

@@ -23,7 +23,14 @@
       "Bash(node scripts/generate-icons.js:*)",
       "Bash(node:*)",
       "Bash(powershell -Command:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(taskkill:*)",
+      "Bash(if exist \".next\" rmdir /s /q \".next\")",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run seed:demo:*)",
+      "Bash(git reset:*)",
+      "Bash(if exist nul del nul)"
     ],
     "deny": [],
     "ask": []

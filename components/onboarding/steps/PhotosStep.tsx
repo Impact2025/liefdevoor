@@ -6,6 +6,7 @@ import { Camera, Plus, X, ArrowRight, Lightbulb } from 'lucide-react';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
 import PhotoCropper from '@/components/onboarding/ui/PhotoCropper';
 import Image from 'next/image';
+import { useUploadThing } from '@/utils/uploadthing';
 
 const MAX_PHOTOS = 6;
 const MIN_PHOTOS = 1;
@@ -16,6 +17,18 @@ export default function PhotosStep() {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // UploadThing hook
+  const { startUpload } = useUploadThing('profilePhotos', {
+    onClientUploadComplete: (res) => {
+      console.log('Upload complete:', res);
+    },
+    onUploadError: (error) => {
+      console.error('Upload error:', error);
+      alert('Upload mislukt: ' + error.message);
+      setIsUploading(false);
+    },
+  });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,22 +55,28 @@ export default function PhotosStep() {
   const handleCropComplete = async (croppedBlob: Blob) => {
     setIsUploading(true);
     try {
-      // Create a temporary URL for preview
-      const photoUrl = URL.createObjectURL(croppedBlob);
+      // Convert blob to file for UploadThing
+      const file = new File([croppedBlob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
 
-      // Add as PhotoData object
+      // Upload using UploadThing
+      const uploadResult = await startUpload([file]);
+
+      if (!uploadResult || uploadResult.length === 0) {
+        throw new Error('Upload failed - no result received');
+      }
+
+      const photoUrl = uploadResult[0].url;
+
+      // Add photo with permanent URL
       addPhoto({
         url: photoUrl,
         order: userData.photos.length,
       });
 
       setSelectedImage(null);
-
-      // TODO: Upload to UploadThing and get permanent URL
-      // For now using blob URL for preview
     } catch (error) {
       console.error('Error uploading photo:', error);
-      alert('Er ging iets mis bij het uploaden');
+      alert(error instanceof Error ? error.message : 'Er ging iets mis bij het uploaden');
     } finally {
       setIsUploading(false);
     }
@@ -70,11 +89,20 @@ export default function PhotosStep() {
     setSelectedImage(null);
   };
 
-  const handleRemovePhoto = (index: number) => {
+  const handleRemovePhoto = async (index: number) => {
     const photo = userData.photos[index];
+
+    // If it's a blob URL, just revoke it
     if (photo?.url.startsWith('blob:')) {
       URL.revokeObjectURL(photo.url);
+      removePhoto(index);
+      return;
     }
+
+    // If it's a permanent URL, delete from UploadThing
+    // Note: We can't easily delete from UploadThing without the file key
+    // So we just remove it from the local state
+    // The database entry will be deleted when we save the step
     removePhoto(index);
   };
 

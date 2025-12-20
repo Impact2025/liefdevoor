@@ -11,5 +11,8 @@
 // Re-export all API types
 export * from './api'
 
+// Re-export all Blog types
+export * from './blog'
+
 // Re-export Prisma types that are commonly used
 export { Gender, Role } from '@prisma/client'

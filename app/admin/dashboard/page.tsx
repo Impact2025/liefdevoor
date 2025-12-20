@@ -2,7 +2,11 @@
 
 import { useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Users, Heart, Shield, BarChart3, Settings, Ban, UserCheck, Search, ChevronLeft, ChevronRight, Mail, Send, Filter, Calendar, TrendingUp } from 'lucide-react'
+import { Users, Heart, Shield, BarChart3, Settings, Ban, UserCheck, Search, ChevronLeft, ChevronRight, Mail, Send, Filter, Calendar, TrendingUp, FileText } from 'lucide-react'
+import AIGeneratorForm from '@/components/admin/AIGeneratorForm'
+import GeneratedContentPreview from '@/components/admin/GeneratedContentPreview'
+import BlogPostsTable from '@/components/admin/BlogPostsTable'
+import type { AIGeneratorParams, GeneratedBlogContent, SavePostData, BlogPost, BlogCategory, BlogStats, BlogPagination } from '@/lib/types'
 
 export default function AdminDashboard() {
   const { data: session } = useSession()
@@ -88,6 +92,31 @@ export default function AdminDashboard() {
   })
   const [sendingTestEmail, setSendingTestEmail] = useState(false)
 
+  // Blog Management State
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [generatedContent, setGeneratedContent] = useState<GeneratedBlogContent | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [blogStats, setBlogStats] = useState<BlogStats>({
+    totalPosts: 0,
+    publishedPosts: 0,
+    draftPosts: 0,
+    totalViews: 0
+  })
+  const [blogCategories, setBlogCategories] = useState<BlogCategory[]>([])
+  const [blogPagination, setBlogPagination] = useState<BlogPagination>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  })
+  const [blogFilters, setBlogFilters] = useState({
+    category: '',
+    status: '',
+    search: ''
+  })
+
   useEffect(() => {
     // Fetch dashboard stats
     fetchStats()
@@ -102,8 +131,11 @@ export default function AdminDashboard() {
       fetchReports()
     } else if (activeTab === 'emails') {
       fetchEmails()
+    } else if (activeTab === 'blog') {
+      fetchBlogPosts()
+      fetchBlogCategories()
     }
-  }, [activeTab, userPagination.page, userSearch, userRoleFilter, matchPagination.page, reportPagination.page, reportStatusFilter, emailPagination.page, emailFilters])
+  }, [activeTab, userPagination.page, userSearch, userRoleFilter, matchPagination.page, reportPagination.page, reportStatusFilter, emailPagination.page, emailFilters, blogPagination.page, blogFilters])
 
   const fetchStats = async () => {
     try {
@@ -317,10 +349,161 @@ export default function AdminDashboard() {
     }
   }
 
+  // Blog Management Functions
+  const fetchBlogPosts = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: blogPagination.page.toString(),
+        limit: blogPagination.limit.toString(),
+        ...(blogFilters.category && { category: blogFilters.category }),
+        ...(blogFilters.status && { published: blogFilters.status === 'published' ? 'true' : 'false' }),
+        ...(blogFilters.search && { search: blogFilters.search })
+      })
+
+      const response = await fetch(`/api/admin/blog/posts?${params}`)
+      if (response.ok) {
+        const data = await response.json()
+        setBlogPosts(data.posts || [])
+        if (data.pagination) {
+          setBlogPagination(data.pagination)
+        }
+        // Calculate stats
+        const totalPosts = data.posts?.length || 0
+        const publishedPosts = data.posts?.filter((p: BlogPost) => p.published).length || 0
+        setBlogStats({
+          totalPosts: data.pagination?.total || totalPosts,
+          publishedPosts,
+          draftPosts: (data.pagination?.total || totalPosts) - publishedPosts,
+          totalViews: 0 // Can be calculated from likeCount or separate view tracking
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch blog posts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchBlogCategories = async () => {
+    try {
+      const response = await fetch('/api/blog/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setBlogCategories(data.categories || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch blog categories:', error)
+    }
+  }
+
+  const handleGenerateBlog = async (params: AIGeneratorParams) => {
+    setIsGenerating(true)
+    setGeneratedContent(null)
+    try {
+      const response = await fetch('/api/admin/blog/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setGeneratedContent(data)
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to generate blog post')
+      }
+    } catch (error) {
+      console.error('Failed to generate blog:', error)
+      alert('Failed to generate blog post')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleSaveBlogPost = async (data: SavePostData) => {
+    try {
+      const response = await fetch('/api/admin/blog/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      if (response.ok) {
+        alert(`Blog post ${data.published ? 'gepubliceerd' : 'opgeslagen als concept'}!`)
+        setGeneratedContent(null)
+        fetchBlogPosts() // Refresh the list
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to save blog post')
+      }
+    } catch (error) {
+      console.error('Failed to save blog post:', error)
+      alert('Failed to save blog post')
+    }
+  }
+
+  const togglePublishBlogPost = async (id: string, published: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/blog/posts/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ published })
+      })
+
+      if (response.ok) {
+        fetchBlogPosts() // Refresh the list
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to update post')
+      }
+    } catch (error) {
+      console.error('Failed to toggle publish:', error)
+      alert('Failed to update post')
+    }
+  }
+
+  const deleteBlogPost = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/blog/posts/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        alert('Blog post verwijderd!')
+        fetchBlogPosts() // Refresh the list
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to delete post')
+      }
+    } catch (error) {
+      console.error('Failed to delete post:', error)
+      alert('Failed to delete post')
+    }
+  }
+
+  const handleEditBlogPost = (post: BlogPost) => {
+    // For now, just alert - in the future, could open edit modal
+    alert(`Edit functionaliteit voor "${post.title}" komt binnenkort!`)
+  }
+
+  const handleBlogFilterChange = (filters: { category: string; status: string; search: string }) => {
+    setBlogFilters(filters)
+    setBlogPagination(prev => ({ ...prev, page: 1 })) // Reset to page 1 when filters change
+  }
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'users', label: 'User Management', icon: Users },
     { id: 'matches', label: 'Match Oversight', icon: Heart },
+    { id: 'blog', label: 'Blog', icon: FileText },
     { id: 'emails', label: 'Email Management', icon: Mail },
     { id: 'reports', label: 'Reports', icon: Shield },
     { id: 'notifications', label: 'Send Notifications', icon: Users },
@@ -1322,6 +1505,84 @@ export default function AdminDashboard() {
                       <p className="text-sm mt-2">Photos flagged by users or AI detection will appear here.</p>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'blog' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Blog Management</h2>
+
+                  {/* Blog Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div className="bg-rose-50 p-6 rounded-lg">
+                      <div className="flex items-center">
+                        <FileText className="w-8 h-8 text-rose-600" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-rose-600">Totaal Posts</p>
+                          <p className="text-2xl font-bold text-rose-900">{blogStats.totalPosts}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 p-6 rounded-lg">
+                      <div className="flex items-center">
+                        <Users className="w-8 h-8 text-green-600" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-green-600">Gepubliceerd</p>
+                          <p className="text-2xl font-bold text-green-900">{blogStats.publishedPosts}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 p-6 rounded-lg">
+                      <div className="flex items-center">
+                        <Shield className="w-8 h-8 text-yellow-600" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-yellow-600">Concept</p>
+                          <p className="text-2xl font-bold text-yellow-900">{blogStats.draftPosts}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-6 rounded-lg">
+                      <div className="flex items-center">
+                        <BarChart3 className="w-8 h-8 text-blue-600" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-blue-600">Views</p>
+                          <p className="text-2xl font-bold text-blue-900">{blogStats.totalViews}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Generator Form */}
+                  <AIGeneratorForm
+                    categories={blogCategories}
+                    onGenerate={handleGenerateBlog}
+                    isGenerating={isGenerating}
+                  />
+
+                  {/* Generated Content Preview */}
+                  {generatedContent && (
+                    <GeneratedContentPreview
+                      content={generatedContent}
+                      onSave={handleSaveBlogPost}
+                      onDiscard={() => setGeneratedContent(null)}
+                      categories={blogCategories}
+                    />
+                  )}
+
+                  {/* Blog Posts Table */}
+                  <BlogPostsTable
+                    posts={blogPosts}
+                    categories={blogCategories}
+                    onTogglePublish={togglePublishBlogPost}
+                    onDelete={deleteBlogPost}
+                    onEdit={handleEditBlogPost}
+                    pagination={blogPagination}
+                    onPageChange={(page) => setBlogPagination(prev => ({ ...prev, page }))}
+                    onFilterChange={handleBlogFilterChange}
+                  />
                 </div>
               )}
 

@@ -112,7 +112,7 @@ export function getVerificationEmailHtml(data: EmailVerificationData): string {
               </p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
                 Deze email werd verstuurd omdat je je hebt aangemeld op onze website.<br>
-                Vragen? Stuur een email naar <a href="mailto:support@liefdevoorlvb.nl" style="color: #ec4899; text-decoration: none;">support@liefdevoorlvb.nl</a>
+                Vragen? Stuur een email naar <a href="mailto:info@liefdevooriedereen.nl" style="color: #ec4899; text-decoration: none;">info@liefdevooriedereen.nl</a>
               </p>
             </td>
           </tr>
@@ -150,7 +150,7 @@ Heb je je niet aangemeld? Negeer deze email dan.
 Met liefde gemaakt door het team van
 ❤️ Liefde Voor Iedereen
 
-Vragen? Stuur een email naar support@liefdevoorlvb.nl
+Vragen? Stuur een email naar info@liefdevooriedereen.nl
   `.trim()
 }
 
@@ -240,7 +240,7 @@ export function getPasswordResetEmailHtml(data: PasswordResetEmailData): string 
                 ❤️ Liefde Voor Iedereen
               </p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                Vragen? Stuur een email naar <a href="mailto:support@liefdevoorlvb.nl" style="color: #ec4899; text-decoration: none;">support@liefdevoorlvb.nl</a>
+                Vragen? Stuur een email naar <a href="mailto:info@liefdevooriedereen.nl" style="color: #ec4899; text-decoration: none;">info@liefdevooriedereen.nl</a>
               </p>
             </td>
           </tr>
@@ -271,7 +271,7 @@ Als jij dit verzoek niet hebt gedaan, kun je deze email veilig negeren. Je wacht
 Met vriendelijke groet,
 ❤️ Liefde Voor Iedereen
 
-Vragen? Stuur een email naar support@liefdevoorlvb.nl
+Vragen? Stuur een email naar info@liefdevooriedereen.nl
   `.trim()
 }
 
@@ -356,7 +356,7 @@ export function getWelcomeEmailHtml(data: WelcomeEmailData): string {
                 ❤️ Liefde Voor Iedereen
               </p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                Vragen? Stuur een email naar <a href="mailto:support@liefdevoorlvb.nl" style="color: #ec4899; text-decoration: none;">support@liefdevoorlvb.nl</a>
+                Vragen? Stuur een email naar <a href="mailto:info@liefdevooriedereen.nl" style="color: #ec4899; text-decoration: none;">info@liefdevooriedereen.nl</a>
               </p>
             </td>
           </tr>
