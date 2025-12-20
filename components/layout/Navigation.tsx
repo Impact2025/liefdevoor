@@ -92,7 +92,7 @@ export function Navigation() {
                 height={40}
                 className="object-contain"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">
                 Liefde Voor Iedereen
               </span>
             </Link>
@@ -124,7 +124,7 @@ export function Navigation() {
                   onClick={() => setShowMenu(!showMenu)}
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold">
                     {session.user?.name?.[0]?.toUpperCase() || 'U'}
                   </div>
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -271,8 +271,8 @@ export function Navigation() {
                   </div>
 
                   {/* User Info */}
-                  <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-primary-50 to-pink-50 rounded-xl mb-6">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl mb-6">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-lg">
                       {session.user?.name?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1">

@@ -63,14 +63,14 @@ export default function Home() {
   // Dashboard voor ingelogde gebruikers
   if (session) {
     return (
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen bg-stone-50">
         <div className="max-w-5xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-rose-100 rounded-full mb-6">
-              <Heart className="w-10 h-10 text-rose-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-100 rounded-full mb-6">
+              <Heart className="w-10 h-10 text-primary-500" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-              Welkom terug, <span className="text-rose-600">{session.user?.name || 'Gebruiker'}</span>
+              Welkom terug, <span className="text-primary-500">{session.user?.name || 'Gebruiker'}</span>
             </h1>
             <p className="text-lg text-slate-500">
               Ontdek vandaag nog nieuwe matches
@@ -80,10 +80,10 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <Link
               href="/discover"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
-                <Heart className="w-7 h-7 text-rose-600" />
+              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <Heart className="w-7 h-7 text-primary-500" />
               </div>
               <h3 className="font-semibold text-slate-900 mb-1">Ontdekken</h3>
               <p className="text-sm text-slate-500">Vind nieuwe matches</p>
@@ -91,10 +91,10 @@ export default function Home() {
 
             <Link
               href="/matches"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
-                <MessageCircle className="w-7 h-7 text-rose-600" />
+              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <MessageCircle className="w-7 h-7 text-primary-500" />
               </div>
               <h3 className="font-semibold text-slate-900 mb-1">Matches</h3>
               <p className="text-sm text-slate-500">Chat met matches</p>
@@ -102,12 +102,12 @@ export default function Home() {
 
             <Link
               href="/notifications"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center relative"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center relative"
             >
-              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors relative">
-                <Bell className="w-7 h-7 text-rose-600" />
+              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors relative">
+                <Bell className="w-7 h-7 text-primary-500" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -118,10 +118,10 @@ export default function Home() {
 
             <Link
               href="/profile"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
-                <Users className="w-7 h-7 text-rose-600" />
+              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <Users className="w-7 h-7 text-primary-500" />
               </div>
               <h3 className="font-semibold text-slate-900 mb-1">Profiel</h3>
               <p className="text-sm text-slate-500">Bewerk profiel</p>
@@ -196,14 +196,14 @@ export default function Home() {
           >
             {/* Trust Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
-              <ShieldCheck className="w-5 h-5 text-rose-400" />
+              <ShieldCheck className="w-5 h-5 text-trust-400" />
               <span className="text-sm font-medium tracking-wide">Veilig & Geverifieerd daten</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
               Vind liefde <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-orange-300">
                 zonder gedoe.
               </span>
             </h1>
@@ -217,7 +217,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/register"
-                className="group px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white text-lg font-bold rounded-2xl shadow-lg shadow-rose-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
+                className="group px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
               >
                 <Heart className="w-5 h-5 fill-current" />
                 Gratis Starten
@@ -258,7 +258,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section - Upgraded */}
-      <section className="py-16 bg-slate-50 border-y border-slate-200">
+      <section className="py-16 bg-stone-50 border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
@@ -298,10 +298,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+              className="bg-gradient-to-br from-stone-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
             >
-              <div className="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mb-6">
-                <ShieldCheck className="w-8 h-8 text-rose-600" />
+              <div className="w-16 h-16 bg-trust-100 rounded-2xl flex items-center justify-center mb-6">
+                <ShieldCheck className="w-8 h-8 text-trust-700" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Geverifieerde profielen</h3>
               <p className="text-slate-600 leading-relaxed">
@@ -311,7 +311,7 @@ export default function Home() {
 
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+              className="bg-gradient-to-br from-stone-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
             >
               <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-6">
                 <Sparkles className="w-8 h-8 text-amber-600" />
@@ -324,7 +324,7 @@ export default function Home() {
 
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+              className="bg-gradient-to-br from-stone-50 to-white p-8 rounded-3xl border border-slate-200 shadow-sm"
             >
               <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-6">
                 <Lock className="w-8 h-8 text-emerald-600" />
@@ -380,7 +380,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-slate-50 rounded-3xl overflow-hidden"
+                className="bg-stone-50 rounded-3xl overflow-hidden"
               >
                 <div className="aspect-square relative">
                   <Image
@@ -411,7 +411,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-rose-600 to-rose-700">
+      <section className="py-24 bg-gradient-to-br from-primary-500 to-primary-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -421,12 +421,12 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Klaar om de liefde te vinden?
             </h2>
-            <p className="text-xl text-rose-100 mb-10 max-w-2xl mx-auto">
+            <p className="text-xl text-primary-100 mb-10 max-w-2xl mx-auto">
               Sluit je aan bij duizenden singles die hun match al vonden. Gratis aanmelden duurt maar 2 minuten.
             </p>
             <Link
               href="/register"
-              className="inline-flex items-center gap-3 bg-white text-rose-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-rose-50 transition-colors shadow-lg"
+              className="inline-flex items-center gap-3 bg-white text-primary-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-primary-50 transition-colors shadow-lg"
             >
               Start nu gratis
               <ArrowRight className="w-5 h-5" />
