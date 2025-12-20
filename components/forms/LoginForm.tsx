@@ -162,7 +162,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
         <a
           href="/forgot-password"
-          className="text-sm text-primary-600 hover:text-primary-500 transition-colors"
+          className="text-sm text-rose-600 hover:text-rose-500 transition-colors"
         >
           Wachtwoord vergeten?
         </a>
@@ -223,7 +223,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
       <div className="text-center text-sm text-gray-600">
         Nog geen account?{' '}
-        <a href="/register" className="text-primary-600 hover:text-primary-500 font-medium">
+        <a href="/register" className="text-rose-600 hover:text-rose-500 font-medium">
           Registreer hier
         </a>
       </div>

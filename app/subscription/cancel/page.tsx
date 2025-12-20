@@ -43,7 +43,7 @@ export default function SubscriptionCancelPage() {
         <div className="space-y-3">
           <button
             onClick={() => router.push('/subscription')}
-            className="w-full bg-stone-500 text-white py-3 rounded-lg font-semibold hover:bg-rose-600 transition-colors"
+            className="w-full bg-rose-500 text-white py-3 rounded-lg font-semibold hover:bg-rose-600 transition-colors"
           >
             Bekijk abonnementen
           </button>

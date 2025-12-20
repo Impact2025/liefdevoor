@@ -43,7 +43,7 @@ const adminSections: AdminCard[] = [
     description: 'Maak en beheer kortingscodes en promoties',
     href: '/admin/coupons',
     icon: Ticket,
-    color: 'from-primary-500 to-pink-600',
+    color: 'from-rose-500 to-pink-600',
     stats: 'Wereldklasse systeem'
   },
   {
@@ -99,7 +99,7 @@ export default function AdminIndexPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
             <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 rounded-full mb-6 backdrop-blur-sm border border-white/20">
-              <Shield className="w-5 h-5 text-primary-400" />
+              <Shield className="w-5 h-5 text-rose-400" />
               <span className="text-sm font-medium">Admin Control Center</span>
             </div>
 
@@ -145,7 +145,7 @@ export default function AdminIndexPage() {
             <Link
               key={index}
               href={section.href}
-              className="group relative bg-white rounded-2xl p-8 border-2 border-slate-200 hover:border-primary-400 transition-all shadow-sm hover:shadow-xl"
+              className="group relative bg-white rounded-2xl p-8 border-2 border-slate-200 hover:border-rose-400 transition-all shadow-sm hover:shadow-xl"
             >
               {/* Gradient Background */}
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${section.color} rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity`} />
@@ -156,7 +156,7 @@ export default function AdminIndexPage() {
                   <div className={`w-14 h-14 bg-gradient-to-br ${section.color} rounded-xl flex items-center justify-center shadow-lg`}>
                     <section.icon className="w-7 h-7 text-white" />
                   </div>
-                  <ArrowRight className="w-6 h-6 text-slate-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-6 h-6 text-slate-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
                 </div>
 
                 <h3 className="text-xl font-bold text-slate-900 mb-2">
@@ -178,9 +178,9 @@ export default function AdminIndexPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-gradient-to-br from-primary-50 to-pink-50 rounded-2xl p-8 border border-primary-200">
+        <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-8 border border-rose-200">
           <div className="flex items-start gap-6">
-            <div className="w-14 h-14 bg-primary-500 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 bg-rose-500 rounded-xl flex items-center justify-center flex-shrink-0">
               <BarChart3 className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
@@ -192,7 +192,7 @@ export default function AdminIndexPage() {
               </p>
               <Link
                 href="/admin/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
               >
                 Open Dashboard
                 <ArrowRight className="w-5 h-5" />

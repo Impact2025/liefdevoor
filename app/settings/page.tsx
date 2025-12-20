@@ -187,7 +187,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={settings.emailNotifications}
                   onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
-                  className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"
                 />
               </label>
 
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={settings.pushNotifications}
                   onChange={(e) => setSettings({ ...settings, pushNotifications: e.target.checked })}
-                  className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"
                 />
               </label>
             </div>

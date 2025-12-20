@@ -188,7 +188,7 @@ export default function BirthdateStep() {
       <button
         onClick={handleContinue}
         disabled={!day || !month || !year || year.length < 4 || isSaving}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

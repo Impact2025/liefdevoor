@@ -23,7 +23,7 @@ export function Badge({
 }: BadgeProps) {
   const variantClasses = {
     default: 'bg-gray-100 text-gray-800',
-    primary: 'bg-primary-100 text-primary-800',
+    primary: 'bg-rose-100 text-rose-800',
     success: 'bg-green-100 text-green-800',
     warning: 'bg-yellow-100 text-yellow-800',
     error: 'bg-red-100 text-red-800',
@@ -38,7 +38,7 @@ export function Badge({
 
   const dotColors = {
     default: 'bg-gray-500',
-    primary: 'bg-stone-500',
+    primary: 'bg-rose-500',
     success: 'bg-green-500',
     warning: 'bg-yellow-500',
     error: 'bg-red-500',

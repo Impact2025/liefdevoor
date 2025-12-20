@@ -73,7 +73,7 @@ export function MatchList({ onMatchClick }: MatchListProps) {
         </p>
         <a
           href="/discover"
-          className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          className="px-6 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
         >
           Naar Ontdekken
         </a>

@@ -66,11 +66,11 @@ export default function Home() {
       <main className="min-h-screen bg-stone-50">
         <div className="max-w-5xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-100 rounded-full mb-6">
-              <Heart className="w-10 h-10 text-primary-500" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-rose-100 rounded-full mb-6">
+              <Heart className="w-10 h-10 text-rose-500" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-              Welkom terug, <span className="text-primary-500">{session.user?.name || 'Gebruiker'}</span>
+              Welkom terug, <span className="text-rose-500">{session.user?.name || 'Gebruiker'}</span>
             </h1>
             <p className="text-lg text-slate-500">
               Ontdek vandaag nog nieuwe matches
@@ -80,10 +80,10 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <Link
               href="/discover"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                <Heart className="w-7 h-7 text-primary-500" />
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
+                <Heart className="w-7 h-7 text-rose-500" />
               </div>
               <h3 className="font-semibold text-slate-900 mb-1">Ontdekken</h3>
               <p className="text-sm text-slate-500">Vind nieuwe matches</p>
@@ -91,10 +91,10 @@ export default function Home() {
 
             <Link
               href="/matches"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                <MessageCircle className="w-7 h-7 text-primary-500" />
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
+                <MessageCircle className="w-7 h-7 text-rose-500" />
               </div>
               <h3 className="font-semibold text-slate-900 mb-1">Matches</h3>
               <p className="text-sm text-slate-500">Chat met matches</p>
@@ -102,12 +102,12 @@ export default function Home() {
 
             <Link
               href="/notifications"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center relative"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center relative"
             >
-              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors relative">
-                <Bell className="w-7 h-7 text-primary-500" />
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors relative">
+                <Bell className="w-7 h-7 text-rose-500" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-stone-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -118,10 +118,10 @@ export default function Home() {
 
             <Link
               href="/profile"
-              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all text-center"
+              className="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-rose-300 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                <Users className="w-7 h-7 text-primary-500" />
+              <div className="w-14 h-14 bg-rose-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-rose-200 transition-colors">
+                <Users className="w-7 h-7 text-rose-500" />
               </div>
               <h3 className="font-semibold text-slate-900 mb-1">Profiel</h3>
               <p className="text-sm text-slate-500">Bewerk profiel</p>
@@ -203,7 +203,7 @@ export default function Home() {
             {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
               Vind liefde <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-orange-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-300">
                 zonder gedoe.
               </span>
             </h1>

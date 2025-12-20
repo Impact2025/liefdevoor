@@ -93,7 +93,7 @@ export default function InterestsStep() {
             <div
               key={idx}
               className={`w-2 h-2 rounded-full transition-colors ${
-                idx < selectedInterests.length ? 'bg-stone-500' : 'bg-slate-200'
+                idx < selectedInterests.length ? 'bg-rose-500' : 'bg-slate-200'
               }`}
             />
           ))}
@@ -127,7 +127,7 @@ export default function InterestsStep() {
                     disabled={isDisabled}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1 ${
                       isSelected
-                        ? 'bg-stone-500 text-white'
+                        ? 'bg-rose-500 text-white'
                         : isDisabled
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         : 'bg-white border border-slate-200 text-slate-700 hover:border-rose-500 hover:text-rose-500'
@@ -146,7 +146,7 @@ export default function InterestsStep() {
       <button
         onClick={handleContinue}
         disabled={selectedInterests.length === 0 || isSaving}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

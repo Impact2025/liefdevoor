@@ -109,7 +109,7 @@ export function AudioRecorder({
           <>
             <motion.button
               onClick={isPlaying ? stopAudio : playAudio}
-              className="p-3 rounded-full bg-primary-100 text-primary-600 hover:bg-primary-200"
+              className="p-3 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200"
               whileTap={{ scale: 0.95 }}
             >
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
@@ -223,7 +223,7 @@ export function AudioRecorder({
           // Playback state
           <>
             <motion.div
-              className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center"
+              className="w-24 h-24 rounded-full bg-rose-100 flex items-center justify-center"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
             >
@@ -232,10 +232,10 @@ export function AudioRecorder({
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ repeat: Infinity, duration: 0.5 }}
                 >
-                  <Pause size={40} className="text-primary-600" />
+                  <Pause size={40} className="text-rose-600" />
                 </motion.div>
               ) : (
-                <Play size={40} className="text-primary-600 ml-1" />
+                <Play size={40} className="text-rose-600 ml-1" />
               )}
             </motion.div>
 

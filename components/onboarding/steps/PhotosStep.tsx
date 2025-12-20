@@ -149,7 +149,7 @@ export default function PhotosStep() {
 
               {/* Main photo badge */}
               {index === 0 && (
-                <div className="absolute top-2 left-2 px-2 py-1 bg-stone-500 rounded-lg text-xs font-bold text-white">
+                <div className="absolute top-2 left-2 px-2 py-1 bg-rose-500 rounded-lg text-xs font-bold text-white">
                   Hoofdfoto
                 </div>
               )}
@@ -226,7 +226,7 @@ export default function PhotosStep() {
         <button
           onClick={handleContinue}
           disabled={!canContinue || isSaving}
-          className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {isSaving ? (
             <>

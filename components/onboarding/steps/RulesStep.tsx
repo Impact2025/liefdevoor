@@ -95,7 +95,7 @@ export default function RulesStep() {
           <div
             className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
               accepted
-                ? 'bg-stone-500 border-rose-500'
+                ? 'bg-rose-500 border-rose-500'
                 : 'bg-white border-slate-300'
             }`}
           >
@@ -110,7 +110,7 @@ export default function RulesStep() {
       <button
         onClick={handleContinue}
         disabled={!accepted || isSaving}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

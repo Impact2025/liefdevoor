@@ -277,17 +277,17 @@ export default function ProfilePage() {
             {/* Voice Intro Section */}
             <div className="bg-white rounded-2xl shadow-lg p-6 mt-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Mic className="w-5 h-5 text-primary-500" />
+                <Mic className="w-5 h-5 text-rose-500" />
                 Voice Intro
               </h2>
 
               {user?.voiceIntro ? (
                 // Has voice intro - show playback controls
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary-50 to-rose-50 rounded-xl">
+                  <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-rose-50 to-rose-50 rounded-xl">
                     <button
                       onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
-                      className="w-12 h-12 rounded-full bg-stone-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
+                      className="w-12 h-12 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
                     >
                       {isPlayingVoice ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
                     </button>
@@ -305,7 +305,7 @@ export default function ProfilePage() {
                   </div>
                   <button
                     onClick={() => setShowVoiceRecorder(true)}
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    className="text-sm text-rose-600 hover:text-rose-700 font-medium"
                   >
                     Nieuwe opname maken
                   </button>
@@ -349,15 +349,15 @@ export default function ProfilePage() {
               ) : (
                 // No voice intro - show prompt
                 <div className="text-center py-4">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary-100 to-rose-100 rounded-full flex items-center justify-center">
-                    <Mic className="w-8 h-8 text-primary-500" />
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-100 to-rose-100 rounded-full flex items-center justify-center">
+                    <Mic className="w-8 h-8 text-rose-500" />
                   </div>
                   <p className="text-gray-600 mb-4">
                     Voeg een korte voice intro toe om je profiel persoonlijker te maken!
                   </p>
                   <button
                     onClick={() => setShowVoiceRecorder(true)}
-                    className="px-6 py-2 bg-stone-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    className="px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
                   >
                     Voice intro opnemen
                   </button>

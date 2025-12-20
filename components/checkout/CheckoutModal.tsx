@@ -172,7 +172,7 @@ export default function CheckoutModal({
             </AnimatePresence>
 
             {/* Order Summary */}
-            <div className="bg-gradient-to-br from-primary-50 to-rose-50 rounded-xl p-6">
+            <div className="bg-gradient-to-br from-rose-50 to-rose-50 rounded-xl p-6">
               <h3 className="text-lg font-bold text-slate-900 mb-4">
                 {type === 'subscription' ? 'Abonnement' : 'Credits'}
               </h3>
@@ -204,7 +204,7 @@ export default function CheckoutModal({
 
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-lg font-semibold text-slate-900">Totaal</span>
-                  <span className="text-2xl font-bold text-primary-600">
+                  <span className="text-2xl font-bold text-rose-600">
                     €{finalAmount.toFixed(2)}
                   </span>
                 </div>
@@ -230,12 +230,12 @@ export default function CheckoutModal({
                   onClick={() => setSelectedPaymentMethod('ideal')}
                   className={`p-4 border-2 rounded-xl transition-all ${
                     selectedPaymentMethod === 'ideal'
-                      ? 'border-primary-500 bg-stone-50'
+                      ? 'border-rose-500 bg-stone-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <Building2 className={`w-8 h-8 mx-auto mb-2 ${
-                    selectedPaymentMethod === 'ideal' ? 'text-primary-600' : 'text-slate-400'
+                    selectedPaymentMethod === 'ideal' ? 'text-rose-600' : 'text-slate-400'
                   }`} />
                   <p className="text-sm font-medium text-slate-900">iDEAL</p>
                 </button>
@@ -245,12 +245,12 @@ export default function CheckoutModal({
                   onClick={() => setSelectedPaymentMethod('creditcard')}
                   className={`p-4 border-2 rounded-xl transition-all ${
                     selectedPaymentMethod === 'creditcard'
-                      ? 'border-primary-500 bg-stone-50'
+                      ? 'border-rose-500 bg-stone-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <CreditCard className={`w-8 h-8 mx-auto mb-2 ${
-                    selectedPaymentMethod === 'creditcard' ? 'text-primary-600' : 'text-slate-400'
+                    selectedPaymentMethod === 'creditcard' ? 'text-rose-600' : 'text-slate-400'
                   }`} />
                   <p className="text-sm font-medium text-slate-900">Kaart</p>
                 </button>
@@ -260,12 +260,12 @@ export default function CheckoutModal({
                   onClick={() => setSelectedPaymentMethod('bancontact')}
                   className={`p-4 border-2 rounded-xl transition-all ${
                     selectedPaymentMethod === 'bancontact'
-                      ? 'border-primary-500 bg-stone-50'
+                      ? 'border-rose-500 bg-stone-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <Smartphone className={`w-8 h-8 mx-auto mb-2 ${
-                    selectedPaymentMethod === 'bancontact' ? 'text-primary-600' : 'text-slate-400'
+                    selectedPaymentMethod === 'bancontact' ? 'text-rose-600' : 'text-slate-400'
                   }`} />
                   <p className="text-sm font-medium text-slate-900">Bancontact</p>
                 </button>
@@ -289,7 +289,7 @@ export default function CheckoutModal({
             <button
               onClick={handleCheckout}
               disabled={isProcessing || finalAmount === 0}
-              className="w-full py-4 bg-stone-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <>
@@ -308,11 +308,11 @@ export default function CheckoutModal({
             {/* Terms */}
             <p className="text-xs text-center text-slate-500">
               Door te betalen ga je akkoord met onze{' '}
-              <a href="/terms" className="text-primary-600 hover:underline">
+              <a href="/terms" className="text-rose-600 hover:underline">
                 algemene voorwaarden
               </a>{' '}
               en{' '}
-              <a href="/privacy" className="text-primary-600 hover:underline">
+              <a href="/privacy" className="text-rose-600 hover:underline">
                 privacybeleid
               </a>
             </p>

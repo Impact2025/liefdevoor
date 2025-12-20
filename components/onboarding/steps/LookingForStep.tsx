@@ -92,7 +92,7 @@ export default function LookingForStep() {
             <div
               className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                 selected === option.value
-                  ? 'border-rose-500 bg-stone-500'
+                  ? 'border-rose-500 bg-rose-500'
                   : 'border-slate-300'
               }`}
             >

@@ -193,7 +193,7 @@ export default function BioStep() {
                         onClick={() => toggleTopic(topic)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                           isSelected
-                            ? 'bg-stone-500 text-white'
+                            ? 'bg-rose-500 text-white'
                             : 'bg-white border border-slate-200 text-slate-600 hover:border-rose-500'
                         }`}
                       >
@@ -207,7 +207,7 @@ export default function BioStep() {
               <button
                 onClick={handleGenerateBio}
                 disabled={selectedTopics.length === 0}
-                className="w-full py-3 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 Genereer bio
@@ -228,7 +228,7 @@ export default function BioStep() {
       <button
         onClick={handleContinue}
         disabled={!canContinue || isSaving}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

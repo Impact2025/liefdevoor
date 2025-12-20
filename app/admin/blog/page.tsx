@@ -125,7 +125,7 @@ export default function AdminBlogPage() {
           </div>
           <button
             onClick={() => router.push('/admin/blog/new')}
-            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2"
+            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-rose-hover transition-colors flex items-center gap-2"
           >
             <Plus size={20} />
             Nieuw Artikel

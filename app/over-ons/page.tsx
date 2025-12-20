@@ -29,18 +29,18 @@ export default function OverOnsPage() {
   return (
     <div className="min-h-screen bg-stone-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-50 via-pink-50 to-stone-50 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-rose-50 via-pink-50 to-stone-50 overflow-hidden">
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-40" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-rose-100 rounded-full blur-3xl opacity-40" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-trust-100 rounded-full blur-3xl opacity-40" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Text Content */}
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-primary-200 mb-6">
-                <Heart className="w-4 h-4 text-primary-600" />
-                <span className="text-sm font-medium text-primary-900">15 jaar ervaring sinds 2009</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-rose-200 mb-6">
+                <Heart className="w-4 h-4 text-rose-600" />
+                <span className="text-sm font-medium text-rose-900">15 jaar ervaring sinds 2009</span>
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
@@ -48,7 +48,7 @@ export default function OverOnsPage() {
               </h1>
 
               <p className="text-xl text-slate-700 mb-8 leading-relaxed">
-                Sinds 2009 helpen wij singles om elkaar te vinden. Wat begon als G-Date.nl, later OogvoorLiefde.nl, is nu geëvolueerd naar <span className="font-semibold text-primary-700">Liefde Voor Iedereen</span>.
+                Sinds 2009 helpen wij singles om elkaar te vinden. Wat begon als G-Date.nl, later OogvoorLiefde.nl, is nu geëvolueerd naar <span className="font-semibold text-rose-700">Liefde Voor Iedereen</span>.
               </p>
 
               <p className="text-lg text-slate-600 mb-10">
@@ -58,7 +58,7 @@ export default function OverOnsPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
                 >
                   Gratis account aanmaken
                   <ArrowRight className="w-5 h-5" />
@@ -76,9 +76,9 @@ export default function OverOnsPage() {
             <div className="relative">
               <div className="aspect-[4/5] relative rounded-2xl overflow-hidden shadow-2xl bg-white">
                 {/* Placeholder voor foto - vervang dit later met echte foto */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-trust-100 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-100 to-trust-100 flex items-center justify-center">
                   <div className="text-center">
-                    <Heart className="w-20 h-20 text-primary-400 mx-auto mb-4" />
+                    <Heart className="w-20 h-20 text-rose-400 mx-auto mb-4" />
                     <p className="text-slate-500 font-medium">Hero foto komt hier</p>
                   </div>
                 </div>
@@ -96,8 +96,8 @@ export default function OverOnsPage() {
               {/* Floating stats card */}
               <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-6 border border-slate-100">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <Users className="w-7 h-7 text-primary-600" />
+                  <div className="w-14 h-14 bg-rose-100 rounded-xl flex items-center justify-center">
+                    <Users className="w-7 h-7 text-rose-600" />
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-slate-900">1000+</p>
@@ -117,7 +117,7 @@ export default function OverOnsPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
               Onze oorsprong
             </h2>
-            <div className="w-20 h-1 bg-primary-500 mx-auto rounded-full" />
+            <div className="w-20 h-1 bg-rose-500 mx-auto rounded-full" />
           </div>
 
           <div className="prose prose-lg max-w-none">
@@ -126,7 +126,7 @@ export default function OverOnsPage() {
             </p>
 
             <p className="text-lg text-slate-700 leading-relaxed">
-              Wat volgde was een reis van 15 jaar waarin we uitgroeiden tot de grootste datingsite voor singles met een beperking in Nederland. Maar we leerden ook iets belangrijks: <span className="font-semibold text-primary-700">goede toegankelijkheid maakt dating beter voor iedereen</span>.
+              Wat volgde was een reis van 15 jaar waarin we uitgroeiden tot de grootste datingsite voor singles met een beperking in Nederland. Maar we leerden ook iets belangrijks: <span className="font-semibold text-rose-700">goede toegankelijkheid maakt dating beter voor iedereen</span>.
             </p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function OverOnsPage() {
           <div className="max-w-3xl mx-auto text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
               Een platform voor iedereen,<br />
-              <span className="text-primary-600">echt voor iedereen</span>
+              <span className="text-rose-600">echt voor iedereen</span>
             </h2>
             <p className="text-xl text-slate-700 leading-relaxed">
               "Liefde Voor Iedereen" is geen slogan maar onze kernfilosofie. We hebben geleerd dat features die oorspronkelijk werden ontworpen voor toegankelijkheid, zoals duidelijke navigatie, begrijpelijke taal, grote knoppen en stapsgewijze processen, uiteindelijk alle gebruikers ten goede komen.
@@ -171,8 +171,8 @@ export default function OverOnsPage() {
                 }
               ].map((item, index) => (
                 <div key={index} className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <item.icon className="w-6 h-6 text-primary-600" />
+                  <div className="flex-shrink-0 w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center">
+                    <item.icon className="w-6 h-6 text-rose-600" />
                   </div>
                   <p className="text-slate-700 leading-relaxed flex-1">
                     {item.text}
@@ -198,8 +198,8 @@ export default function OverOnsPage() {
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Feature 1: Adaptieve UX */}
-            <div className="bg-gradient-to-br from-primary-50 to-pink-50 rounded-2xl p-8 border border-primary-100">
-              <div className="w-14 h-14 bg-primary-500 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-8 border border-rose-100">
+              <div className="w-14 h-14 bg-rose-500 rounded-xl flex items-center justify-center mb-6">
                 <Target className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-4">
@@ -315,7 +315,7 @@ export default function OverOnsPage() {
                   }
                 ].map((value, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-primary-400 flex-shrink-0 mt-1" />
+                    <CheckCircle2 className="w-5 h-5 text-rose-400 flex-shrink-0 mt-1" />
                     <div>
                       <p className="font-semibold text-white">{value.title}:</p>
                       <p className="text-slate-400 text-sm">{value.description}</p>
@@ -332,7 +332,7 @@ export default function OverOnsPage() {
       <section className="py-20 lg:py-28 bg-stone-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 mb-6">
-            <Globe className="w-4 h-4 text-primary-600" />
+            <Globe className="w-4 h-4 text-rose-600" />
             <span className="text-sm font-medium text-slate-900">Made in Nederland</span>
           </div>
 
@@ -358,8 +358,8 @@ export default function OverOnsPage() {
           <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 md:p-12 border border-slate-200">
             <div className="flex flex-col md:flex-row gap-8 items-start">
               {/* Photo placeholder */}
-              <div className="w-32 h-32 bg-gradient-to-br from-primary-100 to-trust-100 rounded-2xl flex-shrink-0 flex items-center justify-center">
-                <User className="w-16 h-16 text-primary-400" />
+              <div className="w-32 h-32 bg-gradient-to-br from-rose-100 to-trust-100 rounded-2xl flex-shrink-0 flex items-center justify-center">
+                <User className="w-16 h-16 text-rose-400" />
               </div>
 
               {/* Content */}
@@ -367,7 +367,7 @@ export default function OverOnsPage() {
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">
                   Vincent van Munster
                 </h3>
-                <p className="text-primary-600 font-medium mb-4">Oprichter</p>
+                <p className="text-rose-600 font-medium mb-4">Oprichter</p>
                 <p className="text-slate-700 leading-relaxed">
                   Met 15 jaar ervaring sinds die eerste vakantie in 2009 combineert Vincent technische expertise met een persoonlijke missie om ervoor te zorgen dat iedereen liefde kan vinden.
                 </p>
@@ -378,12 +378,12 @@ export default function OverOnsPage() {
       </section>
 
       {/* Succesverhalen */}
-      <section className="py-20 lg:py-28 bg-gradient-to-br from-primary-50 via-pink-50 to-stone-50">
+      <section className="py-20 lg:py-28 bg-gradient-to-br from-rose-50 via-pink-50 to-stone-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-primary-200 mb-6">
-              <Sparkles className="w-4 h-4 text-primary-600" />
-              <span className="text-sm font-medium text-primary-900">Succesverhalen</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-rose-200 mb-6">
+              <Sparkles className="w-4 h-4 text-rose-600" />
+              <span className="text-sm font-medium text-rose-900">Succesverhalen</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
               Duizenden singles vonden elkaar
@@ -398,7 +398,7 @@ export default function OverOnsPage() {
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-slate-100">
             <div className="flex gap-1 mb-6">
               {[...Array(5)].map((_, i) => (
-                <Heart key={i} className="w-5 h-5 text-primary-500 fill-primary-500" />
+                <Heart key={i} className="w-5 h-5 text-rose-500 fill-primary-500" />
               ))}
             </div>
             <blockquote className="text-xl text-slate-700 leading-relaxed mb-6 italic">
@@ -420,14 +420,14 @@ export default function OverOnsPage() {
             Of je nu nieuw bent of een ervaren swiper:<br />
             Liefde Voor Iedereen is gemaakt voor jou.
           </p>
-          <p className="text-2xl font-bold text-primary-400 mb-10">
+          <p className="text-2xl font-bold text-rose-400 mb-10">
             Want liefde is voor iedereen. Ook voor jou.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
             >
               Maak gratis een account aan
               <ArrowRight className="w-5 h-5" />

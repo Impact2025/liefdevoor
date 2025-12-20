@@ -28,13 +28,13 @@ function VerifyEmailContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
           {/* Email Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-rose-100 to-rose-200 rounded-full flex items-center justify-center">
             <svg
-              className="w-10 h-10 text-primary-600"
+              className="w-10 h-10 text-rose-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -105,7 +105,7 @@ function VerifyEmailContent() {
           <div className="mt-8 pt-6 border-t border-gray-200">
             <a
               href="/login"
-              className="text-sm text-primary-600 hover:text-primary-500 font-medium"
+              className="text-sm text-rose-600 hover:text-rose-500 font-medium"
             >
               Terug naar login
             </a>
@@ -116,7 +116,7 @@ function VerifyEmailContent() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Problemen met verificatie?{' '}
-            <a href="/contact" className="text-primary-600 hover:underline">
+            <a href="/contact" className="text-rose-600 hover:underline">
               Neem contact op
             </a>
           </p>
@@ -128,7 +128,7 @@ function VerifyEmailContent() {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 flex items-center justify-center p-4">
       <div className="animate-pulse text-gray-500">Laden...</div>
     </div>
   )

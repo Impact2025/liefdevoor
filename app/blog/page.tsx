@@ -193,7 +193,7 @@ export default function BlogPage() {
                         </div>
                         <Link
                           href={`/blog/${post.slug}`}
-                          className="flex items-center text-primary hover:text-primary-hover font-medium transition-colors"
+                          className="flex items-center text-primary hover:text-rose-hover font-medium transition-colors"
                         >
                           Lees meer
                           <ArrowRight size={16} className="ml-1" />
@@ -219,7 +219,7 @@ export default function BlogPage() {
                   placeholder="jouw@email.com"
                   className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <button className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors">
+                <button className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-rose-hover transition-colors">
                   Inschrijven
                 </button>
               </div>

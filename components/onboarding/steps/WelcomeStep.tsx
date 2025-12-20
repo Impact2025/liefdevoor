@@ -62,7 +62,7 @@ export default function WelcomeStep() {
     >
       {/* Hero Section */}
       <div className="text-center">
-        <div className="w-20 h-20 bg-stone-500 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
           <Heart className="w-10 h-10 text-white fill-white" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900 mb-3">
@@ -117,7 +117,7 @@ export default function WelcomeStep() {
                 className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                   isSelected
                     ? mode.color === 'pink'
-                      ? 'bg-stone-500'
+                      ? 'bg-rose-500'
                       : mode.color === 'blue'
                       ? 'bg-blue-500'
                       : 'bg-purple-500'
@@ -134,7 +134,7 @@ export default function WelcomeStep() {
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-slate-900">{mode.name}</h3>
                   {mode.recommended && (
-                    <span className="px-2 py-0.5 bg-stone-500 text-white text-xs font-medium rounded-full">
+                    <span className="px-2 py-0.5 bg-rose-500 text-white text-xs font-medium rounded-full">
                       Aanbevolen
                     </span>
                   )}
@@ -146,7 +146,7 @@ export default function WelcomeStep() {
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                   isSelected
                     ? mode.color === 'pink'
-                      ? 'border-rose-500 bg-stone-500'
+                      ? 'border-rose-500 bg-rose-500'
                       : mode.color === 'blue'
                       ? 'border-blue-500 bg-blue-500'
                       : 'border-purple-500 bg-purple-500'
@@ -170,7 +170,7 @@ export default function WelcomeStep() {
       <button
         onClick={handleStart}
         disabled={!selectedMode || isSaving}
-        className="w-full py-4 px-6 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-lg rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 px-6 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-lg rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

@@ -192,7 +192,7 @@ export default function PrivacySettingsPage() {
                   <div className="font-medium text-gray-900">Noodzakelijke cookies</div>
                   <div className="text-sm text-gray-500">Altijd actief</div>
                 </div>
-                <div className="w-12 h-6 bg-stone-500 rounded-full flex items-center px-1 cursor-not-allowed opacity-50">
+                <div className="w-12 h-6 bg-rose-500 rounded-full flex items-center px-1 cursor-not-allowed opacity-50">
                   <div className="w-4 h-4 bg-white rounded-full shadow-sm transform translate-x-6" />
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function PrivacySettingsPage() {
                 <button
                   onClick={() => handleCookieUpdate('analytics')}
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                    cookiePrefs.analytics ? 'bg-stone-500' : 'bg-gray-300'
+                    cookiePrefs.analytics ? 'bg-rose-500' : 'bg-gray-300'
                   }`}
                 >
                   <div
@@ -226,7 +226,7 @@ export default function PrivacySettingsPage() {
                 <button
                   onClick={() => handleCookieUpdate('marketing')}
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                    cookiePrefs.marketing ? 'bg-stone-500' : 'bg-gray-300'
+                    cookiePrefs.marketing ? 'bg-rose-500' : 'bg-gray-300'
                   }`}
                 >
                   <div

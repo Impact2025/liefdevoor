@@ -16,7 +16,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ label, error, description, className = '', disabled, ...props }, ref) => {
     const checkboxClasses = `
       w-5 h-5 rounded border-2 border-gray-300
-      text-primary-600 focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-0
+      text-rose-600 focus:ring-2 focus:ring-rose-500/20 focus:ring-offset-0
       transition-colors cursor-pointer
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       ${error ? 'border-red-500' : ''}

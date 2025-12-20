@@ -450,12 +450,12 @@ export default function ChatPage() {
                   <div className="flex-1 flex items-center gap-3 bg-stone-50 rounded-lg px-4 py-2">
                     <motion.button
                       onClick={isPlayingRecorded ? stopAudio : playAudio}
-                      className="p-2 bg-primary-100 text-primary-600 rounded-full hover:bg-primary-200"
+                      className="p-2 bg-rose-100 text-rose-600 rounded-full hover:bg-rose-200"
                       whileTap={{ scale: 0.95 }}
                     >
                       {isPlayingRecorded ? <Pause size={16} /> : <Play size={16} />}
                     </motion.button>
-                    <span className="text-primary-600 font-medium">
+                    <span className="text-rose-600 font-medium">
                       Spraakbericht ({formatDuration(duration)})
                     </span>
                   </div>
@@ -463,7 +463,7 @@ export default function ChatPage() {
                   <motion.button
                     onClick={sendAudioMessage}
                     disabled={uploadingAudio}
-                    className="p-3 bg-primary text-white rounded-full hover:bg-primary-600 disabled:opacity-50"
+                    className="p-3 bg-primary text-white rounded-full hover:bg-rose-600 disabled:opacity-50"
                     whileTap={{ scale: 0.95 }}
                   >
                     {uploadingAudio ? (
@@ -524,7 +524,7 @@ export default function ChatPage() {
               <motion.button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="p-3 bg-primary text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-600"
+                className="p-3 bg-primary text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-rose-600"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

@@ -86,7 +86,7 @@ export default function PricingStep() {
           >
             {tier.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-stone-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                <span className="bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                   Populair
                 </span>
               </div>
@@ -138,7 +138,7 @@ export default function PricingStep() {
 
       <button
         onClick={nextStep}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 text-white font-bold rounded-xl transition-colors"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl transition-colors"
       >
         Begrepen, verder
       </button>

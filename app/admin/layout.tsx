@@ -45,7 +45,7 @@ export default async function AdminLayout({
           </p>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors"
           >
             <Home className="w-5 h-5" />
             Terug naar homepage
@@ -62,7 +62,7 @@ export default async function AdminLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Shield className="w-5 h-5 text-primary-400" />
+              <Shield className="w-5 h-5 text-rose-400" />
               <span className="font-semibold">Admin Dashboard</span>
             </div>
             <div className="flex items-center gap-4 text-sm">

@@ -86,7 +86,7 @@ export default function SubscriptionPage() {
               <button
                 onClick={() => handleSubscribe(plan.id)}
                 disabled={loading === plan.id}
-                className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
+                className="w-full bg-primary text-white py-2 rounded-lg hover:bg-rose-hover disabled:opacity-50 transition-colors"
               >
                 {loading === plan.id ? 'Processing...' : plan.price === 0 ? 'Get Started' : 'Subscribe'}
               </button>

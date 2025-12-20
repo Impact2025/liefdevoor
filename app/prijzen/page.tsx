@@ -65,7 +65,7 @@ export default function PrijzenPage() {
             ) : (
               <Link
                 href="/login"
-                className="px-5 py-2 bg-primary text-white font-medium rounded-full hover:bg-primary-hover transition-colors"
+                className="px-5 py-2 bg-primary text-white font-medium rounded-full hover:bg-rose-hover transition-colors"
               >
                 Inloggen
               </Link>
@@ -137,7 +137,7 @@ export default function PrijzenPage() {
                   plan.id === 'FREE'
                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     : plan.highlighted
-                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    ? 'bg-primary text-white hover:bg-rose-hover'
                     : 'bg-gray-900 text-white hover:bg-gray-800'
                 }`}
               >
@@ -185,7 +185,7 @@ export default function PrijzenPage() {
                   {pack.label}
                 </span>
 
-                <div className="mt-5 w-full py-3 bg-primary text-white font-semibold rounded-xl group-hover:bg-primary-hover transition-colors">
+                <div className="mt-5 w-full py-3 bg-primary text-white font-semibold rounded-xl group-hover:bg-rose-hover transition-colors">
                   Kopen
                 </div>
               </button>

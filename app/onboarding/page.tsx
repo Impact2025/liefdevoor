@@ -156,7 +156,7 @@ export default function OnboardingPage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-20 h-20 bg-stone-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="w-10 h-10 text-white fill-white" />
             </div>
           </motion.div>
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
                     key={i}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       i < currentVisibleStep
-                        ? 'bg-stone-500 w-6'
+                        ? 'bg-rose-500 w-6'
                         : i === currentVisibleStep
                         ? 'bg-rose-300 w-4'
                         : 'bg-slate-200 w-1.5'

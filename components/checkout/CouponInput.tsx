@@ -214,7 +214,7 @@ export default function CouponInput({
             className="bg-white border-2 border-slate-200 rounded-xl p-4"
           >
             <div className="flex items-center gap-2 mb-3">
-              <Ticket className="w-5 h-5 text-primary-600" />
+              <Ticket className="w-5 h-5 text-rose-600" />
               <span className="font-semibold text-slate-900">Couponcode</span>
             </div>
 
@@ -230,7 +230,7 @@ export default function CouponInput({
                   className={`w-full px-4 py-3 border-2 rounded-lg font-mono font-bold text-lg uppercase focus:outline-none transition-colors ${
                     error
                       ? 'border-red-300 focus:border-red-500 bg-red-50'
-                      : 'border-slate-300 focus:border-primary-500'
+                      : 'border-slate-300 focus:border-rose-500'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                   autoFocus
                 />
@@ -239,7 +239,7 @@ export default function CouponInput({
               <button
                 onClick={validateCoupon}
                 disabled={isValidating || !code || code.length < 3}
-                className="px-6 py-3 bg-stone-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
+                className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
               >
                 {isValidating ? (
                   <>
@@ -290,10 +290,10 @@ export default function CouponInput({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowInput(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 hover:border-primary-400 hover:bg-stone-50 rounded-xl transition-all group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 hover:border-rose-400 hover:bg-stone-50 rounded-xl transition-all group"
           >
-            <Ticket className="w-5 h-5 text-slate-400 group-hover:text-primary-600 transition-colors" />
-            <span className="font-medium text-slate-600 group-hover:text-primary-700 transition-colors">
+            <Ticket className="w-5 h-5 text-slate-400 group-hover:text-rose-600 transition-colors" />
+            <span className="font-medium text-slate-600 group-hover:text-rose-700 transition-colors">
               Heb je een kortingscode?
             </span>
           </motion.button>

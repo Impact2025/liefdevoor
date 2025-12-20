@@ -101,12 +101,12 @@ export function Navigation() {
                   className={`
                     flex items-center space-x-2 px-4 py-2 rounded-lg transition-all
                     ${isActive(item.href)
-                      ? 'bg-stone-50 text-primary-600 font-semibold'
+                      ? 'bg-stone-50 text-rose-600 font-semibold'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }
                   `}
                 >
-                  <span className={isActive(item.href) ? 'text-primary-600' : 'text-gray-400'}>
+                  <span className={isActive(item.href) ? 'text-rose-600' : 'text-gray-400'}>
                     {item.icon}
                   </span>
                   <span className="hidden lg:inline">{item.name}</span>
@@ -119,7 +119,7 @@ export function Navigation() {
                   onClick={() => setShowMenu(!showMenu)}
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-semibold">
                     {session.user?.name?.[0]?.toUpperCase() || 'U'}
                   </div>
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -198,7 +198,7 @@ export function Navigation() {
               className={`
                 flex flex-col items-center justify-center py-2 rounded-lg transition-all
                 ${isActive(item.href)
-                  ? 'text-primary-600'
+                  ? 'text-rose-600'
                   : 'text-gray-400 active:bg-gray-50'
                 }
               `}
@@ -211,7 +211,7 @@ export function Navigation() {
               </div>
               <span className={`
                 text-xs mt-1 font-medium
-                ${isActive(item.href) ? 'text-primary-600' : 'text-gray-600'}
+                ${isActive(item.href) ? 'text-rose-600' : 'text-gray-600'}
               `}>
                 {item.name}
               </span>
@@ -266,8 +266,8 @@ export function Navigation() {
                   </div>
 
                   {/* User Info */}
-                  <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl mb-6">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl mb-6">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white font-bold text-lg">
                       {session.user?.name?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1">

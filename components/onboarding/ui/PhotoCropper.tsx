@@ -144,7 +144,7 @@ export default function PhotoCropper({ imageSrc, onCropComplete, onCancel }: Pho
           <button
             onClick={handleSave}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-stone-500 hover:bg-rose-600 text-white font-bold transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold transition-colors disabled:opacity-50"
           >
             {isProcessing ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

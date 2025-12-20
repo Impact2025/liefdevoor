@@ -368,7 +368,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
                   step.id <= currentStep
-                    ? 'bg-stone-500'
+                    ? 'bg-rose-500'
                     : 'bg-slate-200'
                 }`}
               />
@@ -759,7 +759,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
             (currentStep === 3 && !nameValidation.valid)
           }
           isLoading={isLoading && currentStep === STEPS.length}
-          className="flex-1 bg-stone-500 hover:bg-rose-600"
+          className="flex-1 bg-rose-500 hover:bg-rose-600"
           size="lg"
         >
           {currentStep < STEPS.length ? 'Volgende' : 'Account aanmaken'}

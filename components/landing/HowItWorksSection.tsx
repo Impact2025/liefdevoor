@@ -64,7 +64,7 @@ export default function HowItWorksSection() {
             <div className="absolute right-0 bottom-0 w-1/3 h-full bg-gradient-to-l from-rose-50 to-transparent hidden md:block" />
             <div className="absolute -right-4 bottom-8 w-64 p-4 bg-white rounded-xl border border-slate-200 shadow-lg transform rotate-[-3deg] group-hover:rotate-0 transition-all duration-500 hidden md:block">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-stone-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-rose-500 rounded-full flex items-center justify-center">
                    <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div className="text-xs text-slate-400">AI Assistent</div>

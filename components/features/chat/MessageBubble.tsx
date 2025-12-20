@@ -46,7 +46,7 @@ export function MessageBubble({ message, showAvatar = true }: MessageBubbleProps
             px-4 py-2 rounded-2xl
             ${
               message.isFromMe
-                ? 'bg-primary-600 text-white rounded-br-sm'
+                ? 'bg-rose-600 text-white rounded-br-sm'
                 : 'bg-gray-200 text-gray-900 rounded-bl-sm'
             }
           `}

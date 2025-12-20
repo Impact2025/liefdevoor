@@ -37,7 +37,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ref
   ) => {
     const baseClasses = 'px-4 py-3 pr-10 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 appearance-none bg-white'
-    const normalClasses = 'border-gray-300 focus:border-primary-500 focus:ring-primary-500/20'
+    const normalClasses = 'border-gray-300 focus:border-rose-500 focus:ring-rose-500/20'
     const errorClasses = 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
     const disabledClasses = 'bg-gray-100 text-gray-500 cursor-not-allowed'
     const widthClass = fullWidth ? 'w-full' : ''

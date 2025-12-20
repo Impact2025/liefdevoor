@@ -108,7 +108,7 @@ export default function VerificationStep() {
         <button
           onClick={handleVerify}
           disabled={isCapturing}
-          className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {isCapturing ? (
             <>

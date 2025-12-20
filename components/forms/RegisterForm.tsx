@@ -263,11 +263,11 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         label={
           <span>
             Ik ga akkoord met de{' '}
-            <a href="/terms" target="_blank" className="text-primary-600 hover:underline">
+            <a href="/terms" target="_blank" className="text-rose-600 hover:underline">
               algemene voorwaarden
             </a>{' '}
             en{' '}
-            <a href="/privacy" target="_blank" className="text-primary-600 hover:underline">
+            <a href="/privacy" target="_blank" className="text-rose-600 hover:underline">
               privacybeleid
             </a>
           </span>
@@ -284,7 +284,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 
       <div className="text-center text-sm text-gray-600">
         Heb je al een account?{' '}
-        <a href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
+        <a href="/login" className="text-rose-600 hover:text-rose-500 font-medium">
           Log hier in
         </a>
       </div>

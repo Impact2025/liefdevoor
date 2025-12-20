@@ -105,7 +105,7 @@ export default function CompleteStep() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="w-20 h-20 bg-stone-500 rounded-full flex items-center justify-center mx-auto mb-4"
+          className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4"
         >
           <CheckCircle2 className="w-10 h-10 text-white" />
         </motion.div>
@@ -198,7 +198,7 @@ export default function CompleteStep() {
       <button
         onClick={handleComplete}
         disabled={isSubmitting}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSubmitting ? (
           <>

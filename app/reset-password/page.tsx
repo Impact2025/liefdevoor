@@ -114,7 +114,7 @@ function ResetPasswordForm() {
           </p>
           <Link
             href="/forgot-password"
-            className="inline-block bg-primary text-white py-3 px-6 rounded-full font-bold hover:bg-primary-hover transition-colors"
+            className="inline-block bg-primary text-white py-3 px-6 rounded-full font-bold hover:bg-rose-hover transition-colors"
           >
             Nieuwe link aanvragen
           </Link>
@@ -166,7 +166,7 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary text-white py-3 rounded-full font-bold hover:bg-primary-hover transition-colors disabled:opacity-50"
+          className="w-full bg-primary text-white py-3 rounded-full font-bold hover:bg-rose-hover transition-colors disabled:opacity-50"
         >
           {loading ? 'Opslaan...' : 'Wachtwoord opslaan'}
         </button>

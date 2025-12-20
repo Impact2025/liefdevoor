@@ -79,7 +79,7 @@ export default function AgePreferenceStep() {
 
           {/* Selected range highlight */}
           <div
-            className="absolute h-full bg-stone-500 rounded-full"
+            className="absolute h-full bg-rose-500 rounded-full"
             style={{
               left: `${minPercent}%`,
               right: `${100 - maxPercent}%`,
@@ -128,7 +128,7 @@ export default function AgePreferenceStep() {
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 minAge === range.min && maxAge === range.max
-                  ? 'bg-stone-500 text-white'
+                  ? 'bg-rose-500 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -147,7 +147,7 @@ export default function AgePreferenceStep() {
       <button
         onClick={handleContinue}
         disabled={isSaving}
-        className="w-full py-4 bg-stone-500 hover:bg-rose-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

@@ -119,13 +119,13 @@ function SubscriptionSuccessContent() {
 
   if (status === 'checking') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-rose-50 to-stone-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-stone-50 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-2xl shadow-xl p-8 text-center"
         >
-          <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-rose-500 animate-spin mx-auto mb-4" />
           <p className="text-lg font-medium text-slate-900">Betaling wordt geverifieerd...</p>
           <p className="text-sm text-slate-500 mt-2">Dit duurt maar een paar seconden</p>
         </motion.div>
@@ -134,7 +134,7 @@ function SubscriptionSuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-rose-50 to-stone-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-stone-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -142,7 +142,7 @@ function SubscriptionSuccessContent() {
         className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden"
       >
         {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-100 rounded-full blur-3xl opacity-30 -z-10" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-100 rounded-full blur-3xl opacity-30 -z-10" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-trust-100 rounded-full blur-3xl opacity-30 -z-10" />
 
         {status === 'success' ? (
@@ -179,8 +179,8 @@ function SubscriptionSuccessContent() {
               transition={{ delay: 0.6 }}
               className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
             >
-              <div className="bg-gradient-to-br from-primary-50 to-rose-50 rounded-xl p-4 text-center">
-                <div className="w-12 h-12 bg-stone-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="bg-gradient-to-br from-rose-50 to-rose-50 rounded-xl p-4 text-center">
+                <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Heart className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-sm font-semibold text-slate-900 mb-1">
@@ -252,7 +252,7 @@ function SubscriptionSuccessContent() {
             >
               <button
                 onClick={() => router.push('/discover')}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-stone-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors shadow-lg hover:shadow-xl"
+                className="w-full flex items-center justify-center gap-2 py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors shadow-lg hover:shadow-xl"
               >
                 Begin met daten
                 <ArrowRight className="w-5 h-5" />
@@ -272,7 +272,7 @@ function SubscriptionSuccessContent() {
             >
               <p className="text-sm text-slate-500">
                 Heb je vragen?{' '}
-                <a href="/support" className="text-primary-600 hover:underline font-medium">
+                <a href="/support" className="text-rose-600 hover:underline font-medium">
                   Contacteer onze support
                 </a>
               </p>
@@ -302,7 +302,7 @@ function SubscriptionSuccessContent() {
             <div className="space-y-3">
               <button
                 onClick={() => router.push('/subscription')}
-                className="w-full py-4 bg-stone-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors"
+                className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors"
               >
                 Probeer opnieuw
               </button>
@@ -318,7 +318,7 @@ function SubscriptionSuccessContent() {
             <div className="mt-6 p-4 bg-blue-50 rounded-xl">
               <p className="text-sm text-blue-900 text-center">
                 Heb je hulp nodig?{' '}
-                <a href="/support" className="text-primary-600 hover:underline font-medium">
+                <a href="/support" className="text-rose-600 hover:underline font-medium">
                   Neem contact op met support
                 </a>
               </p>

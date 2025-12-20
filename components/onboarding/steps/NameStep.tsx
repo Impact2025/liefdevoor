@@ -105,7 +105,7 @@ export default function NameStep() {
         <button
           onClick={handleContinue}
           disabled={name.trim().length < 2}
-          className="w-full py-4 px-6 bg-stone-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-stone-500 flex items-center justify-center gap-2"
+          className="w-full py-4 px-6 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-rose-500 flex items-center justify-center gap-2"
         >
           Doorgaan
           <ArrowRight className="w-5 h-5" />

@@ -86,7 +86,7 @@ export function Avatar({
         <div
           className={`
             w-full h-full flex items-center justify-center
-            bg-gradient-to-br from-primary-400 to-primary-600
+            bg-gradient-to-br from-rose-400 to-rose-600
             text-white font-semibold
             ${shapeClass}
           `}
