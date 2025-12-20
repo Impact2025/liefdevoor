@@ -9,6 +9,7 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { AppHeader } from '@/components/layout'
 import { Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
 
@@ -32,8 +33,8 @@ export default function SettingsPage() {
   // Redirect if not authenticated
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50 flex items-center justify-center">
-        <div className="animate-pulse text-primary-600">Laden...</div>
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="animate-pulse text-rose-600">Laden...</div>
       </div>
     )
   }
@@ -69,24 +70,22 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50 pb-24 md:pb-8">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Terug"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Instellingen</h1>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-stone-50 pb-24 md:pb-8">
+      <AppHeader
+        title="Instellingen"
+        subtitle="Beheer je voorkeuren"
+        actions={
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-stone-100 rounded-lg transition-colors"
+            aria-label="Terug"
+          >
+            <svg className="w-6 h-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        }
+      />
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto px-4 py-8">

@@ -64,7 +64,7 @@ export default function HowItWorksSection() {
             <div className="absolute right-0 bottom-0 w-1/3 h-full bg-gradient-to-l from-rose-50 to-transparent hidden md:block" />
             <div className="absolute -right-4 bottom-8 w-64 p-4 bg-white rounded-xl border border-slate-200 shadow-lg transform rotate-[-3deg] group-hover:rotate-0 transition-all duration-500 hidden md:block">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-rose-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-stone-500 rounded-full flex items-center justify-center">
                    <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div className="text-xs text-slate-400">AI Assistent</div>
@@ -73,7 +73,7 @@ export default function HowItWorksSection() {
                 <div className="bg-slate-100 p-2 rounded-lg rounded-tl-none text-xs text-slate-600">
                   Waar word jij blij van?
                 </div>
-                <div className="bg-rose-50 p-2 rounded-lg rounded-tr-none text-xs text-rose-700 ml-auto w-fit">
+                <div className="bg-stone-50 p-2 rounded-lg rounded-tr-none text-xs text-rose-700 ml-auto w-fit">
                   Wandelen met mijn hond!
                 </div>
                 <div className="bg-slate-100 p-2 rounded-lg rounded-tl-none text-xs text-slate-600 font-medium">
@@ -148,7 +148,7 @@ export default function HowItWorksSection() {
               </p>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-3 rounded-xl font-bold shadow-md hover:bg-rose-50 transition-colors"
+                className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-3 rounded-xl font-bold shadow-md hover:bg-stone-50 transition-colors"
               >
                 <Heart className="w-5 h-5 fill-current" />
                 Maak gratis profiel aan

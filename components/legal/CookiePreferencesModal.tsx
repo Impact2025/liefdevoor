@@ -110,7 +110,7 @@ export function CookiePreferencesModal({
                   </div>
                 </div>
                 <div className="ml-4">
-                  <div className="w-12 h-6 bg-rose-500 rounded-full flex items-center px-1 cursor-not-allowed opacity-50">
+                  <div className="w-12 h-6 bg-stone-500 rounded-full flex items-center px-1 cursor-not-allowed opacity-50">
                     <div className="w-4 h-4 bg-white rounded-full shadow-sm transform translate-x-6" />
                   </div>
                 </div>
@@ -120,7 +120,7 @@ export function CookiePreferencesModal({
             {/* Analytics */}
             <div className={`border-2 rounded-xl p-4 transition-colors ${
               preferences.analytics
-                ? 'border-rose-500 bg-rose-50'
+                ? 'border-rose-500 bg-stone-50'
                 : 'border-gray-200 bg-white'
             }`}>
               <div className="flex items-start justify-between">
@@ -155,7 +155,7 @@ export function CookiePreferencesModal({
                   <button
                     onClick={() => toggleCategory('analytics')}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      preferences.analytics ? 'bg-rose-500' : 'bg-gray-300'
+                      preferences.analytics ? 'bg-stone-500' : 'bg-gray-300'
                     }`}
                     aria-label="Analytics cookies in/uitschakelen"
                   >
@@ -172,7 +172,7 @@ export function CookiePreferencesModal({
             {/* Marketing */}
             <div className={`border-2 rounded-xl p-4 transition-colors ${
               preferences.marketing
-                ? 'border-rose-500 bg-rose-50'
+                ? 'border-rose-500 bg-stone-50'
                 : 'border-gray-200 bg-white'
             }`}>
               <div className="flex items-start justify-between">
@@ -203,7 +203,7 @@ export function CookiePreferencesModal({
                   <button
                     onClick={() => toggleCategory('marketing')}
                     className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                      preferences.marketing ? 'bg-rose-500' : 'bg-gray-300'
+                      preferences.marketing ? 'bg-stone-500' : 'bg-gray-300'
                     }`}
                     aria-label="Marketing cookies in/uitschakelen"
                   >

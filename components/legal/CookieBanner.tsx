@@ -130,7 +130,7 @@ export function CookieBanner() {
               </button>
               <button
                 onClick={handleCustomize}
-                className="px-6 py-3 bg-white text-rose-600 font-semibold rounded-lg border-2 border-rose-600 hover:bg-rose-50 transition-colors"
+                className="px-6 py-3 bg-white text-rose-600 font-semibold rounded-lg border-2 border-rose-600 hover:bg-stone-50 transition-colors"
               >
                 Voorkeuren instellen
               </button>

@@ -180,7 +180,7 @@ function SubscriptionSuccessContent() {
               className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
             >
               <div className="bg-gradient-to-br from-primary-50 to-rose-50 rounded-xl p-4 text-center">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 bg-stone-500 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Heart className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-sm font-semibold text-slate-900 mb-1">
@@ -252,7 +252,7 @@ function SubscriptionSuccessContent() {
             >
               <button
                 onClick={() => router.push('/discover')}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors shadow-lg hover:shadow-xl"
+                className="w-full flex items-center justify-center gap-2 py-4 bg-stone-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors shadow-lg hover:shadow-xl"
               >
                 Begin met daten
                 <ArrowRight className="w-5 h-5" />
@@ -302,7 +302,7 @@ function SubscriptionSuccessContent() {
             <div className="space-y-3">
               <button
                 onClick={() => router.push('/subscription')}
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors"
+                className="w-full py-4 bg-stone-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors"
               >
                 Probeer opnieuw
               </button>

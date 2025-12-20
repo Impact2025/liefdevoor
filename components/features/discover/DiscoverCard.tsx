@@ -209,7 +209,7 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
                     onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
                     className={`p-3 backdrop-blur-sm rounded-full transition-colors ${
                       isPlayingVoice
-                        ? 'bg-rose-500 hover:bg-rose-600'
+                        ? 'bg-stone-500 hover:bg-rose-600'
                         : 'bg-white/20 hover:bg-white/30'
                     }`}
                     aria-label={isPlayingVoice ? 'Stop voice intro' : 'Play voice intro'}
@@ -306,8 +306,8 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
                   onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
                   className={`p-3 rounded-full transition-all ${
                     isPlayingVoice
-                      ? 'bg-rose-500 text-white shadow-lg scale-105'
-                      : 'bg-white text-rose-500 hover:bg-rose-50 shadow'
+                      ? 'bg-stone-500 text-white shadow-lg scale-105'
+                      : 'bg-white text-rose-500 hover:bg-stone-50 shadow'
                   }`}
                 >
                   {isPlayingVoice ? (

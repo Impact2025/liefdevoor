@@ -220,7 +220,7 @@ export function UIModeSelectorModal({
         badge: 'bg-emerald-600',
       },
       standard: {
-        bg: isSelected ? 'bg-rose-50 border-rose-500' : 'bg-white border-gray-200 hover:border-rose-300',
+        bg: isSelected ? 'bg-stone-50 border-rose-500' : 'bg-white border-gray-200 hover:border-rose-300',
         icon: 'text-rose-600',
         badge: 'bg-rose-600',
       },

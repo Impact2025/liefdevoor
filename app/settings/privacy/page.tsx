@@ -45,7 +45,7 @@ export default function PrivacySettingsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="animate-pulse text-rose-600">Laden...</div>
       </div>
     )
@@ -137,7 +137,7 @@ export default function PrivacySettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 pb-24 md:pb-8">
+    <div className="min-h-screen bg-stone-50 pb-24 md:pb-8">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-6">
@@ -192,7 +192,7 @@ export default function PrivacySettingsPage() {
                   <div className="font-medium text-gray-900">Noodzakelijke cookies</div>
                   <div className="text-sm text-gray-500">Altijd actief</div>
                 </div>
-                <div className="w-12 h-6 bg-rose-500 rounded-full flex items-center px-1 cursor-not-allowed opacity-50">
+                <div className="w-12 h-6 bg-stone-500 rounded-full flex items-center px-1 cursor-not-allowed opacity-50">
                   <div className="w-4 h-4 bg-white rounded-full shadow-sm transform translate-x-6" />
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function PrivacySettingsPage() {
                 <button
                   onClick={() => handleCookieUpdate('analytics')}
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                    cookiePrefs.analytics ? 'bg-rose-500' : 'bg-gray-300'
+                    cookiePrefs.analytics ? 'bg-stone-500' : 'bg-gray-300'
                   }`}
                 >
                   <div
@@ -226,7 +226,7 @@ export default function PrivacySettingsPage() {
                 <button
                   onClick={() => handleCookieUpdate('marketing')}
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
-                    cookiePrefs.marketing ? 'bg-rose-500' : 'bg-gray-300'
+                    cookiePrefs.marketing ? 'bg-stone-500' : 'bg-gray-300'
                   }`}
                 >
                   <div

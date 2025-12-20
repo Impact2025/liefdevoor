@@ -239,7 +239,7 @@ export default function CouponInput({
               <button
                 onClick={validateCoupon}
                 disabled={isValidating || !code || code.length < 3}
-                className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
+                className="px-6 py-3 bg-stone-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
               >
                 {isValidating ? (
                   <>
@@ -290,7 +290,7 @@ export default function CouponInput({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowInput(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 hover:border-primary-400 hover:bg-primary-50 rounded-xl transition-all group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 hover:border-primary-400 hover:bg-stone-50 rounded-xl transition-all group"
           >
             <Ticket className="w-5 h-5 text-slate-400 group-hover:text-primary-600 transition-colors" />
             <span className="font-medium text-slate-600 group-hover:text-primary-700 transition-colors">

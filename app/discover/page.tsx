@@ -6,8 +6,9 @@ import { useState, useCallback, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
-import { Filter, Heart, Sparkles, Camera } from "lucide-react"
-import { AdaptiveProfileCard, useAdaptiveUI, UIModeSelectorModal, ShowWhen, Adaptive } from "@/components/adaptive"
+import { Filter, Sparkles, Camera } from "lucide-react"
+import { AdaptiveProfileCard, useAdaptiveUI, UIModeSelectorModal, Adaptive } from "@/components/adaptive"
+import { AppHeader } from "@/components/layout"
 import { useDiscoverUsers, usePost, useCurrentUser } from "@/hooks"
 import { Modal, Button, Input, Select, Alert } from "@/components/ui"
 import { Gender } from "@prisma/client"
@@ -170,25 +171,21 @@ export default function DiscoverPage() {
   const applyFilters = () => { refetch(filters); setShowFilters(false) }
   const clearFilters = () => { setFilters({ minAge: 18, maxAge: 99 }); refetch({ minAge: 18, maxAge: 99 }) }
 
-  if (status === "loading") return <div className="min-h-screen bg-rose-50 flex items-center justify-center"><div className="skeleton h-[500px] w-full max-w-md" /></div>
+  if (status === "loading") return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="skeleton h-[500px] w-full max-w-md" /></div>
   if (!session) { router.push("/login"); return null }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50">
-      <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gradient flex items-center gap-2">
-            <Heart className="w-6 h-6 text-rose-500" fill="#EC4899" />
-            <Adaptive simple={<span>Ontdek</span>} standard={<span>Ontdekken</span>} advanced={<span>Ontdekken</span>} />
-          </h1>
+    <div className="min-h-screen bg-stone-50">
+      <AppHeader
+        actions={
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowModeSelector(true)} className="px-3 py-1.5 rounded-full text-sm bg-gray-100 hover:bg-gray-200">
+            <button onClick={() => setShowModeSelector(true)} className="px-3 py-1.5 rounded-full text-sm bg-stone-100 hover:bg-stone-200 transition-colors">
               {mode === "simple" && "🎯"}{mode === "standard" && "⚡"}{mode === "advanced" && "🚀"}
             </button>
             <Button variant="secondary" size="sm" onClick={() => setShowFilters(true)}><Filter className="w-4 h-4" /></Button>
           </div>
-        </div>
-      </header>
+        }
+      />
       <main className="max-w-md mx-auto px-4 py-6">
         {isLoading ? <div className="skeleton h-[500px]" /> : error ? (
           <Alert variant="error">Fout bij laden. <button onClick={() => refetch()} className="underline">Opnieuw</button></Alert>

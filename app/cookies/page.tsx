@@ -73,7 +73,7 @@ export default function CookiesPage() {
             <h2 className="text-2xl font-bold mb-4">{cookiePolicyContent.management.title}</h2>
             <p className="text-gray-700 mb-4">{cookiePolicyContent.management.content}</p>
 
-            <div className="bg-rose-50 border-l-4 border-rose-500 p-4 my-6">
+            <div className="bg-stone-50 border-l-4 border-rose-500 p-4 my-6">
               <p className="text-sm text-rose-900">
                 <strong>Uw voorkeuren wijzigen?</strong> Ga naar{' '}
                 <Link href="/settings/privacy" className="underline font-semibold">

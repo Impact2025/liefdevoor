@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { ProfileForm } from '@/components/forms'
+import { AppHeader } from '@/components/layout'
 import { useCurrentUser } from '@/hooks'
 import { PageLoading, Alert, Avatar, AudioRecorder } from '@/components/ui'
 import { UploadButton } from '@/utils/uploadthing'
@@ -145,7 +146,7 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
         <Alert variant="error">
           Fout bij het laden van profiel. Probeer de pagina te verversen.
         </Alert>
@@ -154,18 +155,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-primary-600">
-            ⚙️ Mijn Profiel
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Beheer je profiel en voorkeuren
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-stone-50">
+      <AppHeader
+        title="Mijn Profiel"
+        subtitle="Beheer je profiel en voorkeuren"
+      />
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -293,7 +287,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary-50 to-rose-50 rounded-xl">
                     <button
                       onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
-                      className="w-12 h-12 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
+                      className="w-12 h-12 rounded-full bg-stone-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
                     >
                       {isPlayingVoice ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
                     </button>
@@ -363,7 +357,7 @@ export default function ProfilePage() {
                   </p>
                   <button
                     onClick={() => setShowVoiceRecorder(true)}
-                    className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    className="px-6 py-2 bg-stone-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                   >
                     Voice intro opnemen
                   </button>

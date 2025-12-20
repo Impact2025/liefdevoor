@@ -107,7 +107,7 @@ export default function Home() {
               <div className="w-14 h-14 bg-primary-100 rounded-xl mx-auto mb-4 flex items-center justify-center group-hover:bg-primary-200 transition-colors relative">
                 <Bell className="w-7 h-7 text-primary-500" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-stone-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -217,7 +217,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/register"
-                className="group px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
+                className="group px-8 py-4 bg-stone-500 hover:bg-primary-600 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
               >
                 <Heart className="w-5 h-5 fill-current" />
                 Gratis Starten
@@ -426,7 +426,7 @@ export default function Home() {
             </p>
             <Link
               href="/register"
-              className="inline-flex items-center gap-3 bg-white text-primary-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-primary-50 transition-colors shadow-lg"
+              className="inline-flex items-center gap-3 bg-white text-primary-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-stone-50 transition-colors shadow-lg"
             >
               Start nu gratis
               <ArrowRight className="w-5 h-5" />

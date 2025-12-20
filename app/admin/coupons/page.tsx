@@ -198,7 +198,7 @@ export default function AdminCouponsPage() {
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-stone-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Nieuwe Coupon
@@ -352,7 +352,7 @@ export default function AdminCouponsPage() {
                           {coupon.maxTotalUses && (
                             <div className="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-primary-500 transition-all"
+                                className="h-full bg-stone-500 transition-all"
                                 style={{ width: `${Math.min(getUsagePercentage(coupon), 100)}%` }}
                               />
                             </div>
@@ -733,7 +733,7 @@ function CouponModal({ coupon, onClose, onSuccess }: {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-2 bg-stone-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>

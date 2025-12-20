@@ -65,8 +65,8 @@ export function InstallPrompt({ delay = 5000 }: InstallPromptProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-            {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-rose-500 to-purple-500 px-4 py-3 flex items-center justify-between">
+            {/* Header with brand gradient */}
+            <div className="bg-gradient-to-r from-rose-500 to-teal-600 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-white">
                 <Smartphone className="w-5 h-5" />
                 <span className="font-semibold">Installeer de App</span>
@@ -87,13 +87,13 @@ export function InstallPrompt({ delay = 5000 }: InstallPromptProps) {
               </p>
               <ul className="text-sm text-gray-500 space-y-1 mb-4">
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Snellere toegang
+                  <span className="text-teal-600">✓</span> Snellere toegang
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Push notificaties
+                  <span className="text-teal-600">✓</span> Push notificaties
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Werkt offline
+                  <span className="text-teal-600">✓</span> Werkt offline
                 </li>
               </ul>
 
@@ -106,7 +106,7 @@ export function InstallPrompt({ delay = 5000 }: InstallPromptProps) {
                 </button>
                 <button
                   onClick={handleInstall}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-purple-500 text-white rounded-xl hover:opacity-90 transition-opacity text-sm font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Installeren

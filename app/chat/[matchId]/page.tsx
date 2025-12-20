@@ -447,7 +447,7 @@ export default function ChatPage() {
                     <X size={24} />
                   </motion.button>
 
-                  <div className="flex-1 flex items-center gap-3 bg-primary-50 rounded-lg px-4 py-2">
+                  <div className="flex-1 flex items-center gap-3 bg-stone-50 rounded-lg px-4 py-2">
                     <motion.button
                       onClick={isPlayingRecorded ? stopAudio : playAudio}
                       className="p-2 bg-primary-100 text-primary-600 rounded-full hover:bg-primary-200"
@@ -495,7 +495,7 @@ export default function ChatPage() {
                   setIsRecordingMode(true)
                   startRecording()
                 }}
-                className="p-3 text-gray-400 hover:text-primary hover:bg-primary-50 rounded-full transition-colors"
+                className="p-3 text-gray-400 hover:text-primary hover:bg-stone-50 rounded-full transition-colors"
                 whileTap={{ scale: 0.95 }}
                 title="Spraakbericht opnemen"
               >

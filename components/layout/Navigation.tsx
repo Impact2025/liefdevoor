@@ -101,7 +101,7 @@ export function Navigation() {
                   className={`
                     flex items-center space-x-2 px-4 py-2 rounded-lg transition-all
                     ${isActive(item.href)
-                      ? 'bg-primary-50 text-primary-600 font-semibold'
+                      ? 'bg-stone-50 text-primary-600 font-semibold'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }
                   `}

@@ -9,6 +9,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { MatchList } from '@/components/features'
+import { AppHeader } from '@/components/layout'
 import { PageLoading } from '@/components/ui'
 
 export default function MatchesPage() {
@@ -26,22 +27,15 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-primary-600">
-            💬 Jouw Matches
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Start een gesprek met je matches
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-stone-50">
+      <AppHeader
+        title="Matches"
+        subtitle="Start een gesprek met je matches"
+      />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden my-8 mx-4">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden my-6 mx-4">
           <MatchList
             onMatchClick={(matchId) => router.push(`/chat/${matchId}`)}
           />

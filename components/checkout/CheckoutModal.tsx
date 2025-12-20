@@ -230,7 +230,7 @@ export default function CheckoutModal({
                   onClick={() => setSelectedPaymentMethod('ideal')}
                   className={`p-4 border-2 rounded-xl transition-all ${
                     selectedPaymentMethod === 'ideal'
-                      ? 'border-primary-500 bg-primary-50'
+                      ? 'border-primary-500 bg-stone-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -245,7 +245,7 @@ export default function CheckoutModal({
                   onClick={() => setSelectedPaymentMethod('creditcard')}
                   className={`p-4 border-2 rounded-xl transition-all ${
                     selectedPaymentMethod === 'creditcard'
-                      ? 'border-primary-500 bg-primary-50'
+                      ? 'border-primary-500 bg-stone-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -260,7 +260,7 @@ export default function CheckoutModal({
                   onClick={() => setSelectedPaymentMethod('bancontact')}
                   className={`p-4 border-2 rounded-xl transition-all ${
                     selectedPaymentMethod === 'bancontact'
-                      ? 'border-primary-500 bg-primary-50'
+                      ? 'border-primary-500 bg-stone-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -289,7 +289,7 @@ export default function CheckoutModal({
             <button
               onClick={handleCheckout}
               disabled={isProcessing || finalAmount === 0}
-              className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-stone-500 hover:bg-primary-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <>
