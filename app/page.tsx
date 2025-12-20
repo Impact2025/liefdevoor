@@ -161,7 +161,7 @@ export default function Home() {
             </div>
             <Link
               href="/login"
-              className="px-6 py-2.5 bg-white/10 backdrop-blur-md border border-white/30 text-white font-medium rounded-full hover:bg-white/20 transition-colors"
+              className="px-6 py-2.5 bg-teal-700 text-white font-medium rounded-full hover:bg-teal-800 transition-colors"
             >
               Inloggen
             </Link>
@@ -217,7 +217,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/register"
-                className="group px-8 py-4 bg-stone-500 hover:bg-primary-600 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
+                className="group px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white text-lg font-bold rounded-2xl shadow-lg shadow-rose-900/30 transition-all transform hover:scale-105 flex items-center justify-center gap-3"
               >
                 <Heart className="w-5 h-5 fill-current" />
                 Gratis Starten
@@ -411,7 +411,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary-500 to-primary-600">
+      <section className="py-24 bg-rose-500">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -421,12 +421,12 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Klaar om de liefde te vinden?
             </h2>
-            <p className="text-xl text-primary-100 mb-10 max-w-2xl mx-auto">
+            <p className="text-xl text-rose-100 mb-10 max-w-2xl mx-auto">
               Sluit je aan bij duizenden singles die hun match al vonden. Gratis aanmelden duurt maar 2 minuten.
             </p>
             <Link
               href="/register"
-              className="inline-flex items-center gap-3 bg-white text-primary-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-stone-50 transition-colors shadow-lg"
+              className="inline-flex items-center gap-3 bg-white text-rose-600 text-lg font-bold py-4 px-10 rounded-2xl hover:bg-stone-50 transition-colors shadow-lg"
             >
               Start nu gratis
               <ArrowRight className="w-5 h-5" />

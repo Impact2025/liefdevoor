@@ -21,7 +21,9 @@
       "Bash(npm ls:*)",
       "Bash(tree:*)",
       "Bash(node scripts/generate-icons.js:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
