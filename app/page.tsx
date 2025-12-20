@@ -149,7 +149,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-3">
-              <Heart className="w-9 h-9 text-white fill-white" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/LiefdevoorIedereen_logo.png"
+                alt="Liefde Voor Iedereen"
+                width={36}
+                height={36}
+                className="object-contain"
+              />
               <span className="text-xl font-bold text-white">Liefde Voor Iedereen</span>
             </div>
             <Link
@@ -448,7 +455,14 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
               <div className="flex items-center space-x-2 mb-5">
-                <Heart className="w-7 h-7 text-rose-500 fill-rose-500" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/LiefdevoorIedereen_logo.png"
+                  alt="Liefde Voor Iedereen"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
                 <span className="text-lg font-bold">Liefde Voor Iedereen</span>
               </div>
               <p className="text-slate-400 text-sm leading-relaxed">

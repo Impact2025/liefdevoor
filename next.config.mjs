@@ -19,6 +19,16 @@ const allowedConnectDomains = [
   'https://nominatim.openstreetmap.org',
   'https://openrouter.ai',
   'https://*.ingest.sentry.io',  // Sentry error tracking
+  'https://www.google-analytics.com',
+  'https://www.googletagmanager.com',
+  'https://region1.google-analytics.com',
+];
+
+// Google Analytics domains
+const googleAnalyticsDomains = [
+  'https://www.googletagmanager.com',
+  'https://www.google-analytics.com',
+  'https://ssl.google-analytics.com',
 ];
 
 // Build CSP header (different for dev vs production)
@@ -28,13 +38,12 @@ const isDev = process.env.NODE_ENV === 'development'
 
 // For maximum security, consider implementing nonce-based CSP (see lib/csp.ts)
 const scriptSrc = isDev
-  ? "'self' 'unsafe-inline' 'unsafe-eval'" // Dev: HMR requires unsafe-eval
-  : "'self' 'unsafe-inline'"                // Prod: Keep unsafe-inline for Next.js hydration
-                                            // TODO: Migrate to nonce-based CSP for production
+  ? `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+  : `'self' 'unsafe-inline' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
 
 const cspHeader = `
   default-src 'self';
-  script-src ${scriptSrc} https://challenges.cloudflare.com;
+  script-src ${scriptSrc};
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')};
   font-src 'self' data:;
@@ -169,9 +178,12 @@ const sentryWebpackPluginOptions = {
   // Hide source maps from generated client bundles
   hideSourceMaps: true,
 
-  // Automatically annotate React components to show in breadcrumbs
-  reactComponentAnnotation: {
-    enabled: true,
+  // Webpack configuration for React component annotation
+  webpack: {
+    // Automatically annotate React components to show in breadcrumbs
+    reactComponentAnnotation: {
+      enabled: true,
+    },
   },
 };
 

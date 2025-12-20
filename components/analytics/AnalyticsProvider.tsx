@@ -1,22 +1,42 @@
 /**
- * Analytics Provider
+ * Analytics Provider - World-Class Edition
+ *
  * Handles automatic page tracking and user identification
+ * with proper Suspense boundaries for Next.js 14+ compatibility
  */
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
-import { usePageTracking } from '@/hooks/usePageTracking'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { trackPageView } from '@/lib/gtag'
 import { hasConsentFor } from '@/lib/cookie-consent'
 
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+/**
+ * Internal component that handles page tracking with useSearchParams
+ * Must be wrapped in Suspense boundary
+ */
+function PageTracker() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (pathname && hasConsentFor('analytics')) {
+      const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
+      trackPageView(url)
+    }
+  }, [pathname, searchParams])
+
+  return null
+}
+
+/**
+ * Internal component for user identification
+ */
+function UserIdentifier() {
   const { data: session } = useSession()
 
-  // Automatic page view tracking
-  usePageTracking()
-
-  // User identification
   useEffect(() => {
     if (!hasConsentFor('analytics')) return
 
@@ -35,9 +55,30 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
         gender: (session.user as any).gender || 'unknown',
       })
 
-      console.log('[Analytics] User identified:', session.user.id)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Analytics] User identified:', session.user.id)
+      }
     }
   }, [session])
 
-  return <>{children}</>
+  return null
+}
+
+/**
+ * Main Analytics Provider with proper Suspense boundaries
+ */
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {/* Page tracking wrapped in Suspense for SSR compatibility */}
+      <Suspense fallback={null}>
+        <PageTracker />
+      </Suspense>
+
+      {/* User identification (no Suspense needed - uses session) */}
+      <UserIdentifier />
+
+      {children}
+    </>
+  )
 }

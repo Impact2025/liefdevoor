@@ -34,13 +34,23 @@ export function buildCSP(nonce: string, isDev: boolean): string {
     'https://nominatim.openstreetmap.org',
     'https://openrouter.ai',
     'https://*.ingest.sentry.io',
+    'https://www.google-analytics.com',
+    'https://www.googletagmanager.com',
+    'https://region1.google-analytics.com',
+  ]
+
+  // Google Analytics / Tag Manager domains
+  const googleAnalyticsDomains = [
+    'https://www.googletagmanager.com',
+    'https://www.google-analytics.com',
+    'https://ssl.google-analytics.com',
   ]
 
   // Development: Allow unsafe-eval for HMR
   // Production: Use nonce and strict-dynamic for better security
   const scriptSrc = isDev
-    ? `'self' 'unsafe-inline' 'unsafe-eval'`
-    : `'nonce-${nonce}' 'strict-dynamic' 'self'`
+    ? `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+    : `'nonce-${nonce}' 'strict-dynamic' 'self' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
 
   // Style: unsafe-inline is acceptable for styles (less risky than scripts)
   // Alternative: Use nonces for styles too if you want maximum security
