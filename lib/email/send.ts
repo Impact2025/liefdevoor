@@ -17,8 +17,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
   // Check if we have Resend API key
   const resendApiKey = process.env.RESEND_API_KEY
 
-  if (resendApiKey && process.env.NODE_ENV === 'production') {
-    // Production: Use Resend
+  if (resendApiKey) {
+    // Use Resend when API key is configured
     try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -41,13 +41,14 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
         throw new Error('Failed to send email')
       }
 
-      console.log('[Email] ✅ Sent via Resend to:', to)
+      const result = await response.json()
+      console.log('[Email] ✅ Sent via Resend to:', to, '| ID:', result.id)
     } catch (error) {
       console.error('[Email] Error sending email:', error)
       throw error
     }
   } else {
-    // Development: Log to console
+    // Development: Log to console when no API key
     console.log('\n' + '='.repeat(80))
     console.log('[Email] 📧 EMAIL (DEVELOPMENT MODE)')
     console.log('='.repeat(80))
@@ -60,10 +61,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
     console.log('HTML version available but not shown in console')
     console.log('='.repeat(80) + '\n')
 
-    // In development, we consider the email "sent"
-    // In production without Resend, you should set up proper email
-    if (process.env.NODE_ENV === 'production' && !resendApiKey) {
-      console.warn('⚠️  WARNING: No RESEND_API_KEY configured for production!')
+    // In development without API key, we just log to console
+    if (!resendApiKey) {
+      console.warn('⚠️  No RESEND_API_KEY configured - emails will only be logged to console')
     }
   }
 }
