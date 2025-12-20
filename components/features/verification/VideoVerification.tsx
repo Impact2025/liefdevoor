@@ -216,7 +216,7 @@ export function VideoVerification() {
   return (
     <div className="max-w-lg mx-auto p-4">
       <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gradient-to-r from-rose-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <Shield className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Video Verificatie</h2>
@@ -403,7 +403,7 @@ export function VideoVerification() {
 
               <button
                 onClick={startRecording}
-                className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+                className="w-full py-3 bg-gradient-to-r from-rose-500 to-purple-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
               >
                 Start Verificatie
               </button>

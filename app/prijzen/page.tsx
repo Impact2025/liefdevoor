@@ -5,10 +5,45 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Heart, Check, Shield, Star, MessageCircle, Sparkles } from 'lucide-react'
 import { SUBSCRIPTION_PLANS, CREDIT_PACKS, formatPrice } from '@/lib/pricing'
+import CheckoutModal from '@/components/checkout/CheckoutModal'
+
+interface CheckoutData {
+  type: 'subscription' | 'credits'
+  planId?: string
+  planName?: string
+  planPrice?: number
+  planPeriod?: string
+  credits?: number
+}
 
 export default function PrijzenPage() {
   const { data: session } = useSession()
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null)
+
+  const handleSubscriptionSelect = (planId: string) => {
+    const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId)
+    if (!plan) return
+
+    setCheckoutData({
+      type: 'subscription',
+      planId: plan.id,
+      planName: plan.name,
+      planPrice: plan.price,
+      planPeriod: plan.periodLabel,
+    })
+  }
+
+  const handleCreditSelect = (packId: string) => {
+    const pack = CREDIT_PACKS.find(p => p.id === packId)
+    if (!pack) return
+
+    setCheckoutData({
+      type: 'credits',
+      credits: pack.credits,
+      planPrice: pack.price,
+      planName: `${pack.credits} Superbericht${pack.credits === 1 ? '' : 'en'}`,
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,7 +132,7 @@ export default function PrijzenPage() {
               </ul>
 
               <button
-                onClick={() => setSelectedPlan(plan.id)}
+                onClick={() => handleSubscriptionSelect(plan.id)}
                 className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
                   plan.id === 'FREE'
                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -131,6 +166,7 @@ export default function PrijzenPage() {
             {CREDIT_PACKS.map((pack) => (
               <button
                 key={pack.id}
+                onClick={() => handleCreditSelect(pack.id)}
                 className="flex flex-col items-center p-6 bg-gray-50 border-2 border-gray-200 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group"
               >
                 <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
@@ -253,6 +289,20 @@ export default function PrijzenPage() {
           </p>
         </div>
       </footer>
+
+      {/* Checkout Modal */}
+      {checkoutData && (
+        <CheckoutModal
+          isOpen={!!checkoutData}
+          onClose={() => setCheckoutData(null)}
+          type={checkoutData.type}
+          planId={checkoutData.planId}
+          planName={checkoutData.planName}
+          planPrice={checkoutData.planPrice}
+          planPeriod={checkoutData.planPeriod}
+          credits={checkoutData.credits}
+        />
+      )}
     </div>
   )
 }

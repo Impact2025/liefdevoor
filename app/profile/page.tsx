@@ -145,7 +145,7 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-pink-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50 flex items-center justify-center p-6">
         <Alert variant="error">
           Fout bij het laden van profiel. Probeer de pagina te verversen.
         </Alert>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-rose-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-6">
@@ -201,10 +201,10 @@ export default function ProfilePage() {
 
               {/* Onboarding prompt when no photos */}
               {photos.length === 0 && !loadingPhotos && (
-                <div className="mb-6 p-4 bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 rounded-xl">
+                <div className="mb-6 p-4 bg-gradient-to-br from-rose-50 to-rose-50 border border-rose-200 rounded-xl">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
                         Voeg je eerste foto toe!
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Profielen met foto's krijgen <span className="font-semibold text-pink-600">10x meer matches</span>. Upload een duidelijke foto van jezelf.
+                        Profielen met foto's krijgen <span className="font-semibold text-rose-600">10x meer matches</span>. Upload een duidelijke foto van jezelf.
                       </p>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export default function ProfilePage() {
               {user?.voiceIntro ? (
                 // Has voice intro - show playback controls
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary-50 to-pink-50 rounded-xl">
+                  <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary-50 to-rose-50 rounded-xl">
                     <button
                       onClick={isPlayingVoice ? stopVoiceIntro : playVoiceIntro}
                       className="w-12 h-12 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
@@ -355,7 +355,7 @@ export default function ProfilePage() {
               ) : (
                 // No voice intro - show prompt
                 <div className="text-center py-4">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary-100 to-pink-100 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary-100 to-rose-100 rounded-full flex items-center justify-center">
                     <Mic className="w-8 h-8 text-primary-500" />
                   </div>
                   <p className="text-gray-600 mb-4">

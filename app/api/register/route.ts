@@ -47,7 +47,10 @@ export async function POST(request: NextRequest) {
     const validationResult = registerSchema.safeParse(body)
     if (!validationResult.success) {
       const firstError = validationResult.error.issues[0]
-      return NextResponse.json({ error: firstError.message }, { status: 400 })
+      return NextResponse.json({
+        success: false,
+        error: { message: firstError.message }
+      }, { status: 400 })
     }
 
     const { name, email, password, birthDate, gender, city, bio } = validationResult.data
@@ -57,7 +60,10 @@ export async function POST(request: NextRequest) {
       where: { email: email.toLowerCase() }
     })
     if (existingUser) {
-      return NextResponse.json({ error: 'Er bestaat al een account met dit emailadres' }, { status: 400 })
+      return NextResponse.json({
+        success: false,
+        error: { message: 'Er bestaat al een account met dit emailadres' }
+      }, { status: 400 })
     }
 
     // Hash password with 12 rounds
@@ -111,11 +117,17 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email },
-      message: 'Account aangemaakt! Check je email om je account te activeren.',
+      success: true,
+      data: {
+        user: { id: user.id, name: user.name, email: user.email },
+        message: 'Account aangemaakt! Check je email om je account te activeren.',
+      }
     })
   } catch (error) {
     console.error('Registration error:', error)
-    return NextResponse.json({ error: 'Er is een fout opgetreden' }, { status: 500 })
+    return NextResponse.json({
+      success: false,
+      error: { message: 'Er is een fout opgetreden' }
+    }, { status: 500 })
   }
 }

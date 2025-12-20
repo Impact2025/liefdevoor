@@ -220,9 +220,9 @@ export function UIModeSelectorModal({
         badge: 'bg-emerald-600',
       },
       standard: {
-        bg: isSelected ? 'bg-pink-50 border-pink-500' : 'bg-white border-gray-200 hover:border-pink-300',
-        icon: 'text-pink-600',
-        badge: 'bg-pink-600',
+        bg: isSelected ? 'bg-rose-50 border-rose-500' : 'bg-white border-gray-200 hover:border-rose-300',
+        icon: 'text-rose-600',
+        badge: 'bg-rose-600',
       },
       advanced: {
         bg: isSelected ? 'bg-violet-50 border-violet-500' : 'bg-white border-gray-200 hover:border-violet-300',
@@ -260,13 +260,13 @@ export function UIModeSelectorModal({
             aria-labelledby="mode-selector-title"
           >
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 via-pink-600 to-rose-500 text-white p-6 rounded-t-2xl">
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-rose-500 via-rose-600 to-rose-500 text-white p-6 rounded-t-2xl">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 id="mode-selector-title" className="text-2xl font-bold mb-2">
                     {title || (showOnboarding ? 'Welkom! Kies jouw ervaring' : 'Pas jouw ervaring aan')}
                   </h2>
-                  <p className="text-pink-100 max-w-xl">
+                  <p className="text-rose-100 max-w-xl">
                     {subtitle || 'Selecteer de modus die het beste bij jou past. Je kunt dit altijd later wijzigen in de instellingen.'}
                   </p>
                 </div>
@@ -307,9 +307,9 @@ export function UIModeSelectorModal({
                       }}
                       className={`
                         relative text-left p-5 rounded-xl border-2 transition-all
-                        focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2
+                        focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2
                         ${colors.bg}
-                        ${isFocused ? 'ring-2 ring-pink-500 ring-offset-2' : ''}
+                        ${isFocused ? 'ring-2 ring-rose-500 ring-offset-2' : ''}
                       `}
                       aria-pressed={isSelected}
                       aria-label={`${config.name}: ${config.tagline}`}
@@ -395,7 +395,7 @@ export function UIModeSelectorModal({
                   onClick={handleConfirm}
                   className={`
                     flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-white shadow-lg
-                    bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600
+                    bg-gradient-to-r from-rose-500 to-rose-500 hover:from-rose-600 hover:to-rose-600
                     transition-all ${showOnboarding ? 'w-full sm:w-auto' : 'ml-auto'}
                   `}
                 >

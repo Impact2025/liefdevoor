@@ -170,15 +170,15 @@ export default function DiscoverPage() {
   const applyFilters = () => { refetch(filters); setShowFilters(false) }
   const clearFilters = () => { setFilters({ minAge: 18, maxAge: 99 }); refetch({ minAge: 18, maxAge: 99 }) }
 
-  if (status === "loading") return <div className="min-h-screen bg-pink-50 flex items-center justify-center"><div className="skeleton h-[500px] w-full max-w-md" /></div>
+  if (status === "loading") return <div className="min-h-screen bg-rose-50 flex items-center justify-center"><div className="skeleton h-[500px] w-full max-w-md" /></div>
   if (!session) { router.push("/login"); return null }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50">
       <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gradient flex items-center gap-2">
-            <Heart className="w-6 h-6 text-pink-500" fill="#EC4899" />
+            <Heart className="w-6 h-6 text-rose-500" fill="#EC4899" />
             <Adaptive simple={<span>Ontdek</span>} standard={<span>Ontdekken</span>} advanced={<span>Ontdekken</span>} />
           </h1>
           <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export default function DiscoverPage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-3xl font-bold mb-2 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent"
+            className="text-3xl font-bold mb-2 bg-gradient-to-r from-rose-500 to-rose-500 bg-clip-text text-transparent"
           >
             It's a Match!
           </motion.h3>
@@ -265,14 +265,14 @@ export default function DiscoverPage() {
       {/* Onboarding Modal - Encourage photo upload */}
       <Modal isOpen={showOnboarding} onClose={() => { setShowOnboarding(false); setOnboardingDismissed(true) }} title="" size="md">
         <div className="text-center py-6">
-          <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-pink-100 to-rose-200 rounded-full flex items-center justify-center">
-            <Camera className="w-12 h-12 text-pink-500" />
+          <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-100 to-rose-200 rounded-full flex items-center justify-center">
+            <Camera className="w-12 h-12 text-rose-500" />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-3">
             Voeg een foto toe!
           </h3>
           <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-            Profielen met foto's krijgen <span className="font-semibold text-pink-600">10x meer matches</span>.
+            Profielen met foto's krijgen <span className="font-semibold text-rose-600">10x meer matches</span>.
             Laat anderen zien wie je bent!
           </p>
           <div className="flex gap-3">

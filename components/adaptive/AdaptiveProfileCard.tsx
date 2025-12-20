@@ -244,7 +244,7 @@ function ActionButton({
           ${style.bg} ${style.hover} ${style.shadow}
           shadow-lg transition-colors
           disabled:opacity-50 disabled:cursor-not-allowed
-          focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2
+          focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2
         `}
         aria-label={label}
       >
@@ -629,7 +629,7 @@ export function AdaptiveProfileCard({
                   {profile.interests.map((interest, idx) => (
                     <span
                       key={idx}
-                      className="bg-pink-100 text-pink-800 px-4 py-2 rounded-full text-lg font-semibold"
+                      className="bg-rose-100 text-rose-800 px-4 py-2 rounded-full text-lg font-semibold"
                     >
                       {interest}
                     </span>
@@ -955,7 +955,7 @@ export function AdaptiveProfileCard({
 
           {/* Match Score (Advanced only) */}
           {profile.matchScore && (
-            <div className="absolute bottom-2 right-2 bg-pink-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+            <div className="absolute bottom-2 right-2 bg-rose-600 text-white px-2 py-1 rounded-full text-xs font-bold">
               {profile.matchScore}% match
             </div>
           )}
@@ -1039,7 +1039,7 @@ export function AdaptiveProfileCard({
               </span>
             )}
             {profile.matchScore && (
-              <span className="text-pink-600 font-semibold">{profile.matchScore}% match</span>
+              <span className="text-rose-600 font-semibold">{profile.matchScore}% match</span>
             )}
             {profile.mutualFriends !== undefined && profile.mutualFriends > 0 && (
               <span className="flex items-center gap-1">

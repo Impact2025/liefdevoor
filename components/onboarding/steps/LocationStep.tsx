@@ -109,8 +109,8 @@ export default function LocationStep() {
       className="space-y-6"
     >
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pink-50 flex items-center justify-center">
-          <MapPin className="w-8 h-8 text-pink-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+          <MapPin className="w-8 h-8 text-rose-500" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900">
           Waar woon je?
@@ -140,7 +140,7 @@ export default function LocationStep() {
                 ? 'border-green-500 bg-green-50'
                 : lookupError
                 ? 'border-red-500 bg-red-50'
-                : 'border-slate-200 focus:border-pink-500'
+                : 'border-slate-200 focus:border-rose-500'
             }`}
           />
           {isValid && (
@@ -160,7 +160,7 @@ export default function LocationStep() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-3"
           >
-            <MapPin className="w-5 h-5 text-pink-500" />
+            <MapPin className="w-5 h-5 text-rose-500" />
             <div>
               <p className="font-medium text-slate-900">{city}</p>
               <p className="text-sm text-slate-500">{postcode}</p>
@@ -178,7 +178,7 @@ export default function LocationStep() {
       <button
         onClick={handleContinue}
         disabled={!isValid || isSaving}
-        className="w-full py-4 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

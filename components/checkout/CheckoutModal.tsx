@@ -172,7 +172,7 @@ export default function CheckoutModal({
             </AnimatePresence>
 
             {/* Order Summary */}
-            <div className="bg-gradient-to-br from-primary-50 to-pink-50 rounded-xl p-6">
+            <div className="bg-gradient-to-br from-primary-50 to-rose-50 rounded-xl p-6">
               <h3 className="text-lg font-bold text-slate-900 mb-4">
                 {type === 'subscription' ? 'Abonnement' : 'Credits'}
               </h3>

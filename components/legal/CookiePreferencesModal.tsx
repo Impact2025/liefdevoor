@@ -245,7 +245,7 @@ export function CookiePreferencesModal({
         <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex gap-3 rounded-b-2xl">
           <button
             onClick={handleSave}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold rounded-lg hover:from-rose-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-rose-500 to-rose-600 text-white font-semibold rounded-lg hover:from-rose-600 hover:to-rose-700 transition-all shadow-md hover:shadow-lg"
           >
             Voorkeuren opslaan
           </button>

@@ -30,7 +30,7 @@ export default function GlobalError({
   return (
     <html lang="nl">
       <body>
-        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
             {/* Error Icon */}
             <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
@@ -77,7 +77,7 @@ export default function GlobalError({
             <div className="space-y-3">
               <button
                 onClick={reset}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-full font-bold hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg"
+                className="w-full bg-gradient-to-r from-rose-500 to-purple-600 text-white py-3 px-6 rounded-full font-bold hover:from-rose-600 hover:to-purple-700 transition-all shadow-lg"
               >
                 Probeer opnieuw
               </button>
@@ -93,7 +93,7 @@ export default function GlobalError({
             {/* Support Link */}
             <p className="mt-6 text-sm text-gray-500">
               Blijft dit probleem zich voordoen?{' '}
-              <a href="/contact" className="text-pink-600 hover:underline">
+              <a href="/contact" className="text-rose-600 hover:underline">
                 Neem contact op
               </a>
             </p>

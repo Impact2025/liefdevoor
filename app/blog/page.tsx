@@ -85,12 +85,12 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-24">
+      <section className="bg-gradient-to-r from-rose-500 to-purple-600 text-white py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold mb-6">
             Dating Advies & Verhalen
           </h1>
-          <p className="text-xl text-pink-100 max-w-3xl mx-auto">
+          <p className="text-xl text-rose-100 max-w-3xl mx-auto">
             Ontdek tips, verhalen en inzichten over moderne liefde en relaties.
             Van date ideeën tot relatie advies - alles wat je nodig hebt voor succesvol daten.
           </p>
@@ -206,7 +206,7 @@ export default function BlogPage() {
             )}
 
             {/* Newsletter Signup */}
-            <div className="mt-12 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-8 text-center">
+            <div className="mt-12 bg-gradient-to-r from-rose-50 to-purple-50 rounded-2xl p-8 text-center">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Blijf op de hoogte
               </h3>

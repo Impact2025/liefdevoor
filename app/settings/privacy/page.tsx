@@ -45,7 +45,7 @@ export default function PrivacySettingsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 flex items-center justify-center">
         <div className="animate-pulse text-rose-600">Laden...</div>
       </div>
     )
@@ -137,7 +137,7 @@ export default function PrivacySettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 pb-24 md:pb-8">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-6">

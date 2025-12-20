@@ -47,7 +47,7 @@ export default function NameStep() {
         className="text-center mb-8"
       >
         <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-6 border border-slate-200">
-          <User className="w-8 h-8 text-pink-500" />
+          <User className="w-8 h-8 text-rose-500" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
           Hoe mogen we je noemen?
@@ -75,7 +75,7 @@ export default function NameStep() {
             onKeyDown={handleKeyDown}
             placeholder="Je voornaam"
             autoFocus
-            className="w-full px-6 py-5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xl font-medium placeholder-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20 transition-all text-center"
+            className="w-full px-6 py-5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xl font-medium placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all text-center"
             maxLength={20}
           />
         </div>
@@ -105,7 +105,7 @@ export default function NameStep() {
         <button
           onClick={handleContinue}
           disabled={name.trim().length < 2}
-          className="w-full py-4 px-6 bg-pink-500 hover:bg-pink-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-500 flex items-center justify-center gap-2"
+          className="w-full py-4 px-6 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-rose-500 flex items-center justify-center gap-2"
         >
           Doorgaan
           <ArrowRight className="w-5 h-5" />

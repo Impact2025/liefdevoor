@@ -66,7 +66,7 @@ export function InstallPrompt({ delay = 5000 }: InstallPromptProps) {
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
             {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-pink-500 to-purple-500 px-4 py-3 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-rose-500 to-purple-500 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-white">
                 <Smartphone className="w-5 h-5" />
                 <span className="font-semibold">Installeer de App</span>
@@ -106,7 +106,7 @@ export function InstallPrompt({ delay = 5000 }: InstallPromptProps) {
                 </button>
                 <button
                   onClick={handleInstall}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl hover:opacity-90 transition-opacity text-sm font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-purple-500 text-white rounded-xl hover:opacity-90 transition-opacity text-sm font-medium flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Installeren

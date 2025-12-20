@@ -58,8 +58,8 @@ export default function LookingForStep() {
     >
       {/* Header */}
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pink-50 flex items-center justify-center">
-          <Heart className="w-8 h-8 text-pink-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+          <Heart className="w-8 h-8 text-rose-500" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900">
           Wie zoek je?
@@ -81,7 +81,7 @@ export default function LookingForStep() {
             disabled={isSaving}
             className={`w-full p-5 rounded-xl border-2 transition-all flex items-center gap-4 text-left disabled:opacity-70 ${
               selected === option.value
-                ? 'border-pink-500 bg-pink-50'
+                ? 'border-rose-500 bg-rose-50'
                 : 'border-slate-200 bg-white hover:border-slate-300'
             }`}
           >
@@ -92,7 +92,7 @@ export default function LookingForStep() {
             <div
               className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                 selected === option.value
-                  ? 'border-pink-500 bg-pink-500'
+                  ? 'border-rose-500 bg-rose-500'
                   : 'border-slate-300'
               }`}
             >

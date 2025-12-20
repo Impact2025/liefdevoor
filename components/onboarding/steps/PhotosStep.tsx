@@ -117,8 +117,8 @@ export default function PhotosStep() {
       >
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pink-50 flex items-center justify-center">
-            <Camera className="w-8 h-8 text-pink-500" />
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+            <Camera className="w-8 h-8 text-rose-500" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900">
             Laat jezelf zien
@@ -149,7 +149,7 @@ export default function PhotosStep() {
 
               {/* Main photo badge */}
               {index === 0 && (
-                <div className="absolute top-2 left-2 px-2 py-1 bg-pink-500 rounded-lg text-xs font-bold text-white">
+                <div className="absolute top-2 left-2 px-2 py-1 bg-rose-500 rounded-lg text-xs font-bold text-white">
                   Hoofdfoto
                 </div>
               )}
@@ -171,16 +171,16 @@ export default function PhotosStep() {
               animate={{ opacity: 1 }}
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="aspect-[2/3] rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center gap-2 hover:border-pink-500 hover:bg-pink-50 transition-all group disabled:opacity-50"
+              className="aspect-[2/3] rounded-xl border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center gap-2 hover:border-rose-500 hover:bg-rose-50 transition-all group disabled:opacity-50"
             >
               {isUploading ? (
-                <div className="w-8 h-8 border-2 border-slate-300 border-t-pink-500 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-slate-300 border-t-rose-500 rounded-full animate-spin" />
               ) : (
                 <>
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-pink-100 transition-colors">
-                    <Plus className="w-5 h-5 text-slate-400 group-hover:text-pink-500" />
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-rose-100 transition-colors">
+                    <Plus className="w-5 h-5 text-slate-400 group-hover:text-rose-500" />
                   </div>
-                  <span className="text-xs text-slate-400 group-hover:text-pink-500">
+                  <span className="text-xs text-slate-400 group-hover:text-rose-500">
                     Toevoegen
                   </span>
                 </>
@@ -210,7 +210,7 @@ export default function PhotosStep() {
         {/* Tips */}
         <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
           <div className="flex items-start gap-3">
-            <Lightbulb className="w-5 h-5 text-pink-500 mt-0.5 flex-shrink-0" />
+            <Lightbulb className="w-5 h-5 text-rose-500 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="text-sm font-semibold text-slate-900 mb-1">Tips voor de beste fotos</h4>
               <ul className="text-xs text-slate-500 space-y-1">
@@ -226,7 +226,7 @@ export default function PhotosStep() {
         <button
           onClick={handleContinue}
           disabled={!canContinue || isSaving}
-          className="w-full py-4 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {isSaving ? (
             <>

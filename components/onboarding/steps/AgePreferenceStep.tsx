@@ -50,8 +50,8 @@ export default function AgePreferenceStep() {
       className="space-y-6"
     >
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pink-50 flex items-center justify-center">
-          <Users className="w-8 h-8 text-pink-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+          <Users className="w-8 h-8 text-rose-500" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900">
           Welke leeftijd?
@@ -64,9 +64,9 @@ export default function AgePreferenceStep() {
       {/* Age Display */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6">
         <div className="text-center mb-8">
-          <span className="text-4xl font-bold text-pink-500">{minAge}</span>
+          <span className="text-4xl font-bold text-rose-500">{minAge}</span>
           <span className="text-2xl text-slate-400 mx-3">-</span>
-          <span className="text-4xl font-bold text-pink-500">
+          <span className="text-4xl font-bold text-rose-500">
             {maxAge === 99 ? '99+' : maxAge}
           </span>
           <p className="text-sm text-slate-500 mt-2">jaar oud</p>
@@ -79,7 +79,7 @@ export default function AgePreferenceStep() {
 
           {/* Selected range highlight */}
           <div
-            className="absolute h-full bg-pink-500 rounded-full"
+            className="absolute h-full bg-rose-500 rounded-full"
             style={{
               left: `${minPercent}%`,
               right: `${100 - maxPercent}%`,
@@ -93,7 +93,7 @@ export default function AgePreferenceStep() {
             max={99}
             value={minAge}
             onChange={(e) => handleMinChange(parseInt(e.target.value))}
-            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pink-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
+            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-rose-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
           />
 
           {/* Max slider */}
@@ -103,7 +103,7 @@ export default function AgePreferenceStep() {
             max={99}
             value={maxAge}
             onChange={(e) => handleMaxChange(parseInt(e.target.value))}
-            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pink-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
+            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-rose-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
           />
         </div>
 
@@ -128,7 +128,7 @@ export default function AgePreferenceStep() {
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 minAge === range.min && maxAge === range.max
-                  ? 'bg-pink-500 text-white'
+                  ? 'bg-rose-500 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -147,7 +147,7 @@ export default function AgePreferenceStep() {
       <button
         onClick={handleContinue}
         disabled={isSaving}
-        className="w-full py-4 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

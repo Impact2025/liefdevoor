@@ -9,7 +9,7 @@ export default function OfflinePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-purple-50 flex items-center justify-center p-4">
       <motion.div
         className="text-center max-w-md"
         initial={{ opacity: 0, y: 20 }}

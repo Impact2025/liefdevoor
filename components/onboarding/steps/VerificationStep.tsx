@@ -30,8 +30,8 @@ export default function VerificationStep() {
       className="space-y-6"
     >
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pink-50 flex items-center justify-center">
-          <Shield className="w-8 h-8 text-pink-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+          <Shield className="w-8 h-8 text-rose-500" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900">
           Verificatie
@@ -74,7 +74,7 @@ export default function VerificationStep() {
               <p className="text-sm text-slate-500">Na verificatie</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-pink-500">
+          <div className="flex items-center gap-1 text-rose-500">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">Geverifieerd</span>
           </div>
@@ -85,20 +85,20 @@ export default function VerificationStep() {
       <div className="space-y-3">
         <h3 className="text-sm font-medium text-slate-700">Hoe werkt het?</h3>
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-pink-500">1</span>
+          <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-xs font-bold text-rose-500">1</span>
           </div>
           <p className="text-sm text-slate-600">Neem een selfie met je camera</p>
         </div>
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-pink-500">2</span>
+          <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-xs font-bold text-rose-500">2</span>
           </div>
           <p className="text-sm text-slate-600">We vergelijken met je profielfoto</p>
         </div>
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-pink-500">3</span>
+          <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-xs font-bold text-rose-500">3</span>
           </div>
           <p className="text-sm text-slate-600">Klaar! Je badge wordt direct zichtbaar</p>
         </div>
@@ -108,7 +108,7 @@ export default function VerificationStep() {
         <button
           onClick={handleVerify}
           disabled={isCapturing}
-          className="w-full py-4 bg-pink-500 hover:bg-pink-600 disabled:bg-pink-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           {isCapturing ? (
             <>

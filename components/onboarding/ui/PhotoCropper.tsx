@@ -127,7 +127,7 @@ export default function PhotoCropper({ imageSrc, onCropComplete, onCancel }: Pho
             step={0.1}
             value={zoom}
             onChange={(e) => setZoom(parseFloat(e.target.value))}
-            className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+            className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-rose-500"
           />
           <ZoomIn className="w-5 h-5 text-slate-400" />
         </div>
@@ -144,7 +144,7 @@ export default function PhotoCropper({ imageSrc, onCropComplete, onCancel }: Pho
           <button
             onClick={handleSave}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold transition-colors disabled:opacity-50"
           >
             {isProcessing ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

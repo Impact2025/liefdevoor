@@ -156,11 +156,11 @@ export default function OnboardingPage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-20 h-20 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="w-10 h-10 text-white fill-white" />
             </div>
           </motion.div>
-          <Loader2 className="w-6 h-6 text-pink-500 animate-spin mx-auto mb-3" />
+          <Loader2 className="w-6 h-6 text-rose-500 animate-spin mx-auto mb-3" />
           <p className="text-slate-600">Even geduld...</p>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function OnboardingPage() {
 
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
+              <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
               <span className="text-lg font-bold text-slate-900">LVI</span>
             </div>
 
@@ -209,9 +209,9 @@ export default function OnboardingPage() {
                     key={i}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       i < currentVisibleStep
-                        ? 'bg-pink-500 w-6'
+                        ? 'bg-rose-500 w-6'
                         : i === currentVisibleStep
-                        ? 'bg-pink-300 w-4'
+                        ? 'bg-rose-300 w-4'
                         : 'bg-slate-200 w-1.5'
                     }`}
                     initial={{ scale: 0.8 }}

@@ -83,18 +83,13 @@ export function Navigation() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/discover" className="flex items-center space-x-3">
+            <Link href="/discover" className="flex items-center space-x-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/LiefdevoorIedereen_logo.png"
                 alt="Liefde Voor Iedereen"
-                width={40}
-                height={40}
-                className="object-contain"
+                className="h-10 w-auto object-contain"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">
-                Liefde Voor Iedereen
-              </span>
             </Link>
 
             {/* Desktop Nav Items */}

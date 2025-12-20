@@ -113,8 +113,8 @@ export default function BioStep() {
     >
       {/* Header */}
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pink-50 flex items-center justify-center">
-          <PenLine className="w-8 h-8 text-pink-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+          <PenLine className="w-8 h-8 text-rose-500" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900">
           Vertel iets over jezelf
@@ -130,7 +130,7 @@ export default function BioStep() {
           value={bio}
           onChange={handleBioChange}
           placeholder="Schrijf hier iets leuks over jezelf..."
-          className="w-full min-h-[160px] px-4 py-4 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20 transition-all resize-none"
+          className="w-full min-h-[160px] px-4 py-4 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all resize-none"
           disabled={isAiHelping}
         />
 
@@ -155,7 +155,7 @@ export default function BioStep() {
       <button
         onClick={() => setShowTopicSelector(!showTopicSelector)}
         disabled={isAiHelping}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-pink-500 hover:border-pink-500 transition-colors disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-rose-500 hover:border-rose-500 transition-colors disabled:opacity-50"
       >
         {isAiHelping ? (
           <>
@@ -164,7 +164,7 @@ export default function BioStep() {
           </>
         ) : (
           <>
-            <Wand2 className="w-4 h-4 text-pink-500" />
+            <Wand2 className="w-4 h-4 text-rose-500" />
             <span>Laat AI me helpen schrijven</span>
           </>
         )}
@@ -193,8 +193,8 @@ export default function BioStep() {
                         onClick={() => toggleTopic(topic)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                           isSelected
-                            ? 'bg-pink-500 text-white'
-                            : 'bg-white border border-slate-200 text-slate-600 hover:border-pink-500'
+                            ? 'bg-rose-500 text-white'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:border-rose-500'
                         }`}
                       >
                         {topic}
@@ -207,7 +207,7 @@ export default function BioStep() {
               <button
                 onClick={handleGenerateBio}
                 disabled={selectedTopics.length === 0}
-                className="w-full py-3 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 Genereer bio
@@ -228,7 +228,7 @@ export default function BioStep() {
       <button
         onClick={handleContinue}
         disabled={!canContinue || isSaving}
-        className="w-full py-4 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
       >
         {isSaving ? (
           <>

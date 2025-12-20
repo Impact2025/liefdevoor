@@ -19,7 +19,7 @@ function LoginContent() {
   const registered = searchParams.get('registered')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md">
         {/* Logo & Header */}
         <div className="text-center mb-8">
@@ -91,7 +91,7 @@ function LoginContent() {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-slate-500">Laden...</p>

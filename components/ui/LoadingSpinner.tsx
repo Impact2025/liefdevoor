@@ -42,7 +42,7 @@ export function LoadingSpinner({
     lg: 'h-12 w-12',
   }
 
-  const spinnerColor = className || 'text-pink-500'
+  const spinnerColor = className || 'text-rose-500'
 
   const containerClasses = centered
     ? 'flex flex-col items-center justify-center min-h-[200px]'

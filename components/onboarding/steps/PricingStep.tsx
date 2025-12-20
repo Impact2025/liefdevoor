@@ -80,13 +80,13 @@ export default function PricingStep() {
             transition={{ delay: PRICING_TIERS.indexOf(tier) * 0.1 }}
             className={`relative bg-white rounded-2xl border-2 p-5 ${
               tier.popular
-                ? 'border-pink-500 shadow-lg'
+                ? 'border-rose-500 shadow-lg'
                 : 'border-slate-200'
             }`}
           >
             {tier.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                <span className="bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                   Populair
                 </span>
               </div>
@@ -97,7 +97,7 @@ export default function PricingStep() {
                 <div className="flex items-center gap-2">
                   <tier.icon
                     className={`w-5 h-5 ${
-                      tier.popular ? 'text-pink-500' : 'text-slate-400'
+                      tier.popular ? 'text-rose-500' : 'text-slate-400'
                     }`}
                   />
                   <h3 className="font-bold text-slate-900">{tier.name}</h3>
@@ -138,7 +138,7 @@ export default function PricingStep() {
 
       <button
         onClick={nextStep}
-        className="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition-colors"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl transition-colors"
       >
         Begrepen, verder
       </button>
