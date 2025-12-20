@@ -133,6 +133,14 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt'
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // If user is trying to access a URL, allow it
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      // If URL is on the same origin, allow it
+      if (url.startsWith(baseUrl)) return url
+      // Default to base URL
+      return baseUrl
+    },
     async signIn({ user, account, profile }) {
       // Track login/signup events (only for OAuth providers)
       if (account?.provider === 'google') {
