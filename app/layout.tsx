@@ -16,11 +16,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/LiefdevoorIedereen_logo.png", sizes: "32x32", type: "image/png" },
+      { url: "/images/LiefdevoorIedereen_logo.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/images/LiefdevoorIedereen_logo.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: [
+      { url: "/images/LiefdevoorIedereen_logo.png" },
     ],
   },
   appleWebApp: {
@@ -48,7 +52,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ec4899",
+  themeColor: "#f43f5e",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

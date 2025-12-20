@@ -89,7 +89,7 @@ export function InstallPrompt() {
               <div className="p-4">
                 <div className="flex items-start gap-4">
                   {/* App Icon */}
-                  <div className="w-14 h-14 bg-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 bg-primary-500 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Smartphone className="w-7 h-7 text-white" />
                   </div>
 
@@ -124,7 +124,7 @@ export function InstallPrompt() {
                   </button>
                   <button
                     onClick={handleInstall}
-                    className="flex-1 py-3 px-4 text-sm font-medium text-white bg-pink-500 rounded-xl hover:bg-pink-600 transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-4 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
                   >
                     <Download className="w-4 h-4" />
                     Installeren
@@ -218,7 +218,7 @@ export function InstallPrompt() {
                     setShowIOSInstructions(false);
                     handleDismiss();
                   }}
-                  className="w-full mt-8 py-4 text-white font-bold bg-pink-500 rounded-xl hover:bg-pink-600 transition-colors"
+                  className="w-full mt-8 py-4 text-white font-bold bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors"
                 >
                   Begrepen
                 </button>

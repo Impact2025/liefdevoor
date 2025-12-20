@@ -618,3 +618,85 @@ model AccountDeletionRequest {
   @@index([scheduledFor])
   @@index([cancelled])
 }
+
+// ============================================
+// COUPON SYSTEM - Wereldklasse Marketing Tool
+// ============================================
+
+enum CouponType {
+  PERCENTAGE    // Percentage korting (bijv. 20% off)
+  FIXED_AMOUNT  // Vast bedrag korting (bijv. €5 off)
+  FREE_TRIAL    // Gratis proefperiode (bijv. 1 maand gratis)
+}
+
+enum CouponApplicableTo {
+  ALL           // Geldt voor alles
+  SUBSCRIPTION  // Alleen voor abonnementen
+  CREDITS       // Alleen voor credit aankopen
+}
+
+model Coupon {
+  id                String              @id @default(cuid())
+  code              String              @unique // Couponcode (bijv. LOVE2024, NIEUW50)
+  description       String?             @db.Text // Interne beschrijving voor admins
+
+  // Discount settings
+  type              CouponType
+  value             Float               // Percentage (20) of bedrag (5.00)
+  applicableTo      CouponApplicableTo  @default(ALL)
+  applicablePlans   String?             // JSON array van plannen (bijv. ["PLUS", "COMPLETE"])
+
+  // Restrictions
+  minPurchaseAmount Float?              // Minimum aankoopbedrag
+  maxDiscountCap    Float?              // Maximum kortingsbedrag (voor percentage coupons)
+
+  // Usage limits
+  maxTotalUses      Int?                // Totaal aantal keer te gebruiken (null = onbeperkt)
+  maxUsesPerUser    Int                 @default(1) // Max gebruik per gebruiker
+  currentTotalUses  Int                 @default(0) // Aantal keer gebruikt
+
+  // Validity period
+  validFrom         DateTime            @default(now())
+  validUntil        DateTime?           // Null = geen vervaldatum
+
+  // Status
+  isActive          Boolean             @default(true)
+
+  // Metadata
+  createdBy         String?             // Admin user ID die coupon aanmaakte
+  notes             String?             @db.Text // Extra notities voor admins
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  usages            CouponUsage[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([validFrom, validUntil])
+  @@index([applicableTo])
+  @@index([createdAt])
+}
+
+// Coupon usage tracking
+model CouponUsage {
+  id              String   @id @default(cuid())
+  couponId        String
+  coupon          Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  userId          String
+
+  // Usage details
+  orderType       String   // "subscription" of "credits"
+  orderId         String?  // Subscription ID of CreditPurchase ID
+  discountAmount  Float    // Werkelijke kortingsbedrag toegepast
+  originalAmount  Float    // Originele prijs
+  finalAmount     Float    // Uiteindelijke prijs na korting
+
+  usedAt          DateTime @default(now())
+
+  @@index([couponId])
+  @@index([userId])
+  @@index([couponId, userId])
+  @@index([usedAt])
+}
