@@ -346,7 +346,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Account aangemaakt!</h2>
         <p className="text-slate-600">Je wordt doorgestuurd...</p>
         <div className="mt-4 flex justify-center">
-          <Loader2 className="w-5 h-5 animate-spin text-pink-500" />
+          <Loader2 className="w-5 h-5 animate-spin text-rose-500" />
         </div>
       </motion.div>
     )
@@ -368,7 +368,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
                   step.id <= currentStep
-                    ? 'bg-pink-500'
+                    ? 'bg-rose-500'
                     : 'bg-slate-200'
                 }`}
               />
@@ -702,7 +702,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
                         <a
                           href="/terms"
                           target="_blank"
-                          className="text-pink-500 hover:text-pink-600 font-medium underline"
+                          className="text-rose-500 hover:text-rose-600 font-medium underline"
                         >
                           algemene voorwaarden
                         </a>{' '}
@@ -710,7 +710,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
                         <a
                           href="/privacy"
                           target="_blank"
-                          className="text-pink-500 hover:text-pink-600 font-medium underline"
+                          className="text-rose-500 hover:text-rose-600 font-medium underline"
                         >
                           privacybeleid
                         </a>
@@ -759,7 +759,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
             (currentStep === 3 && !nameValidation.valid)
           }
           isLoading={isLoading && currentStep === STEPS.length}
-          className="flex-1 bg-pink-500 hover:bg-pink-600"
+          className="flex-1 bg-rose-500 hover:bg-rose-600"
           size="lg"
         >
           {currentStep < STEPS.length ? 'Volgende' : 'Account aanmaken'}
@@ -770,7 +770,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       {currentStep === 1 && (
         <div className="mt-6 text-center text-sm text-slate-600">
           Heb je al een account?{' '}
-          <a href="/login" className="text-pink-500 hover:text-pink-600 font-medium">
+          <a href="/login" className="text-rose-500 hover:text-rose-600 font-medium">
             Log hier in
           </a>
         </div>
