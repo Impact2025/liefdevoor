@@ -4,7 +4,7 @@
  * Predefined reasons for reporting users
  */
 
-export const REPORT_REASONS = {
+const REPORT_REASONS = {
   harassment: 'Intimidatie of pesterijen',
   fake_profile: 'Nep profiel',
   spam: 'Spam of reclame',
@@ -16,3 +16,13 @@ export const REPORT_REASONS = {
 } as const
 
 export type ReportReason = keyof typeof REPORT_REASONS
+
+// Validation helper
+export function isValidReportReason(reason: string): reason is ReportReason {
+  return reason in REPORT_REASONS
+}
+
+// Get reason label
+export function getReportReasonLabel(reason: ReportReason): string {
+  return REPORT_REASONS[reason]
+}

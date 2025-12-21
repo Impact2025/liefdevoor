@@ -8,17 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, successResponse, handleApiError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { auditLog } from '@/lib/audit'
-
-export const REPORT_REASONS = {
-  inappropriate_photos: 'Ongepaste foto\'s',
-  harassment: 'Intimidatie of lastigvallen',
-  fake_profile: 'Nep profiel',
-  spam: 'Spam of scam',
-  underage: 'Minderjarig',
-  hate_speech: 'Haatzaaien',
-  violence: 'Geweld of gevaar',
-  other: 'Anders',
-} as const
+import { isValidReportReason } from '@/lib/report-reasons'
 
 /**
  * POST /api/safety/report
@@ -33,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    if (!reason || !REPORT_REASONS[reason as keyof typeof REPORT_REASONS]) {
+    if (!reason || !isValidReportReason(reason)) {
       return NextResponse.json({ error: 'Valid reason is required' }, { status: 400 })
     }
 
@@ -65,7 +55,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Audit log
-    auditLog('user_reported', {
+    auditLog('USER_REPORTED', {
       userId: user.id,
       details: {
         reportId: report.id,
