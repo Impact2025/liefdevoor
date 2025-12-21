@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { useOnboardingStore, getSkippedSteps } from '@/store/useOnboardingStore';
-import { Heart, Loader2, ChevronLeft } from 'lucide-react';
+import { Loader2, ChevronLeft, Heart } from 'lucide-react';
+import Image from 'next/image';
 
 // Step Components
 import WelcomeStep from '@/components/onboarding/steps/WelcomeStep';
@@ -190,10 +191,14 @@ export default function OnboardingPage() {
             </div>
 
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-              <span className="text-lg font-bold text-slate-900">LVI</span>
-            </div>
+            <Image
+              src="/images/LiefdevoorIedereen_logo.png"
+              alt="Liefde Voor Iedereen"
+              width={120}
+              height={34}
+              className="h-8 w-auto"
+              priority
+            />
 
             {/* Placeholder for symmetry */}
             <div className="w-12" />
