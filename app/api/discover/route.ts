@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth()
 
-    // Get current user's profile and preferences
+    // Get current user's profile and preferences (including passport mode)
     const currentUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: {
@@ -101,6 +101,11 @@ export async function GET(request: NextRequest) {
         latitude: true,
         longitude: true,
         city: true,
+        // Passport mode fields
+        passportCity: true,
+        passportLatitude: true,
+        passportLongitude: true,
+        passportExpiresAt: true,
       },
     })
 
@@ -109,6 +114,19 @@ export async function GET(request: NextRequest) {
     }
 
     const prefs: UserPreferences = currentUser.preferences ? JSON.parse(currentUser.preferences) : {}
+
+    // Check if passport mode is active
+    const now = new Date()
+    const isPassportActive = currentUser.passportCity &&
+      currentUser.passportLatitude &&
+      currentUser.passportLongitude &&
+      currentUser.passportExpiresAt &&
+      new Date(currentUser.passportExpiresAt) > now
+
+    // Use passport location if active, otherwise use real location
+    const effectiveLatitude = isPassportActive ? currentUser.passportLatitude : currentUser.latitude
+    const effectiveLongitude = isPassportActive ? currentUser.passportLongitude : currentUser.longitude
+    const effectiveCity = isPassportActive ? currentUser.passportCity : currentUser.city
 
     // Parse filters and pagination
     const { searchParams } = new URL(request.url)
@@ -137,8 +155,11 @@ export async function GET(request: NextRequest) {
 
     const excludeIds = [currentUser.id, ...excludedUsers.map(u => u.id)]
 
-    // Build where clause using helper
-    const where = buildDiscoverWhere(excludeIds, filters, prefs, currentUser.city)
+    // Build where clause using helper (use effective city from passport if active)
+    const where = buildDiscoverWhere(excludeIds, filters, prefs, effectiveCity)
+
+    // Filter out incognito users (they don't appear in discover)
+    where.incognitoMode = false
 
     // Fetch potential matches (3x limit for distance filtering)
     const potentialMatches = await prisma.user.findMany({
@@ -170,14 +191,14 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Apply distance filtering if needed
+    // Apply distance filtering if needed (use effective location from passport if active)
     let filteredMatches = potentialMatches
-    if (currentUser.latitude && currentUser.longitude && prefs.maxDistance) {
+    if (effectiveLatitude && effectiveLongitude && prefs.maxDistance) {
       filteredMatches = potentialMatches.filter(user => {
         if (!user.latitude || !user.longitude) return false
         const distance = calculateDistance(
-          currentUser.latitude!,
-          currentUser.longitude!,
+          effectiveLatitude,
+          effectiveLongitude,
           user.latitude,
           user.longitude
         )
@@ -185,8 +206,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get boosted user IDs
-    const now = new Date()
+    // Get boosted user IDs (reuse 'now' from passport check)
     const boostedUsers = await prisma.profileBoost.findMany({
       where: {
         isActive: true,
@@ -223,6 +243,11 @@ export async function GET(request: NextRequest) {
         total: totalCount,
         totalPages: Math.ceil(totalCount / limit),
       },
+      // Include passport info if active
+      passport: isPassportActive ? {
+        city: currentUser.passportCity,
+        expiresAt: currentUser.passportExpiresAt,
+      } : null,
     })
   } catch (error) {
     return handleApiError(error)

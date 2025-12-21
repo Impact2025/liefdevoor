@@ -38,6 +38,8 @@ export interface PlanFeatures {
   priorityInSearch: boolean
   noAds: boolean
   monthlySupermessages: number
+  canUsePassport: boolean // Swipe in other cities
+  canUseIncognito: boolean // Browse anonymously
 }
 
 // Feature limits per plan - "Vriend van de Liefde" Model
@@ -54,6 +56,8 @@ const PLAN_FEATURES: Record<SubscriptionPlan, PlanFeatures> = {
     priorityInSearch: false,
     noAds: false,
     monthlySupermessages: 0,
+    canUsePassport: false,
+    canUseIncognito: false,
   },
   PLUS: {
     dailyLikes: -1, // unlimited
@@ -67,6 +71,8 @@ const PLAN_FEATURES: Record<SubscriptionPlan, PlanFeatures> = {
     priorityInSearch: false,
     noAds: true,
     monthlySupermessages: 0,
+    canUsePassport: false,
+    canUseIncognito: false,
   },
   COMPLETE: {
     dailyLikes: -1, // unlimited
@@ -80,6 +86,8 @@ const PLAN_FEATURES: Record<SubscriptionPlan, PlanFeatures> = {
     priorityInSearch: true,
     noAds: true,
     monthlySupermessages: 3,
+    canUsePassport: true, // Only COMPLETE can use passport
+    canUseIncognito: true, // Only COMPLETE can use incognito
   },
 }
 
@@ -276,7 +284,7 @@ export function featureGateError(feature: string, requiredPlan: SubscriptionPlan
  */
 export async function hasFeature(
   userId: string,
-  feature: 'seeWhoLikesYou' | 'canSendAudio' | 'canBoost' | 'readReceipts' | 'advancedFilters' | 'priorityInSearch' | 'canRewind'
+  feature: 'seeWhoLikesYou' | 'canSendAudio' | 'canBoost' | 'readReceipts' | 'advancedFilters' | 'priorityInSearch' | 'canRewind' | 'canUsePassport' | 'canUseIncognito'
 ): Promise<boolean> {
   // canRewind is now part of PLUS+ plans (mapped to canSeeWhoLikedYou as proxy)
   const featureMap: Record<string, keyof PlanFeatures> = {
@@ -287,6 +295,8 @@ export async function hasFeature(
     advancedFilters: 'advancedFilters',
     priorityInSearch: 'priorityInSearch',
     canRewind: 'canSeeWhoLikedYou', // Rewind is available for PLUS+
+    canUsePassport: 'canUsePassport',
+    canUseIncognito: 'canUseIncognito',
   }
 
   const mappedFeature = featureMap[feature] || feature

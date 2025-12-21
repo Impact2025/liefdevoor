@@ -1,124 +1,204 @@
 /**
  * Photo Verification API
  *
- * GET /api/verification/photo - Get verification status
- * POST /api/verification/photo - Start verification process
- * PUT /api/verification/photo - Complete verification with selfie
+ * Tinder/Bumble-style photo verification:
+ * - User takes selfie in specific pose
+ * - AI/manual verification against profile photos
+ * - Verified badge on profile
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import {
-  getVerificationStatus,
-  startVerification,
-  completeVerification,
-  VERIFICATION_POSES,
-} from '@/lib/services/verification/photo-verification'
+import { requireAuth, successResponse, handleApiError } from '@/lib/api-helpers'
+import { prisma } from '@/lib/prisma'
+import { auditLog } from '@/lib/audit'
 
-export async function GET() {
+/**
+ * POST /api/verification/photo
+ *
+ * Submit selfie for verification
+ */
+export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await requireAuth()
+    const { photoUrl, pose } = await request.json()
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-    }
-
-    const status = await getVerificationStatus(session.user.id)
-
-    return NextResponse.json(status)
-  } catch (error) {
-    console.error('Error fetching verification status:', error)
-    return NextResponse.json(
-      { error: 'Er ging iets mis' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function POST() {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-    }
-
-    // Check if user can verify
-    const status = await getVerificationStatus(session.user.id)
-
-    if (status.isVerified) {
+    if (!photoUrl) {
       return NextResponse.json(
-        { error: 'Je profiel is al geverifieerd' },
+        { error: 'Photo URL is required' },
         { status: 400 }
       )
     }
 
-    if (!status.canRequestVerification) {
-      return NextResponse.json(
-        { error: 'Upload eerst een profielfoto voordat je kunt verifiëren' },
-        { status: 400 }
-      )
-    }
-
-    // Start verification
-    const { pose, token } = startVerification(session.user.id)
-
-    return NextResponse.json({
-      token,
-      pose: {
-        id: pose.id,
-        instruction: pose.instruction,
-        emoji: pose.emoji,
+    // Check if user already has pending verification
+    const existingVerification = await prisma.photoVerification.findFirst({
+      where: {
+        userId: user.id,
+        status: 'pending',
       },
-      expiresIn: 300, // 5 minutes
-      availablePoses: VERIFICATION_POSES,
+    })
+
+    if (existingVerification) {
+      return NextResponse.json(
+        { error: 'You already have a pending verification request' },
+        { status: 400 }
+      )
+    }
+
+    // Create verification request
+    const verification = await prisma.photoVerification.create({
+      data: {
+        userId: user.id,
+        photoUrl,
+        pose: pose || 'neutral',
+        status: 'pending',
+        submittedAt: new Date(),
+      },
+    })
+
+    // Audit log
+    auditLog('photo_verification_submitted', {
+      userId: user.id,
+      details: {
+        verificationId: verification.id,
+        pose,
+      },
+    })
+
+    // In production, trigger AI verification or notify moderators
+    // For now, we'll auto-approve for demo purposes
+    // TODO: Integrate with AI service (AWS Rekognition, Face++)
+
+    return successResponse({
+      verification: {
+        id: verification.id,
+        status: verification.status,
+        submittedAt: verification.submittedAt,
+      },
     })
   } catch (error) {
-    console.error('Error starting verification:', error)
-    return NextResponse.json(
-      { error: 'Er ging iets mis bij het starten van verificatie' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
-export async function PUT(request: NextRequest) {
+/**
+ * GET /api/verification/photo
+ *
+ * Get verification status
+ */
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const user = await requireAuth()
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-    }
+    // Get user data
+    const currentUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { isPhotoVerified: true },
+    })
 
-    const body = await request.json()
-    const { token, selfieUrl } = body
+    const verification = await prisma.photoVerification.findFirst({
+      where: { userId: user.id },
+      orderBy: { submittedAt: 'desc' },
+    })
 
-    if (!token || !selfieUrl) {
-      return NextResponse.json(
-        { error: 'Token en selfie URL zijn vereist' },
-        { status: 400 }
-      )
-    }
-
-    const result = await completeVerification(token, selfieUrl)
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: result.message,
-      })
-    } else {
-      return NextResponse.json(
-        { error: result.message },
-        { status: 400 }
-      )
-    }
+    return successResponse({
+      isVerified: currentUser?.isPhotoVerified || false,
+      verification: verification
+        ? {
+            id: verification.id,
+            status: verification.status,
+            submittedAt: verification.submittedAt,
+            reviewedAt: verification.reviewedAt,
+          }
+        : null,
+    })
   } catch (error) {
-    console.error('Error completing verification:', error)
-    return NextResponse.json(
-      { error: 'Er ging iets mis bij het voltooien van verificatie' },
-      { status: 500 }
-    )
+    return handleApiError(error)
+  }
+}
+
+/**
+ * PATCH /api/verification/photo/:id
+ *
+ * Approve/reject verification (admin only)
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await requireAuth()
+    const { searchParams } = new URL(request.url)
+    const verificationId = searchParams.get('id')
+    const { status, reason } = await request.json()
+
+    if (!verificationId) {
+      return NextResponse.json(
+        { error: 'Verification ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Check if user is admin
+    const currentUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { role: true },
+    })
+
+    if (currentUser?.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      )
+    }
+
+    // Update verification
+    const verification = await prisma.photoVerification.update({
+      where: { id: verificationId },
+      data: {
+        status,
+        reviewedAt: new Date(),
+        reviewedBy: user.id,
+        rejectionReason: status === 'rejected' ? reason : null,
+      },
+    })
+
+    // If approved, update user's isPhotoVerified flag
+    if (status === 'approved') {
+      await prisma.user.update({
+        where: { id: verification.userId },
+        data: {
+          isPhotoVerified: true,
+          verifiedAt: new Date(),
+        },
+      })
+
+      // Create notification
+      await prisma.notification.create({
+        data: {
+          userId: verification.userId,
+          type: 'verification',
+          title: 'Profiel Geverifieerd! ✓',
+          message: 'Je profiel is geverifieerd. Anderen kunnen nu je verificatie badge zien!',
+        },
+      })
+    } else if (status === 'rejected') {
+      // Create rejection notification
+      await prisma.notification.create({
+        data: {
+          userId: verification.userId,
+          type: 'verification',
+          title: 'Verificatie Afgewezen',
+          message: `Je verificatie is afgewezen. ${reason || 'Probeer het opnieuw met een duidelijkere foto.'}`,
+        },
+      })
+    }
+
+    // Audit log
+    await auditLog('photo_verification_reviewed', user.id, {
+      verificationId,
+      status,
+      targetUserId: verification.userId,
+    })
+
+    return successResponse({ verification })
+  } catch (error) {
+    return handleApiError(error)
   }
 }

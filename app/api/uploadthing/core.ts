@@ -127,6 +127,24 @@ export const ourFileRouter = {
       // Return the URL - the actual message will be created by the messages API
       return { url: file.url };
     }),
+
+  // Stories - 24-hour content
+  storyUploader: f({
+    image: { maxFileSize: "8MB", maxFileCount: 1 },
+    video: { maxFileSize: "64MB", maxFileCount: 1 },
+  })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Story upload compleet voor gebruiker:", metadata.userId);
+      console.log("Story URL:", file.url);
+
+      // Return the URL - the story will be created by the stories API
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
  
 export type OurFileRouter = typeof ourFileRouter;
