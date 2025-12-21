@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Je moet ingelogd zijn' }, { status: 401 })
     }
 
-    const { planId } = await request.json()
+    const { planId, amount, couponCode } = await request.json()
 
     if (!planId || !(planId in SUBSCRIPTION_PLANS)) {
       return NextResponse.json({ error: 'Ongeldig abonnement' }, { status: 400 })
@@ -32,8 +32,13 @@ export async function POST(request: NextRequest) {
 
     const plan = SUBSCRIPTION_PLANS[planId as PlanId]
 
-    // Handle free plan
-    if (plan.price === 0) {
+    // Handle free plan OR 100% discount with coupon
+    if (plan.price === 0 || amount === 0) {
+      // Determine subscription tier based on plan
+      let tier: SubscriptionTier = 'FREE'
+      if (planId === 'PLUS') tier = 'PLUS'
+      if (planId === 'COMPLETE') tier = 'COMPLETE'
+
       // Cancel any existing subscription first
       await prisma.subscription.updateMany({
         where: { userId: session.user.id, status: 'active' },
@@ -43,19 +48,61 @@ export async function POST(request: NextRequest) {
       // Update user's subscription tier
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { subscriptionTier: 'FREE' as SubscriptionTier },
+        data: { subscriptionTier: tier },
       })
 
-      // Create free subscription record
-      await prisma.subscription.create({
+      // Calculate end date for paid plans
+      let endDate: Date | undefined
+      if (planId !== 'FREE') {
+        endDate = new Date()
+        endDate.setDate(endDate.getDate() + PLAN_DURATION[planId])
+      }
+
+      // Create subscription record
+      const subscription = await prisma.subscription.create({
         data: {
           userId: session.user.id,
           plan: planId,
           status: 'active',
+          endDate,
         },
       })
 
-      return NextResponse.json({ success: true, message: 'Basis abonnement geactiveerd' })
+      // If coupon was used, record the usage
+      if (couponCode) {
+        const coupon = await prisma.coupon.findUnique({
+          where: { code: couponCode.toUpperCase() }
+        })
+
+        if (coupon) {
+          await prisma.$transaction(async (tx) => {
+            // Record usage
+            await tx.couponUsage.create({
+              data: {
+                couponId: coupon.id,
+                userId: session.user.id,
+                orderType: 'subscription',
+                orderId: subscription.id,
+                originalAmount: plan.price / 100,
+                discountAmount: plan.price / 100,
+                finalAmount: 0,
+              }
+            })
+
+            // Increment usage counter
+            await tx.coupon.update({
+              where: { id: coupon.id },
+              data: { currentTotalUses: { increment: 1 } }
+            })
+          })
+        }
+      }
+
+      const message = amount === 0 && couponCode
+        ? `${plan.name} gratis geactiveerd met couponcode!`
+        : 'Basis abonnement geactiveerd'
+
+      return NextResponse.json({ success: true, message })
     }
 
     // Check for existing active paid subscription

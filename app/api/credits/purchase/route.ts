@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { packId } = body
+    const { packId, amount, couponCode } = body
 
     // Valideer credit pack
     const pack = getCreditPackById(packId)
@@ -39,7 +39,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check maximale bundle grootte
+    // Use final amount if coupon was applied, otherwise use pack price
+    const finalAmount = amount !== undefined ? amount : pack.price
+
+    // Check maximale bundle grootte (original price, not discounted)
     if (pack.price > SAFETY_LIMITS.MAX_CREDIT_PURCHASE) {
       return NextResponse.json(
         { error: 'Dit pakket overschrijdt het maximum aankoopbedrag' },
@@ -58,6 +61,74 @@ export async function POST(request: NextRequest) {
         { error: 'Gebruiker niet gevonden' },
         { status: 404 }
       )
+    }
+
+    // If free with coupon, skip payment and grant credits directly
+    if (finalAmount === 0) {
+      const purchase = await prisma.$transaction(async (tx) => {
+        // Create completed purchase
+        const newPurchase = await tx.creditPurchase.create({
+          data: {
+            userId: user.id,
+            credits: pack.credits,
+            amount: 0,
+            status: 'completed',
+            completedAt: new Date(),
+          },
+        })
+
+        // Grant credits to user
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            credits: { increment: pack.credits },
+          },
+        })
+
+        // Record coupon usage if provided
+        if (couponCode) {
+          const coupon = await tx.coupon.findUnique({
+            where: { code: couponCode.toUpperCase() }
+          })
+
+          if (coupon) {
+            await tx.couponUsage.create({
+              data: {
+                couponId: coupon.id,
+                userId: user.id,
+                orderType: 'credits',
+                orderId: newPurchase.id,
+                originalAmount: pack.price,
+                discountAmount: pack.price,
+                finalAmount: 0,
+              }
+            })
+
+            await tx.coupon.update({
+              where: { id: coupon.id },
+              data: { currentTotalUses: { increment: 1 } }
+            })
+          }
+        }
+
+        return newPurchase
+      })
+
+      const updatedUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { credits: true },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: `Je hebt ${pack.credits} ${pack.credits === 1 ? 'Superbericht' : 'Superberichten'} gratis ontvangen!`,
+        purchase: {
+          id: purchase.id,
+          credits: pack.credits,
+          amount: 0,
+        },
+        currentCredits: updatedUser?.credits || 0,
+      })
     }
 
     // Check of reset spending limit nodig (nieuwe dag)
@@ -87,8 +158,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check dagelijkse bestedingslimiet
-    const newTotal = spendingLimit.currentSpent + pack.price
+    // Check dagelijkse bestedingslimiet (use final amount after discount)
+    const newTotal = spendingLimit.currentSpent + finalAmount
 
     if (newTotal > spendingLimit.dailyLimit) {
       const remaining = Math.max(0, spendingLimit.dailyLimit - spendingLimit.currentSpent)
@@ -135,7 +206,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: user.id,
         credits: pack.credits,
-        amount: pack.price,
+        amount: finalAmount,
         status: 'pending',
       },
     })
@@ -163,13 +234,39 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Update spending limit
+      // Update spending limit (with final amount after discount)
       await tx.spendingLimit.update({
         where: { userId: user.id },
         data: {
-          currentSpent: { increment: pack.price },
+          currentSpent: { increment: finalAmount },
         },
       })
+
+      // Record coupon usage if provided
+      if (couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: couponCode.toUpperCase() }
+        })
+
+        if (coupon) {
+          await tx.couponUsage.create({
+            data: {
+              couponId: coupon.id,
+              userId: user.id,
+              orderType: 'credits',
+              orderId: updated.id,
+              originalAmount: pack.price,
+              discountAmount: pack.price - finalAmount,
+              finalAmount: finalAmount,
+            }
+          })
+
+          await tx.coupon.update({
+            where: { id: coupon.id },
+            data: { currentTotalUses: { increment: 1 } }
+          })
+        }
+      }
 
       return updated
     })

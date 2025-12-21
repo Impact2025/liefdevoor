@@ -64,23 +64,8 @@ export default function CheckoutModal({
     setIsProcessing(true)
 
     try {
-      // Apply coupon if present
-      if (appliedDiscount) {
-        await fetch('/api/coupons/apply', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: appliedDiscount.code,
-            orderType: type,
-            orderId: null, // Will be set after payment
-            originalAmount: appliedDiscount.originalAmount,
-            discountAmount: appliedDiscount.discountAmount,
-            finalAmount: appliedDiscount.finalAmount,
-          }),
-        })
-      }
-
       // Create subscription/credit purchase
+      // Note: Coupon will be applied and recorded by the backend
       const endpoint = type === 'subscription' ? '/api/subscription/create' : '/api/credits/purchase'
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -288,7 +273,7 @@ export default function CheckoutModal({
             {/* Checkout Button */}
             <button
               onClick={handleCheckout}
-              disabled={isProcessing || finalAmount === 0}
+              disabled={isProcessing}
               className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isProcessing ? (
