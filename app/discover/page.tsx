@@ -21,8 +21,12 @@ import {
   Shield,
   Settings2,
   X,
+  Flame,
+  Crown,
+  RotateCcw,
 } from 'lucide-react'
 import { DiscoverProfileCard } from '@/components/features/discover/DiscoverProfileCard'
+import { BoostButton } from '@/components/features/boost/BoostButton'
 import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
 import { Modal, Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
@@ -41,6 +45,66 @@ export default function DiscoverPage() {
   const [matchData, setMatchData] = useState<any>(null)
   const [filters, setFilters] = useState<DiscoverFilters>({ minAge: 18, maxAge: 99 })
   const { users, isLoading, error, refetch, setUsers } = useDiscoverUsers(filters)
+  const [swipesRemaining, setSwipesRemaining] = useState<number | null>(null)
+  const [isUnlimited, setIsUnlimited] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [canRewind, setCanRewind] = useState(false)
+  const [isRewinding, setIsRewinding] = useState(false)
+  const [lastSwipedUser, setLastSwipedUser] = useState<any>(null)
+
+  // Fetch subscription/swipe limits
+  useEffect(() => {
+    const fetchLimits = async () => {
+      try {
+        const res = await fetch('/api/subscription')
+        const data = await res.json()
+        if (res.ok) {
+          const dailyLikes = data.features?.dailyLikes
+          if (dailyLikes === -1) {
+            setIsUnlimited(true)
+          } else {
+            setIsUnlimited(false)
+            // Fetch current swipe count
+            const countRes = await fetch('/api/swipe/count')
+            const countData = await countRes.json()
+            if (countRes.ok) {
+              setSwipesRemaining(Math.max(0, dailyLikes - countData.count))
+            }
+          }
+          // Check if user can rewind (PLUS or COMPLETE)
+          setCanRewind(data.isPlus || data.isComplete)
+        }
+      } catch (err) {
+        console.error('Error fetching limits:', err)
+      }
+    }
+    if (session?.user) {
+      fetchLimits()
+    }
+  }, [session])
+
+  // Rewind last swipe
+  const handleRewind = useCallback(async () => {
+    if (isRewinding || !canRewind) return
+
+    setIsRewinding(true)
+    try {
+      const res = await fetch('/api/swipe/rewind', { method: 'POST' })
+      const data = await res.json()
+
+      if (res.ok && data.user) {
+        // Add the user back to the front of the stack
+        setUsers([data.user, ...users])
+        setLastSwipedUser(null)
+      } else if (res.status === 403) {
+        setShowUpgradeModal(true)
+      }
+    } catch (err) {
+      console.error('Error rewinding:', err)
+    } finally {
+      setIsRewinding(false)
+    }
+  }, [isRewinding, canRewind, users, setUsers])
 
   // Check if user needs onboarding (no photos)
   useEffect(() => {
@@ -143,15 +207,32 @@ export default function DiscoverPage() {
 
   const handleLike = useCallback(async () => {
     if (users.length === 0 || isSwipeLoading) return
-    const currentUser = users[0]
-    await swipePost({ swipedId: currentUser.id, isLike: true })
+
+    // Check if limit reached (for non-premium)
+    if (!isUnlimited && swipesRemaining !== null && swipesRemaining <= 0) {
+      setShowUpgradeModal(true)
+      return
+    }
+
+    const swipedUser = users[0]
+    setLastSwipedUser(swipedUser)
+    const result = await swipePost({ swipedId: swipedUser.id, isLike: true })
+
+    // Update remaining count from API response
+    if (result?.limits?.swipesRemaining !== undefined) {
+      setSwipesRemaining(result.limits.swipesRemaining)
+    } else if (!isUnlimited && swipesRemaining !== null) {
+      setSwipesRemaining(Math.max(0, swipesRemaining - 1))
+    }
+
     setUsers(users.slice(1))
-  }, [users, isSwipeLoading, swipePost, setUsers])
+  }, [users, isSwipeLoading, swipePost, setUsers, isUnlimited, swipesRemaining])
 
   const handlePass = useCallback(async () => {
     if (users.length === 0 || isSwipeLoading) return
-    const currentUser = users[0]
-    await swipePost({ swipedId: currentUser.id, isLike: false })
+    const swipedUser = users[0]
+    setLastSwipedUser(swipedUser)
+    await swipePost({ swipedId: swipedUser.id, isLike: false })
     setUsers(users.slice(1))
   }, [users, isSwipeLoading, swipePost, setUsers])
 
@@ -204,6 +285,27 @@ export default function DiscoverPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Boost Button */}
+            <BoostButton />
+
+            {/* Swipe limit indicator */}
+            {!isUnlimited && swipesRemaining !== null && (
+              <div className="flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-full">
+                <Flame size={16} className="text-rose-500" />
+                <span className="text-sm font-semibold text-rose-600">
+                  {swipesRemaining}
+                </span>
+              </div>
+            )}
+            {isUnlimited && (
+              <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full">
+                <Crown size={16} className="text-amber-500" />
+                <span className="text-sm font-semibold text-amber-600">
+                  Premium
+                </span>
+              </div>
+            )}
+
             <button
               onClick={() => setShowFilters(true)}
               className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -303,8 +405,23 @@ export default function DiscoverPage() {
                 ))}
               </AnimatePresence>
 
-              {/* Profile count indicator */}
-              <div className="absolute -bottom-8 left-0 right-0 text-center">
+              {/* Profile count and Rewind button */}
+              <div className="absolute -bottom-12 left-0 right-0 flex items-center justify-center gap-4">
+                {/* Rewind Button - Only show for premium users with a last swipe */}
+                {canRewind && lastSwipedUser && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleRewind}
+                    disabled={isRewinding}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-full font-medium text-sm shadow-lg transition-colors disabled:opacity-50"
+                  >
+                    <RotateCcw size={16} className={isRewinding ? 'animate-spin' : ''} />
+                    Terug
+                  </motion.button>
+                )}
                 <p className="text-sm text-gray-500">
                   {users.length} {users.length === 1 ? 'persoon' : 'mensen'} in je omgeving
                 </p>
@@ -479,6 +596,72 @@ export default function DiscoverPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Upgrade Modal - Swipe Limit Reached */}
+      <Modal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        title=""
+        size="md"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center py-8"
+        >
+          <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center">
+            <Crown className="w-12 h-12 text-white" />
+          </div>
+
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            Dagelijkse likes op
+          </h3>
+
+          <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+            Je hebt al je dagelijkse likes gebruikt. Upgrade naar{' '}
+            <span className="font-bold text-amber-600">Premium</span> voor
+            onbeperkt swipen!
+          </p>
+
+          <div className="bg-amber-50 rounded-2xl p-4 mb-6 text-left">
+            <h4 className="font-bold text-amber-700 mb-2">Premium voordelen:</h4>
+            <ul className="space-y-2 text-sm text-amber-700">
+              <li className="flex items-center gap-2">
+                <Sparkles size={16} /> Onbeperkt likes per dag
+              </li>
+              <li className="flex items-center gap-2">
+                <Sparkles size={16} /> Zie wie jou leuk vindt
+              </li>
+              <li className="flex items-center gap-2">
+                <Sparkles size={16} /> Rewind laatste swipe
+              </li>
+              <li className="flex items-center gap-2">
+                <Sparkles size={16} /> Geen advertenties
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              variant="secondary"
+              onClick={() => setShowUpgradeModal(false)}
+              fullWidth
+              size="lg"
+            >
+              Morgen opnieuw
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => router.push('/prijzen')}
+              fullWidth
+              size="lg"
+              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+            >
+              Ga Premium
+            </Button>
+          </div>
+        </motion.div>
       </Modal>
     </div>
   )

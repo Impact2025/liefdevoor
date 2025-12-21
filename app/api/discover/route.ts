@@ -185,10 +185,32 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Get boosted user IDs
+    const now = new Date()
+    const boostedUsers = await prisma.profileBoost.findMany({
+      where: {
+        isActive: true,
+        expiresAt: { gt: now },
+        userId: { in: filteredMatches.map(u => u.id) },
+      },
+      select: { userId: true },
+    })
+    const boostedUserIds = new Set(boostedUsers.map(b => b.userId))
+
+    // Sort: boosted users first, then by createdAt
+    const sortedMatches = [...filteredMatches].sort((a, b) => {
+      const aIsBoosted = boostedUserIds.has(a.id)
+      const bIsBoosted = boostedUserIds.has(b.id)
+      if (aIsBoosted && !bIsBoosted) return -1
+      if (!aIsBoosted && bIsBoosted) return 1
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+
     // Paginate and format
-    const users: DiscoverUser[] = filteredMatches.slice(0, limit).map(user => ({
+    const users: DiscoverUser[] = sortedMatches.slice(0, limit).map(user => ({
       ...user,
       birthDate: user.birthDate ? user.birthDate.toISOString().split('T')[0] : null,
+      isBoosted: boostedUserIds.has(user.id),
     }))
 
     const totalCount = await prisma.user.count({ where })

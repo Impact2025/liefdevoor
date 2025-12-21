@@ -159,6 +159,7 @@ export interface Message {
   id: string
   content: string | null
   audioUrl?: string | null
+  gifUrl?: string | null
   read: boolean
   createdAt: Date
   senderId: string

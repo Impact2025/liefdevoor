@@ -52,17 +52,29 @@ export default function LikesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedUser, setSelectedUser] = useState<Like | null>(null)
-  const [isPremium, setIsPremium] = useState(false) // TODO: Check actual subscription
+  const [isPremium, setIsPremium] = useState(false)
 
   const { post: swipePost, isLoading: isSwipeLoading } = usePost('/api/swipe')
 
   useEffect(() => {
     if (session?.user) {
       fetchLikes()
-      // TODO: Check premium status
-      setIsPremium(true) // For now, show all likes
+      fetchSubscription()
     }
   }, [session])
+
+  const fetchSubscription = async () => {
+    try {
+      const response = await fetch('/api/subscription')
+      const data = await response.json()
+      if (response.ok) {
+        // PLUS and COMPLETE can see who liked them
+        setIsPremium(data.isPlus || data.isComplete)
+      }
+    } catch (err) {
+      console.error('Error fetching subscription:', err)
+    }
+  }
 
   const fetchLikes = async () => {
     try {

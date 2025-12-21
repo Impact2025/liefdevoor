@@ -4,15 +4,18 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Flag, Mic, Square, Send, X, Play, Pause } from 'lucide-react'
+import { Flag, Mic, Square, Send, X, Play, Pause, Smile, Sparkles, ImageIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAudioRecorder, formatDuration, useTypingIndicator } from '@/hooks'
 import { TypingBubble } from '@/components/ui'
+import { IcebreakersPanel } from '@/components/chat/IcebreakersPanel'
+import { GifPicker } from '@/components/chat/GifPicker'
 
 interface Message {
   id: string
   content?: string
   audioUrl?: string
+  gifUrl?: string
   read: boolean
   createdAt: string
   sender: {
@@ -39,6 +42,8 @@ export default function ChatPage() {
   const [otherUser, setOtherUser] = useState<{ id: string; name: string } | null>(null)
   const [isRecordingMode, setIsRecordingMode] = useState(false)
   const [uploadingAudio, setUploadingAudio] = useState(false)
+  const [showIcebreakers, setShowIcebreakers] = useState(false)
+  const [showGifPicker, setShowGifPicker] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Audio recorder hook
@@ -198,6 +203,29 @@ export default function ChatPage() {
     setIsRecordingMode(false)
   }, [resetRecording])
 
+  const sendGifMessage = async (gifUrl: string) => {
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId, gifUrl }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(prev => [...prev, data.message])
+        fetchMessages()
+      }
+    } catch (error) {
+      console.error('Failed to send GIF:', error)
+    }
+  }
+
+  const handleIcebreakerSelect = (message: string) => {
+    setNewMessage(message)
+    setShowIcebreakers(false)
+  }
+
   const handleReport = () => {
     setShowReportModal(true)
   }
@@ -336,6 +364,16 @@ export default function ChatPage() {
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
                 {message.content && <p>{message.content}</p>}
+                {message.gifUrl && (
+                  <div className="rounded-lg overflow-hidden">
+                    <img
+                      src={message.gifUrl}
+                      alt="GIF"
+                      className="max-w-full h-auto rounded-lg"
+                      style={{ maxHeight: '200px' }}
+                    />
+                  </div>
+                )}
                 {message.audioUrl && (
                   <div className="mt-2">
                     <audio controls src={message.audioUrl} className="w-full" />
@@ -489,6 +527,31 @@ export default function ChatPage() {
               onSubmit={sendMessage}
               className="flex items-center gap-2"
             >
+              {/* Icebreakers button - show when no messages */}
+              {messages.length === 0 && (
+                <motion.button
+                  type="button"
+                  onClick={() => setShowIcebreakers(true)}
+                  className="p-3 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors"
+                  whileTap={{ scale: 0.95 }}
+                  title="Gespreksstart"
+                >
+                  <Sparkles size={22} />
+                </motion.button>
+              )}
+
+              {/* GIF button */}
+              <motion.button
+                type="button"
+                onClick={() => setShowGifPicker(true)}
+                className="p-3 text-gray-400 hover:text-primary hover:bg-stone-50 rounded-full transition-colors"
+                whileTap={{ scale: 0.95 }}
+                title="GIF versturen"
+              >
+                <ImageIcon size={22} />
+              </motion.button>
+
+              {/* Mic button */}
               <motion.button
                 type="button"
                 onClick={() => {
@@ -538,6 +601,61 @@ export default function ChatPage() {
           <p className="mt-2 text-sm text-red-500">{recordingError}</p>
         )}
       </motion.div>
+
+      {/* Icebreakers Panel */}
+      <AnimatePresence>
+        {showIcebreakers && otherUser && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-50 flex items-end"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowIcebreakers(false)}
+          >
+            <motion.div
+              className="w-full"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
+              <IcebreakersPanel
+                otherUserName={otherUser.name}
+                onSelect={handleIcebreakerSelect}
+                onClose={() => setShowIcebreakers(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GIF Picker Panel */}
+      <AnimatePresence>
+        {showGifPicker && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-50 flex items-end"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowGifPicker(false)}
+          >
+            <motion.div
+              className="w-full"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
+              <GifPicker
+                onSelect={sendGifMessage}
+                onClose={() => setShowGifPicker(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Report Modal */}
       <AnimatePresence>

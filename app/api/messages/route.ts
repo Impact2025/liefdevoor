@@ -9,13 +9,14 @@ interface SendMessageRequest {
   matchId: string
   content?: string | null
   audioUrl?: string | null
+  gifUrl?: string | null
 }
 
 /**
  * Send a message in a match
  */
 async function sendMessage(userId: string, data: SendMessageRequest): Promise<Message> {
-  const { matchId, content, audioUrl } = data
+  const { matchId, content, audioUrl, gifUrl } = data
 
   // Verify the user is part of this match
   const match = await prisma.match.findUnique({
@@ -49,6 +50,7 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
       senderId: userId,
       content: content || null,
       audioUrl: audioUrl || null,
+      gifUrl: gifUrl || null,
     },
     include: {
       sender: {
@@ -86,10 +88,11 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
   })
 
   // Send push notification (non-blocking)
+  const pushContent = content || (gifUrl ? '🎬 GIF' : '🎤 Spraakbericht')
   sendMessagePush(
     otherUserId,
     message.sender.name || 'Iemand',
-    content || '🎤 Spraakbericht',
+    pushContent,
     matchId
   ).catch(err => console.error('[Push] Message notification failed:', err))
 
@@ -97,6 +100,7 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
     id: message.id,
     content: message.content,
     audioUrl: message.audioUrl,
+    gifUrl: message.gifUrl,
     read: message.read,
     createdAt: message.createdAt,
     senderId: message.senderId,
@@ -120,10 +124,10 @@ export async function POST(request: NextRequest) {
     const user = await requireAuth()
 
     const body: SendMessageRequest = await request.json()
-    const { matchId, content, audioUrl } = body
+    const { matchId, content, audioUrl, gifUrl } = body
 
-    if (!matchId || (!content && !audioUrl)) {
-      return validationError('content', 'Message must have content or audio')
+    if (!matchId || (!content && !audioUrl && !gifUrl)) {
+      return validationError('content', 'Message must have content, audio, or GIF')
     }
 
     const message = await sendMessage(user.id, body)

@@ -1,97 +1,73 @@
+/**
+ * LocationStep - Wereldklasse Edition
+ *
+ * Features:
+ * - NL postcode input with auto-formatting & validation
+ * - City autocomplete with province display
+ * - Live mini-map with privacy circle
+ * - Auto-geocoding (postcode → GPS coordinates)
+ * - Privacy-first messaging
+ */
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Search, Check, Loader2 } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
-
-// Dutch postcode regex: 1234 AB or 1234AB
-const POSTCODE_REGEX = /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/;
-
-interface GeoResult {
-  city: string;
-  latitude: number;
-  longitude: number;
-}
+import { PostcodeInput } from '@/components/features/location/PostcodeInput';
+import { CityAutocomplete } from '@/components/features/location/CityAutocomplete';
+import { LocationMap } from '@/components/features/location/LocationMap';
+import { LocationPrivacy } from '@/components/features/location/LocationPrivacy';
+import type { GeocodingResult, CityOption } from '@/lib/services/geocoding';
 
 export default function LocationStep() {
   const { userData, updateUserData, nextStep, saveStepToServer } = useOnboardingStore();
   const [postcode, setPostcode] = useState(userData.postcode || '');
   const [city, setCity] = useState(userData.city || '');
-  const [isLookingUp, setIsLookingUp] = useState(false);
-  const [lookupError, setLookupError] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(userData.latitude || null);
+  const [longitude, setLongitude] = useState<number | null>(userData.longitude || null);
   const [isSaving, setIsSaving] = useState(false);
+  const [inputMethod, setInputMethod] = useState<'postcode' | 'city'>('postcode');
 
-  // Format postcode as user types (1234 AB format)
-  const handlePostcodeChange = (value: string) => {
-    // Remove spaces and uppercase
-    let formatted = value.replace(/\s/g, '').toUpperCase();
-
-    // Add space after 4 digits
-    if (formatted.length > 4) {
-      formatted = formatted.slice(0, 4) + ' ' + formatted.slice(4, 6);
-    }
-
-    setPostcode(formatted);
-    setLookupError(null);
-    setIsValid(false);
-    setCity('');
+  // Handle postcode geocoding result
+  const handlePostcodeGeocode = (result: GeocodingResult) => {
+    setCity(result.city);
+    setLatitude(result.latitude);
+    setLongitude(result.longitude);
+    updateUserData({
+      postcode: postcode,
+      city: result.city,
+      latitude: result.latitude,
+      longitude: result.longitude,
+    });
   };
 
-  // Lookup postcode when valid
-  useEffect(() => {
-    const lookup = async () => {
-      const cleanPostcode = postcode.replace(/\s/g, '');
-      if (!POSTCODE_REGEX.test(postcode)) return;
-
-      setIsLookingUp(true);
-      setLookupError(null);
-
-      try {
-        // Using postcode.tech API (free for NL postcodes)
-        const response = await fetch(
-          `https://api.postcode.tech/v1/postcode?postcode=${cleanPostcode}`
-        );
-
-        if (response.ok) {
-          const data = await response.json() as GeoResult;
-          setCity(data.city || 'Onbekend');
-          setIsValid(true);
-          updateUserData({
-            postcode: postcode,
-            city: data.city,
-            latitude: data.latitude,
-            longitude: data.longitude,
-          });
-        } else {
-          // Fallback: just accept the postcode without city lookup
-          setIsValid(true);
-          updateUserData({ postcode: postcode });
-        }
-      } catch {
-        // API might not be available, just accept postcode
-        setIsValid(true);
-        updateUserData({ postcode: postcode });
-      } finally {
-        setIsLookingUp(false);
-      }
-    };
-
-    const timeoutId = setTimeout(lookup, 500);
-    return () => clearTimeout(timeoutId);
-  }, [postcode, updateUserData]);
+  // Handle city selection from autocomplete
+  const handleCitySelect = (selectedCity: CityOption) => {
+    setCity(selectedCity.name);
+    setLatitude(selectedCity.latitude);
+    setLongitude(selectedCity.longitude);
+    updateUserData({
+      city: selectedCity.name,
+      latitude: selectedCity.latitude,
+      longitude: selectedCity.longitude,
+      postcode: postcode || undefined, // Keep existing postcode if any
+    });
+  };
 
   const handleContinue = async () => {
-    if (!isValid) return;
+    // Validate: need either postcode or city with coordinates
+    const hasLocation = (postcode && latitude && longitude) || (city && latitude && longitude);
+    if (!hasLocation) return;
 
     setIsSaving(true);
     try {
       const success = await saveStepToServer(6, {
-        postcode: postcode,
+        postcode: postcode || undefined,
         city: city || undefined,
-        latitude: userData.latitude || undefined,
-        longitude: userData.longitude || undefined,
+        latitude: latitude || undefined,
+        longitude: longitude || undefined,
       });
       if (success) {
         nextStep();
@@ -101,6 +77,8 @@ export default function LocationStep() {
     }
   };
 
+  const isValid = (postcode && latitude && longitude) || (city && latitude && longitude);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -108,81 +86,107 @@ export default function LocationStep() {
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
+      {/* Header */}
       <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-stone-50 flex items-center justify-center">
-          <MapPin className="w-8 h-8 text-rose-500" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg">
+          <MapPin className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900">
           Waar woon je?
         </h2>
         <p className="text-slate-600 mt-2">
-          Zo kunnen we mensen in jouw buurt tonen
+          Vind matches in jouw buurt
         </p>
       </div>
 
-      <div className="space-y-4">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-4">
-            {isLookingUp ? (
-              <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
-            ) : (
-              <Search className="w-5 h-5 text-slate-400" />
-            )}
-          </div>
-          <input
-            type="text"
-            value={postcode}
-            onChange={(e) => handlePostcodeChange(e.target.value)}
-            placeholder="1234 AB"
-            maxLength={7}
-            className={`w-full py-4 pl-12 pr-12 text-lg border-2 rounded-xl focus:outline-none transition-colors ${
-              isValid
-                ? 'border-green-500 bg-green-50'
-                : lookupError
-                ? 'border-red-500 bg-red-50'
-                : 'border-slate-200 focus:border-rose-500'
-            }`}
-          />
-          {isValid && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-              <Check className="w-5 h-5 text-green-500" />
-            </div>
-          )}
-        </div>
+      {/* Input method toggle */}
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+        <button
+          type="button"
+          onClick={() => setInputMethod('postcode')}
+          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+            inputMethod === 'postcode'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Postcode
+        </button>
+        <button
+          type="button"
+          onClick={() => setInputMethod('city')}
+          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+            inputMethod === 'city'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Stad
+        </button>
+      </div>
 
-        {lookupError && (
-          <p className="text-sm text-red-600">{lookupError}</p>
+      {/* Input fields */}
+      <div className="space-y-4">
+        {inputMethod === 'postcode' ? (
+          <PostcodeInput
+            value={postcode}
+            onChange={setPostcode}
+            onGeocode={handlePostcodeGeocode}
+            autoGeocode={true}
+          />
+        ) : (
+          <CityAutocomplete
+            value={city}
+            onChange={setCity}
+            onSelect={handleCitySelect}
+          />
         )}
 
-        {city && (
+        {/* Location result card */}
+        {city && latitude && longitude && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-3"
+            className="bg-white border-2 border-green-500 rounded-2xl p-4"
           >
-            <MapPin className="w-5 h-5 text-rose-500" />
-            <div>
-              <p className="font-medium text-slate-900">{city}</p>
-              <p className="text-sm text-slate-500">{postcode}</p>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-gray-900">{city}</p>
+                {postcode && (
+                  <p className="text-sm text-gray-500">{postcode}</p>
+                )}
+              </div>
             </div>
+
+            {/* Mini map */}
+            <LocationMap
+              latitude={latitude}
+              longitude={longitude}
+              city={city}
+              height="150px"
+              showPrivacyCircle={true}
+              circleRadius={2000}
+              interactive={false}
+            />
           </motion.div>
         )}
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-        <p className="text-sm text-slate-600">
-          We tonen alleen je stad aan andere gebruikers, nooit je exacte adres.
-        </p>
-      </div>
+      {/* Privacy notice */}
+      <LocationPrivacy variant="compact" />
 
+      {/* Continue button */}
       <button
         onClick={handleContinue}
         disabled={!isValid || isSaving}
-        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg"
       >
         {isSaving ? (
           <>
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
             Even geduld...
           </>
         ) : (

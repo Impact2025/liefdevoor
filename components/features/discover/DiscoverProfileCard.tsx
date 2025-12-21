@@ -37,6 +37,7 @@ import {
   Shield,
   Sparkles,
 } from 'lucide-react'
+import { hapticSuccess, hapticImpact, hapticHeavy, hapticSelection } from '@/lib/haptics'
 
 // ============================================================================
 // TYPES
@@ -167,6 +168,7 @@ export function DiscoverProfileCard({
 
   const handleLike = useCallback(() => {
     if (isLoading) return
+    hapticSuccess() // Haptic feedback for like
     setSwipeDirection('right')
     setTimeout(() => {
       onLike()
@@ -178,6 +180,7 @@ export function DiscoverProfileCard({
 
   const handlePass = useCallback(() => {
     if (isLoading) return
+    hapticImpact() // Haptic feedback for pass
     setSwipeDirection('left')
     setTimeout(() => {
       onPass()
@@ -189,6 +192,7 @@ export function DiscoverProfileCard({
 
   const handleSuperLike = useCallback(() => {
     if (isLoading) return
+    hapticHeavy() // Haptic feedback for super like
     setSwipeDirection('up')
     setTimeout(() => {
       onSuperLike()
@@ -220,12 +224,14 @@ export function DiscoverProfileCard({
 
   const nextPhoto = () => {
     if (currentPhotoIndex < photos.length - 1) {
+      hapticSelection() // Light tap for photo navigation
       setCurrentPhotoIndex(currentPhotoIndex + 1)
     }
   }
 
   const prevPhoto = () => {
     if (currentPhotoIndex > 0) {
+      hapticSelection() // Light tap for photo navigation
       setCurrentPhotoIndex(currentPhotoIndex - 1)
     }
   }
