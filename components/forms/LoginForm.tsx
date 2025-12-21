@@ -224,13 +224,6 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         </svg>
         Inloggen met Google
       </Button>
-
-      <div className="text-center text-sm text-gray-600">
-        Nog geen account?{' '}
-        <a href="/register" className="text-rose-600 hover:text-rose-500 font-medium">
-          Registreer hier
-        </a>
-      </div>
     </form>
   )
 }
