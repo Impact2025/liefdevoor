@@ -66,6 +66,14 @@ export const getCachedProfile = unstable_cache(
         longitude: true,
         createdAt: true,
         updatedAt: true,
+        photos: {
+          select: {
+            id: true,
+            url: true,
+            order: true,
+          },
+          orderBy: { order: 'asc' },
+        },
       },
     })
 

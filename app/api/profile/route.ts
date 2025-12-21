@@ -75,6 +75,8 @@ interface ProfileUpdateData {
   postcode?: string | null
   interests?: string | null
   preferences?: UserPreferences | null
+  latitude?: number | null
+  longitude?: number | null
 }
 
 /**
@@ -106,11 +108,12 @@ function validateProfileUpdate(data: ProfileUpdateData): string | null {
     return 'Invalid gender'
   }
 
-  // Postcode validation
-  if (postcode) {
+  // Postcode validation (only if postcode is provided and not empty)
+  if (postcode && postcode.trim()) {
+    const cleanedPostcode = postcode.replace(/\s/g, '').toUpperCase()
     const dutchRegex = /^[0-9]{4}[A-Z]{2}$/
     const belgianRegex = /^[0-9]{4}$/
-    if (!dutchRegex.test(postcode.toUpperCase()) && !belgianRegex.test(postcode)) {
+    if (!dutchRegex.test(cleanedPostcode) && !belgianRegex.test(cleanedPostcode)) {
       return 'Invalid postcode format. Use Dutch (1234AB) or Belgian (1000) format.'
     }
   }
@@ -122,11 +125,17 @@ function validateProfileUpdate(data: ProfileUpdateData): string | null {
  * Update user profile with geocoding
  */
 async function updateProfile(userId: string, data: ProfileUpdateData): Promise<UserProfile> {
-  const { name, bio, birthDate, gender, city, postcode, interests, preferences } = data
+  const { name, bio, birthDate, gender, city, postcode, interests, preferences, latitude, longitude } = data
 
-  // Geocode postcode if provided
-  let coordinates = null
-  if (postcode) {
+  // Use provided coordinates or geocode from postcode
+  let coordinates: { lat: number; lng: number } | null = null
+
+  // If latitude/longitude are directly provided (from city autocomplete), use them
+  if (latitude !== undefined && longitude !== undefined && latitude !== null && longitude !== null) {
+    coordinates = { lat: latitude, lng: longitude }
+  }
+  // Otherwise, try to geocode from postcode
+  else if (postcode) {
     coordinates = await geocodePostcode(postcode)
     if (!coordinates) {
       throw new Error('Could not geocode postcode. Please check if it exists.')

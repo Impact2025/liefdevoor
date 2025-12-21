@@ -1,11 +1,7 @@
 /**
  * Discover Page - Wereldklasse Tinder-style Interface
  *
- * The main discovery screen featuring:
- * - Full-screen scrollable profile cards
- * - Smooth swipe animations
- * - Match celebrations with confetti
- * - Premium filter options
+ * Full-screen swipeable cards with minimal UI chrome
  */
 
 'use client'
@@ -18,8 +14,6 @@ import {
   Filter,
   Sparkles,
   Camera,
-  Shield,
-  Settings2,
   X,
   Flame,
   Crown,
@@ -29,7 +23,6 @@ import {
 } from 'lucide-react'
 import { DiscoverProfileCard } from '@/components/features/discover/DiscoverProfileCard'
 import { BoostButton } from '@/components/features/boost/BoostButton'
-import { StoriesCarousel, CreateStoryModal } from '@/components/features/stories'
 import { PassportModal } from '@/components/features/passport'
 import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
 import { Modal, Button, Input, Select, Alert } from '@/components/ui'
@@ -56,8 +49,7 @@ export default function DiscoverPage() {
   const [isRewinding, setIsRewinding] = useState(false)
   const [lastSwipedUser, setLastSwipedUser] = useState<any>(null)
 
-  // New features: Stories & Passport
-  const [showCreateStory, setShowCreateStory] = useState(false)
+  // Passport feature
   const [showPassportModal, setShowPassportModal] = useState(false)
   const [activePassport, setActivePassport] = useState<{ city: string; expiresAt: Date } | null>(null)
 
@@ -73,14 +65,12 @@ export default function DiscoverPage() {
             setIsUnlimited(true)
           } else {
             setIsUnlimited(false)
-            // Fetch current swipe count
             const countRes = await fetch('/api/swipe/count')
             const countData = await countRes.json()
             if (countRes.ok) {
               setSwipesRemaining(Math.max(0, dailyLikes - countData.count))
             }
           }
-          // Check if user can rewind (PLUS or COMPLETE)
           setCanRewind(data.isPlus || data.isComplete)
         }
       } catch (err) {
@@ -102,7 +92,6 @@ export default function DiscoverPage() {
       const data = await res.json()
 
       if (res.ok && data.user) {
-        // Add the user back to the front of the stack
         setUsers([data.user, ...users])
         setLastSwipedUser(null)
       } else if (res.status === 403) {
@@ -128,10 +117,7 @@ export default function DiscoverPage() {
   // Confetti celebration for matches
   const celebrateMatch = useCallback(() => {
     const count = 200
-    const defaults = {
-      origin: { y: 0.7 },
-      zIndex: 9999,
-    }
+    const defaults = { origin: { y: 0.7 }, zIndex: 9999 }
 
     function fire(particleRatio: number, opts: confetti.Options) {
       confetti({
@@ -141,38 +127,11 @@ export default function DiscoverPage() {
       })
     }
 
-    // Multi-stage confetti burst
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-      colors: ['#EC4899', '#F472B6', '#FCA5A5'],
-    })
-
-    fire(0.2, {
-      spread: 60,
-      colors: ['#F43F5E', '#FB7185', '#FDA4AF'],
-    })
-
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8,
-      colors: ['#EC4899', '#F472B6', '#FCA5A5'],
-    })
-
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2,
-      colors: ['#F43F5E', '#FB7185'],
-    })
-
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-      colors: ['#EC4899', '#F472B6'],
-    })
+    fire(0.25, { spread: 26, startVelocity: 55, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
+    fire(0.2, { spread: 60, colors: ['#F43F5E', '#FB7185', '#FDA4AF'] })
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#F43F5E', '#FB7185'] })
+    fire(0.1, { spread: 120, startVelocity: 45, colors: ['#EC4899', '#F472B6'] })
   }, [])
 
   const { post: swipePost, isLoading: isSwipeLoading } = usePost<SwipeResult>('/api/swipe', {
@@ -217,7 +176,6 @@ export default function DiscoverPage() {
   const handleLike = useCallback(async () => {
     if (users.length === 0 || isSwipeLoading) return
 
-    // Check if limit reached (for non-premium)
     if (!isUnlimited && swipesRemaining !== null && swipesRemaining <= 0) {
       setShowUpgradeModal(true)
       return
@@ -227,7 +185,6 @@ export default function DiscoverPage() {
     setLastSwipedUser(swipedUser)
     const result = await swipePost({ swipedId: swipedUser.id, isLike: true })
 
-    // Update remaining count from API response
     if (result?.limits?.swipesRemaining !== undefined) {
       setSwipesRemaining(result.limits.swipesRemaining)
     } else if (!isUnlimited && swipesRemaining !== null) {
@@ -264,10 +221,10 @@ export default function DiscoverPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
         <div className="w-full max-w-md px-4">
           <div className="animate-pulse">
-            <div className="h-[70vh] bg-gray-200 rounded-3xl" />
+            <div className="h-[80vh] bg-gray-800 rounded-3xl" />
           </div>
         </div>
       </div>
@@ -280,115 +237,89 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      {/* Minimal Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          {/* Logo/Brand */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center">
-              <Sparkles size={18} className="text-white" />
+    <div className="fixed inset-0 bg-gradient-to-b from-gray-900 to-black overflow-hidden">
+      {/* Floating Header - Glassmorphism */}
+      <header className="absolute top-0 left-0 right-0 z-50 safe-area-inset-top">
+        <div className="max-w-lg mx-auto px-4 pt-2 pb-2">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg">
+                <Sparkles size={22} className="text-white" />
+              </div>
+              <span className="font-bold text-xl text-white">Ontdek</span>
             </div>
-            <span className="font-bold text-lg text-gray-900">Ontdek</span>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            {/* Passport Button */}
-            <button
-              onClick={() => setShowPassportModal(true)}
-              className={`p-2.5 rounded-full transition-colors ${
-                activePassport
-                  ? 'bg-rose-100 text-rose-600'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-              }`}
-              aria-label="Passport"
-            >
-              {activePassport ? <Plane size={20} /> : <Globe size={20} />}
-            </button>
-
-            {/* Boost Button */}
-            <BoostButton />
-
-            {/* Swipe limit indicator */}
-            {!isUnlimited && swipesRemaining !== null && (
-              <div className="flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-full">
-                <Flame size={16} className="text-rose-500" />
-                <span className="text-sm font-semibold text-rose-600">
-                  {swipesRemaining}
-                </span>
-              </div>
-            )}
-            {isUnlimited && (
-              <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full">
-                <Crown size={16} className="text-amber-500" />
-                <span className="text-sm font-semibold text-amber-600">
-                  Premium
-                </span>
-              </div>
-            )}
-
-            <button
-              onClick={() => setShowFilters(true)}
-              className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              aria-label="Filters"
-            >
-              <Filter size={20} className="text-gray-600" />
-            </button>
-            {currentUser?.profileImage && (
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {/* Passport Button */}
               <button
-                onClick={() => router.push('/profile')}
-                className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-rose-500 ring-offset-2"
+                onClick={() => setShowPassportModal(true)}
+                className={`p-2.5 rounded-xl backdrop-blur-md transition-all ${
+                  activePassport
+                    ? 'bg-rose-500/80 text-white'
+                    : 'bg-white/10 hover:bg-white/20 text-white'
+                }`}
               >
-                <Image
-                  src={currentUser.profileImage}
-                  alt="Profiel"
-                  width={36}
-                  height={36}
-                  className="object-cover"
-                />
+                {activePassport ? <Plane size={20} /> : <Globe size={20} />}
               </button>
-            )}
+
+              {/* Boost Button */}
+              <BoostButton />
+
+              {/* Swipe limit indicator */}
+              {!isUnlimited && swipesRemaining !== null && (
+                <div className="flex items-center gap-1.5 bg-rose-500/80 backdrop-blur-md px-3 py-2 rounded-xl">
+                  <Flame size={16} className="text-white" />
+                  <span className="text-sm font-bold text-white">{swipesRemaining}</span>
+                </div>
+              )}
+              {isUnlimited && (
+                <div className="flex items-center gap-1.5 bg-amber-500/80 backdrop-blur-md px-3 py-2 rounded-xl">
+                  <Crown size={16} className="text-white" />
+                </div>
+              )}
+
+              {/* Filter Button */}
+              <button
+                onClick={() => setShowFilters(true)}
+                className="p-2.5 rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all"
+              >
+                <Filter size={20} className="text-white" />
+              </button>
+            </div>
           </div>
+
+          {/* Passport Active Banner - Compact */}
+          {activePassport && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-2 flex items-center justify-between bg-gradient-to-r from-rose-500/90 to-pink-500/90 backdrop-blur-md text-white py-2 px-4 rounded-xl"
+            >
+              <div className="flex items-center gap-2">
+                <Plane size={16} />
+                <span className="text-sm font-medium">Je bent in {activePassport.city}</span>
+              </div>
+              <button onClick={() => setShowPassportModal(true)} className="text-xs underline">
+                Wijzig
+              </button>
+            </motion.div>
+          )}
         </div>
       </header>
 
-      {/* Passport Active Banner */}
-      {activePassport && (
-        <div className="fixed top-14 left-0 right-0 z-30 bg-gradient-to-r from-rose-500 to-pink-500 text-white py-2 px-4">
-          <div className="max-w-lg mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Plane size={16} />
-              <span className="text-sm font-medium">
-                Je bent in {activePassport.city}
-              </span>
-            </div>
-            <button
-              onClick={() => setShowPassportModal(true)}
-              className="text-sm underline"
-            >
-              Wijzigen
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Stories Carousel */}
-      <div className={`fixed left-0 right-0 z-20 bg-white border-b ${activePassport ? 'top-24' : 'top-14'}`}>
-        <div className="max-w-lg mx-auto">
-          <StoriesCarousel onAddStory={() => setShowCreateStory(true)} />
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <main className={`pb-24 px-4 ${activePassport ? 'pt-44' : 'pt-36'}`}>
-        <div className="max-w-lg mx-auto">
+      {/* Main Content - Full Screen Cards */}
+      <main className="h-full pt-16 pb-20">
+        <div className="h-full max-w-lg mx-auto px-3">
           {isLoading ? (
-            <div className="animate-pulse">
-              <div className="h-[calc(100vh-180px)] bg-gray-200 rounded-3xl" />
+            <div className="h-full flex items-center justify-center">
+              <div className="animate-pulse w-full">
+                <div className="h-[75vh] bg-gray-800 rounded-3xl" />
+              </div>
             </div>
           ) : error ? (
-            <div className="h-[calc(100vh-180px)] flex items-center justify-center">
+            <div className="h-full flex items-center justify-center">
               <Alert variant="error">
                 Er ging iets mis.{' '}
                 <button onClick={() => refetch()} className="underline font-semibold">
@@ -400,17 +331,15 @@ export default function DiscoverPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="h-[calc(100vh-180px)] flex items-center justify-center"
+              className="h-full flex items-center justify-center"
             >
               <div className="text-center px-8">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-100 to-rose-200 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-12 h-12 text-rose-500" />
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-500 to-rose-600 rounded-full flex items-center justify-center shadow-xl">
+                  <Sparkles className="w-12 h-12 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  Geen profielen meer
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Je hebt alle profielen in je omgeving gezien. Probeer je filters aan te passen of kom later terug!
+                <h3 className="text-2xl font-bold text-white mb-3">Geen profielen meer</h3>
+                <p className="text-gray-400 mb-6">
+                  Je hebt alle profielen in je omgeving gezien. Pas je filters aan of kom later terug!
                 </p>
                 <div className="flex gap-3 justify-center">
                   <Button variant="secondary" onClick={clearFilters}>
@@ -423,17 +352,17 @@ export default function DiscoverPage() {
               </div>
             </motion.div>
           ) : (
-            <div className="relative">
+            <div className="relative h-full">
               <AnimatePresence mode="popLayout">
                 {users.slice(0, 3).map((user, index) => (
                   <motion.div
                     key={user.id}
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{
-                      scale: 1 - index * 0.03,
-                      y: index * 8,
+                      scale: 1 - index * 0.02,
+                      y: index * 6,
                       zIndex: users.length - index,
-                      opacity: index === 0 ? 1 : 0.5,
+                      opacity: index === 0 ? 1 : 0.6,
                     }}
                     exit={{ scale: 0.9, opacity: 0 }}
                     className="absolute inset-0"
@@ -448,37 +377,39 @@ export default function DiscoverPage() {
                         isLoading={isSwipeLoading}
                       />
                     ) : (
-                      <div className="h-[calc(100vh-180px)] bg-gray-100 rounded-3xl shadow-lg" />
+                      <div className="h-full bg-gray-800 rounded-3xl shadow-xl" />
                     )}
                   </motion.div>
                 ))}
               </AnimatePresence>
-
-              {/* Profile count and Rewind button */}
-              <div className="absolute -bottom-12 left-0 right-0 flex items-center justify-center gap-4">
-                {/* Rewind Button - Only show for premium users with a last swipe */}
-                {canRewind && lastSwipedUser && (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleRewind}
-                    disabled={isRewinding}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-full font-medium text-sm shadow-lg transition-colors disabled:opacity-50"
-                  >
-                    <RotateCcw size={16} className={isRewinding ? 'animate-spin' : ''} />
-                    Terug
-                  </motion.button>
-                )}
-                <p className="text-sm text-gray-500">
-                  {users.length} {users.length === 1 ? 'persoon' : 'mensen'} in je omgeving
-                </p>
-              </div>
             </div>
           )}
         </div>
       </main>
+
+      {/* Floating Bottom Info */}
+      {users.length > 0 && (
+        <div className="absolute bottom-20 left-0 right-0 z-40 flex items-center justify-center gap-3">
+          {/* Rewind Button */}
+          {canRewind && lastSwipedUser && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleRewind}
+              disabled={isRewinding}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-medium text-sm shadow-lg transition-all disabled:opacity-50"
+            >
+              <RotateCcw size={16} className={isRewinding ? 'animate-spin' : ''} />
+              Terug
+            </motion.button>
+          )}
+          <p className="text-sm text-white/60 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+            {users.length} {users.length === 1 ? 'persoon' : 'mensen'} in je buurt
+          </p>
+        </div>
+      )}
 
       {/* Filter Modal */}
       <Modal isOpen={showFilters} onClose={() => setShowFilters(false)} title="Filters" size="md">
@@ -578,20 +509,10 @@ export default function DiscoverPage() {
             transition={{ delay: 0.5 }}
             className="flex gap-4"
           >
-            <Button
-              variant="secondary"
-              onClick={() => setShowMatchModal(false)}
-              fullWidth
-              size="lg"
-            >
+            <Button variant="secondary" onClick={() => setShowMatchModal(false)} fullWidth size="lg">
               Verder swipen
             </Button>
-            <Button
-              variant="primary"
-              onClick={() => router.push('/chat/' + matchData?.id)}
-              fullWidth
-              size="lg"
-            >
+            <Button variant="primary" onClick={() => router.push('/chat/' + matchData?.id)} fullWidth size="lg">
               Stuur bericht
             </Button>
           </motion.div>
@@ -613,14 +534,11 @@ export default function DiscoverPage() {
             <Camera className="w-14 h-14 text-rose-500" />
           </div>
 
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Voeg een foto toe!
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">Voeg een foto toe!</h3>
 
           <p className="text-gray-600 mb-8 max-w-sm mx-auto leading-relaxed">
             Profielen met foto's krijgen{' '}
-            <span className="font-bold text-rose-600">10x meer matches</span>.
-            Laat anderen zien wie je bent!
+            <span className="font-bold text-rose-600">10x meer matches</span>. Laat anderen zien wie je bent!
           </p>
 
           <div className="flex gap-4">
@@ -635,42 +553,25 @@ export default function DiscoverPage() {
             >
               Later
             </Button>
-            <Button
-              variant="primary"
-              onClick={() => router.push('/profile')}
-              fullWidth
-              size="lg"
-            >
+            <Button variant="primary" onClick={() => router.push('/profile')} fullWidth size="lg">
               Foto toevoegen
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Upgrade Modal - Swipe Limit Reached */}
-      <Modal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        title=""
-        size="md"
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-center py-8"
-        >
+      {/* Upgrade Modal */}
+      <Modal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} title="" size="md">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-8">
           <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center">
             <Crown className="w-12 h-12 text-white" />
           </div>
 
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            Dagelijkse likes op
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Dagelijkse likes op</h3>
 
           <p className="text-gray-600 mb-6 max-w-sm mx-auto">
             Je hebt al je dagelijkse likes gebruikt. Upgrade naar{' '}
-            <span className="font-bold text-amber-600">Premium</span> voor
-            onbeperkt swipen!
+            <span className="font-bold text-amber-600">Premium</span> voor onbeperkt swipen!
           </p>
 
           <div className="bg-amber-50 rounded-2xl p-4 mb-6 text-left">
@@ -692,12 +593,7 @@ export default function DiscoverPage() {
           </div>
 
           <div className="flex gap-4">
-            <Button
-              variant="secondary"
-              onClick={() => setShowUpgradeModal(false)}
-              fullWidth
-              size="lg"
-            >
+            <Button variant="secondary" onClick={() => setShowUpgradeModal(false)} fullWidth size="lg">
               Morgen opnieuw
             </Button>
             <Button
@@ -713,16 +609,6 @@ export default function DiscoverPage() {
         </motion.div>
       </Modal>
 
-      {/* Create Story Modal */}
-      <CreateStoryModal
-        isOpen={showCreateStory}
-        onClose={() => setShowCreateStory(false)}
-        onSuccess={() => {
-          setShowCreateStory(false)
-          // Optionally refresh stories
-        }}
-      />
-
       {/* Passport Modal */}
       <PassportModal
         isOpen={showPassportModal}
@@ -733,7 +619,7 @@ export default function DiscoverPage() {
             city: city.name,
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           })
-          refetch(filters) // Refresh discover with new location
+          refetch(filters)
         }}
       />
     </div>

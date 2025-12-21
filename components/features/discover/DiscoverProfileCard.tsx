@@ -282,7 +282,7 @@ export function DiscoverProfileCard({
       dragElastic={0.9}
       onDragEnd={handleDragEnd}
       className={`
-        relative w-full h-[calc(100vh-180px)] max-w-lg mx-auto
+        relative w-full h-full max-w-lg mx-auto
         bg-white rounded-3xl overflow-hidden shadow-2xl
         cursor-grab active:cursor-grabbing
         ${swipeDirection === 'left' ? 'translate-x-[-150%] rotate-[-30deg] opacity-0' : ''}
@@ -327,7 +327,7 @@ export function DiscoverProfileCard({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {/* Hero Section - Full Screen Photo */}
-        <div className="relative h-[85%] min-h-[500px] snap-start">
+        <div className="relative h-full min-h-[400px] snap-start">
           {/* Photo */}
           <div className="absolute inset-0">
             <Image
