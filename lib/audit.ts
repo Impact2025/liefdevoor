@@ -21,12 +21,17 @@ export type AuditAction =
   | 'ADMIN_ACTION'
   | 'USER_BANNED'
   | 'USER_UNBANNED'
+  | 'USER_BLOCKED'
+  | 'USER_UNBLOCKED'
+  | 'USER_REPORTED'
   | 'USER_PROMOTED'
   | 'USER_DEMOTED'
   | 'REPORT_CREATED'
   | 'REPORT_RESOLVED'
   | 'ACCOUNT_DELETED'
   | 'SUSPICIOUS_ACTIVITY'
+  | 'PHOTO_VERIFICATION_SUBMITTED'
+  | 'PHOTO_VERIFICATION_REVIEWED'
 
 export interface AuditLogEntry {
   timestamp: string
