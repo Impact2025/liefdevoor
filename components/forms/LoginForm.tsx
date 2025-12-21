@@ -170,10 +170,10 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
       <Button
         type="submit"
+        variant="primary"
         fullWidth
         isLoading={isLoading}
         size="lg"
-        className="bg-teal-700 hover:bg-teal-800 text-white"
       >
         Inloggen
       </Button>

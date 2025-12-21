@@ -166,25 +166,47 @@ export async function GET(request: NextRequest) {
     const matchRate = rightSwipes > 0 ? (totalMatches * 2 / rightSwipes) * 100 : 0
     const avgMessagesPerMatch = totalMatches > 0 ? totalMessages / totalMatches : 0
 
-    // Get daily data for the last 7 days
+    // Get daily data for the last 7 days - OPTIMIZED: Single query with groupBy
+    const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000)
+
+    // Parallel fetch of daily grouped data
+    const [usersByDay, matchesByDay] = await Promise.all([
+      prisma.user.groupBy({
+        by: ['createdAt'],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: true,
+      }).then(results => {
+        // Group by date string
+        const countByDate: Record<string, number> = {}
+        results.forEach(r => {
+          const dateKey = r.createdAt.toISOString().split('T')[0]
+          countByDate[dateKey] = (countByDate[dateKey] || 0) + r._count
+        })
+        return countByDate
+      }),
+      prisma.match.groupBy({
+        by: ['createdAt'],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: true,
+      }).then(results => {
+        const countByDate: Record<string, number> = {}
+        results.forEach(r => {
+          const dateKey = r.createdAt.toISOString().split('T')[0]
+          countByDate[dateKey] = (countByDate[dateKey] || 0) + r._count
+        })
+        return countByDate
+      }),
+    ])
+
+    // Build arrays for each of the last 7 days
     const usersLastWeek: number[] = []
     const matchesLastWeek: number[] = []
 
     for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
-      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
-
-      const [usersCount, matchesCount] = await Promise.all([
-        prisma.user.count({
-          where: { createdAt: { gte: dayStart, lt: dayEnd } },
-        }),
-        prisma.match.count({
-          where: { createdAt: { gte: dayStart, lt: dayEnd } },
-        }),
-      ])
-
-      usersLastWeek.push(usersCount)
-      matchesLastWeek.push(matchesCount)
+      const dayDate = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
+      const dateKey = dayDate.toISOString().split('T')[0]
+      usersLastWeek.push(usersByDay[dateKey] || 0)
+      matchesLastWeek.push(matchesByDay[dateKey] || 0)
     }
 
     const stats: DashboardStats = {

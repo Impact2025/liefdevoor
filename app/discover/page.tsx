@@ -28,8 +28,28 @@ import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
 import { Modal, Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
 import type { DiscoverFilters, SwipeResult } from '@/lib/types'
-import confetti from 'canvas-confetti'
 import Image from 'next/image'
+
+// Lazy load confetti for better initial bundle size
+const fireConfetti = async () => {
+  const confetti = (await import('canvas-confetti')).default
+  const count = 200
+  const defaults = { origin: { y: 0.7 }, zIndex: 9999 }
+
+  const fire = (particleRatio: number, opts: confetti.Options) => {
+    confetti({
+      ...defaults,
+      ...opts,
+      particleCount: Math.floor(count * particleRatio),
+    })
+  }
+
+  fire(0.25, { spread: 26, startVelocity: 55, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
+  fire(0.2, { spread: 60, colors: ['#F43F5E', '#FB7185', '#FDA4AF'] })
+  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
+  fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#F43F5E', '#FB7185'] })
+  fire(0.1, { spread: 120, startVelocity: 45, colors: ['#EC4899', '#F472B6'] })
+}
 
 export default function DiscoverPage() {
   const { data: session, status } = useSession()
@@ -114,24 +134,9 @@ export default function DiscoverPage() {
     }
   }, [currentUser, onboardingDismissed])
 
-  // Confetti celebration for matches
+  // Confetti celebration for matches - lazy loaded
   const celebrateMatch = useCallback(() => {
-    const count = 200
-    const defaults = { origin: { y: 0.7 }, zIndex: 9999 }
-
-    function fire(particleRatio: number, opts: confetti.Options) {
-      confetti({
-        ...defaults,
-        ...opts,
-        particleCount: Math.floor(count * particleRatio),
-      })
-    }
-
-    fire(0.25, { spread: 26, startVelocity: 55, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
-    fire(0.2, { spread: 60, colors: ['#F43F5E', '#FB7185', '#FDA4AF'] })
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#F43F5E', '#FB7185'] })
-    fire(0.1, { spread: 120, startVelocity: 45, colors: ['#EC4899', '#F472B6'] })
+    fireConfetti()
   }, [])
 
   const { post: swipePost, isLoading: isSwipeLoading } = usePost<SwipeResult>('/api/swipe', {

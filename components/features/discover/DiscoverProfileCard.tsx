@@ -328,16 +328,27 @@ export function DiscoverProfileCard({
       >
         {/* Hero Section - Full Screen Photo */}
         <div className="relative h-full min-h-[400px] snap-start">
-          {/* Photo */}
+          {/* Photo with smooth transition */}
           <div className="absolute inset-0">
-            <Image
-              src={photos[currentPhotoIndex]}
-              alt={`Foto van ${profile.name}`}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 768px) 100vw, 500px"
-            />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPhotoIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={photos[currentPhotoIndex]}
+                  alt={`Foto van ${profile.name}`}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 768px) 100vw, 500px"
+                />
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Photo Navigation Indicators */}

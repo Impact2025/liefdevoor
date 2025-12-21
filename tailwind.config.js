@@ -2,6 +2,8 @@
 const { withUt } = require("uploadthing/tw");
 
 module.exports = withUt({
+  // Enable dark mode with class strategy (toggle via 'dark' class on html)
+  darkMode: 'class',
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",

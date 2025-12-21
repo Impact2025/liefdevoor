@@ -15,6 +15,10 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Gender } from '@prisma/client'
+import { unstable_cache } from 'next/cache'
+
+// Cache duration: 1 hour (top picks refresh daily anyway)
+const CACHE_DURATION = 3600
 
 // Calculate profile completeness score (0-100)
 function calculateProfileScore(user: any): number {
@@ -85,6 +89,119 @@ function calculateDistance(
   return Math.round(R * c)
 }
 
+// Cached top picks calculation
+const getCachedTopPicks = (userId: string) =>
+  unstable_cache(
+    async () => {
+      // Get current user with preferences
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          gender: true,
+          lookingFor: true,
+          latitude: true,
+          longitude: true,
+          birthDate: true,
+        },
+      })
+
+      if (!currentUser) return null
+
+      // Get users already swiped
+      const swipedUsers = await prisma.swipe.findMany({
+        where: { swiperId: userId },
+        select: { swipedId: true },
+      })
+      const swipedUserIds = swipedUsers.map((s) => s.swipedId)
+
+      // Build gender filter
+      let genderFilter: Gender[] = []
+      if (currentUser.lookingFor === 'MALE') {
+        genderFilter = [Gender.MALE]
+      } else if (currentUser.lookingFor === 'FEMALE') {
+        genderFilter = [Gender.FEMALE]
+      } else {
+        genderFilter = [Gender.MALE, Gender.FEMALE, Gender.NON_BINARY]
+      }
+
+      // Get potential matches
+      const potentialPicks = await prisma.user.findMany({
+        where: {
+          id: { notIn: [...swipedUserIds, userId] },
+          gender: { in: genderFilter },
+          OR: [
+            { profileImage: { not: null } },
+            { photos: { some: {} } },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          bio: true,
+          profileImage: true,
+          photos: { orderBy: { order: 'asc' }, take: 3 },
+          birthDate: true,
+          city: true,
+          isVerified: true,
+          updatedAt: true,
+          latitude: true,
+          longitude: true,
+          interests: true,
+          voiceIntro: true,
+        },
+        take: 100,
+      })
+
+      // Calculate scores
+      const scoredPicks = potentialPicks.map((user) => {
+        let distance = 0
+        if (currentUser.latitude && currentUser.longitude && user.latitude && user.longitude) {
+          distance = calculateDistance(
+            currentUser.latitude,
+            currentUser.longitude,
+            user.latitude,
+            user.longitude
+          )
+        }
+
+        const profileScore = calculateProfileScore(user)
+        const activityScore = calculateActivityScore(user.updatedAt)
+        const distanceScore = calculateDistanceScore(distance)
+        const totalScore = profileScore * 0.4 + activityScore * 0.35 + distanceScore * 0.25
+        const verifiedBonus = user.isVerified ? 10 : 0
+
+        return {
+          ...user,
+          distance,
+          score: totalScore + verifiedBonus,
+          age: user.birthDate
+            ? Math.floor((Date.now() - new Date(user.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+            : null,
+        }
+      })
+
+      return scoredPicks
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10)
+        .map((pick) => ({
+          id: pick.id,
+          name: pick.name,
+          age: pick.age,
+          bio: pick.bio,
+          photo: pick.photos[0]?.url || pick.profileImage,
+          photos: pick.photos,
+          city: pick.city,
+          distance: pick.distance,
+          isVerified: pick.isVerified,
+          lastActive: pick.updatedAt,
+          matchScore: Math.round(pick.score),
+        }))
+    },
+    [`top-picks-${userId}`],
+    { revalidate: CACHE_DURATION, tags: ['top-picks'] }
+  )()
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -95,132 +212,12 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
 
-    // Get current user with preferences
-    const currentUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        gender: true,
-        lookingFor: true,
-        latitude: true,
-        longitude: true,
-        birthDate: true,
-      },
-    })
+    // Use cached calculation
+    const topPicks = await getCachedTopPicks(userId)
 
-    if (!currentUser) {
+    if (!topPicks) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 })
     }
-
-    // Get users already swiped
-    const swipedUsers = await prisma.swipe.findMany({
-      where: { swiperId: userId },
-      select: { swipedId: true },
-    })
-    const swipedUserIds = swipedUsers.map((s) => s.swipedId)
-
-    // Build gender filter based on lookingFor preference
-    let genderFilter: Gender[] = []
-    if (currentUser.lookingFor === 'MALE') {
-      genderFilter = [Gender.MALE]
-    } else if (currentUser.lookingFor === 'FEMALE') {
-      genderFilter = [Gender.FEMALE]
-    } else {
-      // BOTH or not set - show all genders
-      genderFilter = [Gender.MALE, Gender.FEMALE, Gender.NON_BINARY]
-    }
-
-    // Get potential matches with good profiles
-    const potentialPicks = await prisma.user.findMany({
-      where: {
-        id: {
-          notIn: [...swipedUserIds, userId],
-        },
-        gender: { in: genderFilter },
-        // Must have at least one photo
-        OR: [
-          { profileImage: { not: null } },
-          { photos: { some: {} } },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-        bio: true,
-        profileImage: true,
-        photos: {
-          orderBy: { order: 'asc' },
-          take: 3,
-        },
-        birthDate: true,
-        city: true,
-        isVerified: true,
-        updatedAt: true,
-        latitude: true,
-        longitude: true,
-        interests: true,
-        voiceIntro: true,
-      },
-      take: 100, // Get more candidates for scoring
-    })
-
-    // Calculate scores and pick top 10
-    const scoredPicks = potentialPicks.map((user) => {
-      // Calculate distance
-      let distance = 0
-      if (currentUser.latitude && currentUser.longitude && user.latitude && user.longitude) {
-        distance = calculateDistance(
-          currentUser.latitude,
-          currentUser.longitude,
-          user.latitude,
-          user.longitude
-        )
-      }
-
-      // Calculate composite score
-      const profileScore = calculateProfileScore(user)
-      const activityScore = calculateActivityScore(user.updatedAt)
-      const distanceScore = calculateDistanceScore(distance)
-
-      // Weighted total (profile 40%, activity 35%, distance 25%)
-      const totalScore =
-        profileScore * 0.4 + activityScore * 0.35 + distanceScore * 0.25
-
-      // Bonus for verified users
-      const verifiedBonus = user.isVerified ? 10 : 0
-
-      return {
-        ...user,
-        distance,
-        score: totalScore + verifiedBonus,
-        profileScore,
-        activityScore,
-        age: user.birthDate
-          ? Math.floor(
-              (Date.now() - new Date(user.birthDate).getTime()) /
-                (365.25 * 24 * 60 * 60 * 1000)
-            )
-          : null,
-      }
-    })
-
-    // Sort by score and take top 10
-    const topPicks = scoredPicks
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10)
-      .map((pick) => ({
-        id: pick.id,
-        name: pick.name,
-        age: pick.age,
-        bio: pick.bio,
-        photo: pick.photos[0]?.url || pick.profileImage,
-        photos: pick.photos,
-        city: pick.city,
-        distance: pick.distance,
-        isVerified: pick.isVerified,
-        lastActive: pick.updatedAt,
-        matchScore: Math.round(pick.score),
-      }))
 
     // Get today's date for "picks refresh" timer
     const now = new Date()
