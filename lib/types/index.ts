@@ -11,7 +11,7 @@
 // Re-export all API types
 export * from './api'
 
-// Re-export all Blog types
+// Re-export Blog AI Generator types (unique to blog.ts)
 export * from './blog'
 
 // Re-export Prisma types that are commonly used

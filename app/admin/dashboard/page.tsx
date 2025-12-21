@@ -6,7 +6,8 @@ import { Users, Heart, Shield, BarChart3, Settings, Ban, UserCheck, Search, Chev
 import AIGeneratorForm from '@/components/admin/AIGeneratorForm'
 import GeneratedContentPreview from '@/components/admin/GeneratedContentPreview'
 import BlogPostsTable from '@/components/admin/BlogPostsTable'
-import type { AIGeneratorParams, GeneratedBlogContent, SavePostData, BlogPost, BlogCategory, BlogStats, BlogPagination } from '@/lib/types'
+import type { AIGeneratorParams, GeneratedBlogContent, SavePostData, BlogStats, BlogPagination } from '@/lib/types/blog'
+import type { BlogPost, BlogCategory } from '@/lib/types/api'
 
 export default function AdminDashboard() {
   const { data: session } = useSession()

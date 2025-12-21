@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
-import type { GeneratedBlogContent } from '@/lib/types';
+import type { GeneratedBlogContent } from '@/lib/types/blog';
 
 const requestSchema = z.object({
   primaryKeyword: z.string().min(3).max(100),

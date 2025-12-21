@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Search, Edit, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
-import type { BlogPost, BlogCategory, BlogPagination } from '@/lib/types'
+import type { BlogPagination } from '@/lib/types/blog'
+import type { BlogPost, BlogCategory } from '@/lib/types/api'
 
 interface BlogPostsTableProps {
   posts: BlogPost[]

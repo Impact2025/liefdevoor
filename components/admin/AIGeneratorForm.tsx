@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Sparkles, RotateCcw } from 'lucide-react'
-import type { AIGeneratorParams, BlogCategory } from '@/lib/types'
+import type { AIGeneratorParams } from '@/lib/types/blog'
+import type { BlogCategory } from '@/lib/types/api'
 
 interface AIGeneratorFormProps {
   categories: BlogCategory[]

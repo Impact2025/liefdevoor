@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { FileText, Search, Share2, Image, Save, CheckCircle, Trash2, Copy } from 'lucide-react'
-import type { GeneratedBlogContent, SavePostData, BlogCategory } from '@/lib/types'
+import type { GeneratedBlogContent, SavePostData } from '@/lib/types/blog'
+import type { BlogCategory } from '@/lib/types/api'
 
 interface GeneratedContentPreviewProps {
   content: GeneratedBlogContent | null

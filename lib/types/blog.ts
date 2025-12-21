@@ -40,48 +40,6 @@ export interface BlogStats {
   totalViews: number;
 }
 
-// Blog Entity Types (aligned with Prisma schema)
-export interface BlogPost {
-  id: string;
-  title: string;
-  content: string;
-  slug: string;
-  excerpt: string | null;
-  featuredImage: string | null;
-  published: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  likeCount: number;
-  authorId: string;
-  categoryId: string;
-  author?: BlogAuthor;
-  category?: BlogCategory;
-}
-
-export interface BlogAuthor {
-  id: string;
-  name: string;
-  profileImage: string | null;
-  bio?: string | null;
-}
-
-export interface BlogCategory {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  description?: string | null;
-}
-
-export interface BlogComment {
-  id: string;
-  content: string;
-  createdAt: Date;
-  authorId: string;
-  postId: string;
-  author?: BlogAuthor;
-}
-
 // Pagination for blog lists
 export interface BlogPagination {
   page: number;
