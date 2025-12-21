@@ -77,6 +77,137 @@ export function Navigation() {
 
   return (
     <>
+      {/* Desktop Navigation - Top Bar */}
+      <nav className="hidden md:block fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-b border-gray-100 z-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/discover" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center">
+                <Heart size={22} className="text-white" fill="white" />
+              </div>
+              <span className="font-bold text-xl text-gray-900">DateApp</span>
+            </Link>
+
+            {/* Nav Items */}
+            <div className="flex items-center gap-1">
+              {navItems.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 rounded-xl transition-all
+                      ${active
+                        ? 'bg-rose-50 text-rose-600'
+                        : 'text-gray-600 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    {active ? item.iconFilled || item.icon : item.icon}
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* User Menu */}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/notifications"
+                className={`p-2 rounded-xl transition-all ${
+                  isActive('/notifications') ? 'bg-rose-50 text-rose-600' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                <Bell size={22} />
+              </Link>
+              <Link
+                href="/settings"
+                className={`p-2 rounded-xl transition-all ${
+                  isActive('/settings') ? 'bg-rose-50 text-rose-600' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                <Settings size={22} />
+              </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-50 transition-all"
+                >
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center text-white font-semibold text-sm">
+                    {session.user?.name?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                </button>
+
+                {/* Desktop Dropdown Menu */}
+                <AnimatePresence>
+                  {showMenu && (
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowMenu(false)}
+                        className="fixed inset-0 z-40"
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                      >
+                        <div className="p-4 bg-gradient-to-r from-rose-50 to-rose-100 border-b border-gray-100">
+                          <p className="font-semibold text-gray-900">{session.user?.name}</p>
+                          <p className="text-sm text-gray-600 truncate">{session.user?.email}</p>
+                        </div>
+                        <div className="p-2">
+                          <Link
+                            href="/profile"
+                            onClick={() => setShowMenu(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                          >
+                            <User size={18} className="text-gray-500" />
+                            <span className="text-gray-700">Mijn Profiel</span>
+                          </Link>
+                          <Link
+                            href="/matches"
+                            onClick={() => setShowMenu(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                          >
+                            <MessageCircle size={18} className="text-gray-500" />
+                            <span className="text-gray-700">Berichten</span>
+                          </Link>
+                          <Link
+                            href="/prijzen"
+                            onClick={() => setShowMenu(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                          >
+                            <Sparkles size={18} className="text-amber-500" />
+                            <span className="text-gray-700">Premium</span>
+                          </Link>
+                          <div className="my-2 border-t border-gray-100" />
+                          <button
+                            onClick={() => signOut({ callbackUrl: '/login' })}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 transition-colors text-red-600"
+                          >
+                            <LogOut size={18} />
+                            <span className="font-medium">Uitloggen</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Spacer for desktop top navigation */}
+      <div className="hidden md:block h-16" />
+
       {/* Mobile Navigation - Bottom Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 z-50 safe-bottom">
         <div className="grid grid-cols-5 gap-1 px-2 py-2">
