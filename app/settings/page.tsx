@@ -1,24 +1,43 @@
 /**
- * Settings Page
+ * Settings Page - Wereldklasse Edition
  *
- * User preferences and account settings
+ * User preferences and account settings with:
+ * - Wereldklasse location editor
+ * - Discovery preferences
+ * - Notifications
+ * - Account management
  */
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AppHeader } from '@/components/layout'
 import { Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
+import { PostcodeInput } from '@/components/features/location/PostcodeInput'
+import { CityAutocomplete } from '@/components/features/location/CityAutocomplete'
+import { LocationMap } from '@/components/features/location/LocationMap'
+import { LocationPrivacy } from '@/components/features/location/LocationPrivacy'
+import type { GeocodingResult, CityOption } from '@/lib/services/geocoding'
+import { MapPin } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  // Location state
+  const [postcode, setPostcode] = useState('')
+  const [city, setCity] = useState('')
+  const [latitude, setLatitude] = useState<number | null>(null)
+  const [longitude, setLongitude] = useState<number | null>(null)
+  const [inputMethod, setInputMethod] = useState<'postcode' | 'city'>('postcode')
+  const [locationChanged, setLocationChanged] = useState(false)
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -30,8 +49,58 @@ export default function SettingsPage() {
     pushNotifications: true,
   })
 
+  // Fetch user profile data on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!session?.user?.id) return
+
+      try {
+        const response = await fetch('/api/profile')
+        if (response.ok) {
+          const data = await response.json()
+
+          // Update location state
+          if (data.postcode) setPostcode(data.postcode)
+          if (data.city) setCity(data.city)
+          if (data.latitude) setLatitude(data.latitude)
+          if (data.longitude) setLongitude(data.longitude)
+
+          // Update settings state
+          setSettings(prev => ({
+            ...prev,
+            minAge: data.minAgePreference || 18,
+            maxAge: data.maxAgePreference || 99,
+            maxDistance: data.preferences?.maxDistance || 100,
+          }))
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err)
+      } finally {
+        setIsFetching(false)
+      }
+    }
+
+    fetchProfile()
+  }, [session?.user?.id])
+
+  // Handle postcode geocoding result
+  const handlePostcodeGeocode = (result: GeocodingResult) => {
+    setCity(result.city)
+    setLatitude(result.latitude)
+    setLongitude(result.longitude)
+    setLocationChanged(true)
+  }
+
+  // Handle city selection from autocomplete
+  const handleCitySelect = (selectedCity: CityOption) => {
+    setCity(selectedCity.name)
+    setLatitude(selectedCity.latitude)
+    setLongitude(selectedCity.longitude)
+    setLocationChanged(true)
+  }
+
   // Redirect if not authenticated
-  if (status === 'loading') {
+  if (status === 'loading' || isFetching) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="animate-pulse text-rose-600">Laden...</div>
@@ -50,17 +119,37 @@ export default function SettingsPage() {
     setSuccess(false)
 
     try {
-      const response = await fetch('/api/user/preferences', {
+      // Save preferences
+      const prefsResponse = await fetch('/api/user/preferences', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to save settings')
+      if (!prefsResponse.ok) {
+        throw new Error('Failed to save preferences')
+      }
+
+      // Save location if changed
+      if (locationChanged) {
+        const locationResponse = await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postcode: postcode || undefined,
+            city: city || undefined,
+            latitude: latitude || undefined,
+            longitude: longitude || undefined,
+          }),
+        })
+
+        if (!locationResponse.ok) {
+          throw new Error('Failed to save location')
+        }
       }
 
       setSuccess(true)
+      setLocationChanged(false)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
       setError('Er is een fout opgetreden bij het opslaan van je instellingen.')
@@ -103,6 +192,109 @@ export default function SettingsPage() {
               {error}
             </Alert>
           )}
+
+          {/* Location Settings */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Locatie
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Update je locatie voor betere matches
+                </p>
+              </div>
+            </div>
+
+            {/* Input method toggle */}
+            <div className="mb-4 flex gap-2 p-1 bg-gray-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setInputMethod('postcode')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all text-sm ${
+                  inputMethod === 'postcode'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Postcode
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMethod('city')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all text-sm ${
+                  inputMethod === 'city'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Stad
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Input fields */}
+              {inputMethod === 'postcode' ? (
+                <PostcodeInput
+                  value={postcode}
+                  onChange={(value) => {
+                    setPostcode(value)
+                    setLocationChanged(true)
+                  }}
+                  onGeocode={handlePostcodeGeocode}
+                  autoGeocode={true}
+                />
+              ) : (
+                <CityAutocomplete
+                  value={city}
+                  onChange={(value) => {
+                    setCity(value)
+                    setLocationChanged(true)
+                  }}
+                  onSelect={handleCitySelect}
+                />
+              )}
+
+              {/* Location result card with map */}
+              {city && latitude && longitude && (
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-500 rounded-2xl p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900">{city}</p>
+                      {postcode && (
+                        <p className="text-sm text-gray-600">{postcode}</p>
+                      )}
+                    </div>
+                    {locationChanged && (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium">
+                        Niet opgeslagen
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mini map */}
+                  <LocationMap
+                    latitude={latitude}
+                    longitude={longitude}
+                    city={city}
+                    height="180px"
+                    showPrivacyCircle={true}
+                    circleRadius={2000}
+                    interactive={false}
+                  />
+                </div>
+              )}
+
+              {/* Privacy notice */}
+              <LocationPrivacy variant="compact" />
+            </div>
+          </div>
 
           {/* Discovery Preferences */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
