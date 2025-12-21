@@ -456,20 +456,6 @@ model PushSubscription {
   @@index([isActive])
 }
 
-model ProfileView {
-  id        String   @id @default(cuid())
-  viewerId  String
-  viewer    User     @relation("ProfileViewer", fields: [viewerId], references: [id], onDelete: Cascade)
-  viewedId  String
-  viewed    User     @relation("ProfileViewed", fields: [viewedId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([viewerId, viewedId])
-  @@index([viewerId])
-  @@index([viewedId])
-  @@index([viewedId, createdAt])
-}
-
 model ProfileBoost {
   id        String   @id @default(cuid())
   userId    String
@@ -738,25 +724,6 @@ model ProfilePrompt {
 }
 
 // ============================================
-// 📷 PHOTO VERIFICATION
-// ============================================
-
-model PhotoVerification {
-  id              String    @id @default(cuid())
-  userId          String
-  photoUrl        String
-  pose            String    @default("neutral")
-  status          String    @default("pending") // pending, approved, rejected
-  submittedAt     DateTime  @default(now())
-  reviewedAt      DateTime?
-  reviewedBy      String?
-  rejectionReason String?
-
-  @@index([userId])
-  @@index([status])
-}
-
-// ============================================
 // 📸 STORIES - 24-hour content like Instagram
 // ============================================
 
@@ -826,9 +793,8 @@ model ProfileView {
   viewed    User     @relation("ProfileViewed", fields: [viewedId], references: [id], onDelete: Cascade)
   viewedAt  DateTime @default(now())
 
-  @@unique([viewerId, viewedId, viewedAt]) // Prevent duplicate views at same timestamp
+  @@unique([viewerId, viewedId]) // One view record per viewer-viewed pair
   @@index([viewerId])
   @@index([viewedId])
   @@index([viewedId, viewedAt]) // For "recent viewers"
-  @@index([viewedAt])
 }

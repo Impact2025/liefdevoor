@@ -2,12 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { Navigation } from "@/components/layout/Navigation";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { CookieBanner } from "@/components/legal/CookieBanner";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
-import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { LayoutContent } from "@/components/layout/LayoutContent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -72,17 +69,7 @@ export default function RootLayout({
         <GoogleAnalytics />
         <Providers>
           <AnalyticsProvider>
-            {/* Desktop Sidebar */}
-            <Sidebar />
-
-            {/* Main content with sidebar offset on desktop */}
-            <div className="lg:pl-64">
-              <Navigation />
-              {children}
-            </div>
-
-            <CookieBanner />
-            <InstallPrompt />
+            <LayoutContent>{children}</LayoutContent>
           </AnalyticsProvider>
         </Providers>
       </body>

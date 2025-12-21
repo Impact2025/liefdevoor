@@ -30,7 +30,10 @@
       "Bash(findstr:*)",
       "Bash(npm run seed:demo:*)",
       "Bash(git reset:*)",
-      "Bash(if exist nul del nul)"
+      "Bash(if exist nul del nul)",
+      "Bash(netstat:*)",
+      "Bash(tee:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []

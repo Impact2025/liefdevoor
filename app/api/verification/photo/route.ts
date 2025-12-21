@@ -56,9 +56,10 @@ export async function POST(request: NextRequest) {
     })
 
     // Audit log
-    auditLog('photo_verification_submitted', {
+    auditLog('PROFILE_UPDATE', {
       userId: user.id,
       details: {
+        action: 'photo_verification_submitted',
         verificationId: verification.id,
         pose,
       },
@@ -191,10 +192,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Audit log
-    await auditLog('photo_verification_reviewed', user.id, {
-      verificationId,
-      status,
+    auditLog('ADMIN_ACTION', {
+      userId: user.id,
       targetUserId: verification.userId,
+      details: {
+        action: 'photo_verification_reviewed',
+        verificationId,
+        status,
+      },
     })
 
     return successResponse({ verification })

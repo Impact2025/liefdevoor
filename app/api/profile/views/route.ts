@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const [views, total] = await Promise.all([
       prisma.profileView.findMany({
         where: { viewedId: user.id },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { viewedAt: 'desc' },
         skip: offset,
         take: limit,
         include: {
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         ? Math.floor((Date.now() - new Date(view.viewer.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : null,
       isVerified: view.viewer.isPhotoVerified,
-      viewedAt: view.createdAt,
+      viewedAt: view.viewedAt,
     }))
 
     return NextResponse.json({
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         viewedId,
       },
       update: {
-        createdAt: new Date(),
+        viewedAt: new Date(),
       },
     })
 

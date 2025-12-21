@@ -1,0 +1,178 @@
+
+> pro-dating-app@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.33
+  - Environments: .env
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (188kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (139kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./node_modules/ioredis/built/Redis.js
+A Node.js API is used (process.nextTick at line: 189) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/Redis.js
+A Node.js API is used (process.nextTick at line: 193) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/Redis.js
+A Node.js API is used (process.nextTick at line: 196) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/Redis.js
+A Node.js API is used (process.nextTick at line: 610) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/autoPipelining.js
+A Node.js API is used (process.nextTick at line: 60) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/autoPipelining.js
+./node_modules/ioredis/built/utils/Commander.js
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/autoPipelining.js
+A Node.js API is used (process.nextTick at line: 65) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/autoPipelining.js
+./node_modules/ioredis/built/utils/Commander.js
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/autoPipelining.js
+A Node.js API is used (setImmediate at line: 142) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/autoPipelining.js
+./node_modules/ioredis/built/utils/Commander.js
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/cluster/DelayQueue.js
+A Node.js API is used (process.nextTick at line: 22) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/cluster/DelayQueue.js
+./node_modules/ioredis/built/cluster/index.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/cluster/index.js
+A Node.js API is used (setImmediate at line: 238) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/cluster/index.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/cluster/index.js
+A Node.js API is used (process.nextTick at line: 609) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/cluster/index.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/cluster/index.js
+A Node.js API is used (process.nextTick at line: 752) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/cluster/index.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/ioredis/built/connectors/StandaloneConnector.js
+A Node.js API is used (process.nextTick at line: 44) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/ioredis/built/connectors/StandaloneConnector.js
+./node_modules/ioredis/built/connectors/index.js
+./node_modules/ioredis/built/Redis.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/redis-errors/index.js
+A Node.js API is used (process.version at line: 3) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/redis-errors/index.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+./node_modules/redis-errors/index.js
+A Node.js API is used (process.version at line: 3) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/redis-errors/index.js
+./node_modules/ioredis/built/index.js
+./lib/redis-rate-limit.ts
+./lib/rate-limit.ts
+
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/api/profile/views/route.ts:57:20
+Type error: Object literal may only specify known properties, and 'createdAt' does not exist in type 'ProfileViewOrderByWithRelationInput | ProfileViewOrderByWithRelationInput[]'.
+
+[0m [90m 55 |[39m       prisma[33m.[39mprofileView[33m.[39mfindMany({[0m
+[0m [90m 56 |[39m         where[33m:[39m { viewedId[33m:[39m user[33m.[39mid }[33m,[39m[0m
+[0m[31m[1m>[22m[39m[90m 57 |[39m         orderBy[33m:[39m { createdAt[33m:[39m [32m'desc'[39m }[33m,[39m[0m
+[0m [90m    |[39m                    [31m[1m^[22m[39m[0m
+[0m [90m 58 |[39m         skip[33m:[39m offset[33m,[39m[0m
+[0m [90m 59 |[39m         take[33m:[39m limit[33m,[39m[0m
+[0m [90m 60 |[39m         include[33m:[39m {[0m
+Next.js build worker exited with code: 1 and signal: null
