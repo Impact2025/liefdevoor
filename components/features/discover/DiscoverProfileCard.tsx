@@ -139,27 +139,20 @@ export function DiscoverProfileCard({
   // Motion values for swipe gestures
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-
-  // Reset state when profile changes
-  React.useEffect(() => {
-    setCurrentPhotoIndex(0)
-    setIsScrolled(false)
-    setSwipeDirection(null)
-    setIsPlayingVoice(false)
-    x.set(0)
-    y.set(0)
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0
-    }
-    if (voiceAudioRef.current) {
-      voiceAudioRef.current.pause()
-      voiceAudioRef.current = null
-    }
-  }, [profile.id, x, y])
   const rotate = useTransform(x, [-200, 200], [-15, 15])
   const likeOpacity = useTransform(x, [0, 100], [0, 1])
   const passOpacity = useTransform(x, [-100, 0], [1, 0])
   const superLikeOpacity = useTransform(y, [-100, 0], [1, 0])
+
+  // Cleanup audio on unmount
+  React.useEffect(() => {
+    return () => {
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.pause()
+        voiceAudioRef.current = null
+      }
+    }
+  }, [])
 
   // Get photos
   const photos = profile.photos?.length

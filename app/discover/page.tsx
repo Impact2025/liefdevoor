@@ -382,6 +382,7 @@ export default function DiscoverPage() {
                   >
                     {index === 0 ? (
                       <DiscoverProfileCard
+                        key={user.id}
                         profile={convertToProfileData(user)}
                         onLike={handleLike}
                         onPass={handlePass}

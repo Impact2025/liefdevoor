@@ -33,7 +33,9 @@
       "Bash(if exist nul del nul)",
       "Bash(netstat:*)",
       "Bash(tee:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
