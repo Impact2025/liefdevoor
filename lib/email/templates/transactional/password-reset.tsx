@@ -1,7 +1,7 @@
 /**
  * Password Reset Email Template
  *
- * Sent when user requests password reset
+ * Professional, minimalist design
  */
 
 import {
@@ -13,8 +13,20 @@ import {
   Text,
   Button,
   Section,
-  Hr
+  Img
 } from '@react-email/components'
+
+// Brand configuration
+const BRAND = {
+  name: 'Liefde Voor Iedereen',
+  logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
+  primaryColor: '#f43f5e',
+  textColor: '#1f2937',
+  textMuted: '#6b7280',
+  bgColor: '#f9fafb',
+  borderColor: '#e5e7eb',
+  email: 'info@liefdevooriedereen.nl'
+}
 
 interface PasswordResetEmailProps {
   userName: string
@@ -33,82 +45,83 @@ export default function PasswordResetEmail({
       <Body style={styles.body}>
         <Container style={styles.container}>
 
-          {/* Header */}
-          <Section style={styles.headerSection}>
-            <Text style={styles.icon}>🔐</Text>
-            <Heading style={styles.h1}>
-              Wachtwoord Resetten
-            </Heading>
+          {/* Header with Logo */}
+          <Section style={styles.header}>
+            <Img
+              src={BRAND.logoUrl}
+              width="180"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.logo}
+            />
           </Section>
-
-          <Hr style={styles.hr} />
 
           {/* Content */}
-          <Text style={styles.greeting}>
-            Hoi {userName},
-          </Text>
+          <Section style={styles.content}>
+            <Heading style={styles.h1}>
+              Wachtwoord herstellen
+            </Heading>
 
-          <Text style={styles.text}>
-            Je hebt gevraagd om je wachtwoord te resetten voor je Liefde Voor Iedereen account.
-          </Text>
-
-          <Text style={styles.text}>
-            Klik op de knop hieronder om een nieuw wachtwoord in te stellen:
-          </Text>
-
-          {/* Call to Action */}
-          <Section style={styles.ctaSection}>
-            <Button href={resetUrl} style={styles.button}>
-              🔓 Reset Wachtwoord
-            </Button>
-          </Section>
-
-          {/* Expiry Warning */}
-          <Section style={styles.warningBox}>
-            <Text style={styles.warningText}>
-              ⏰ <strong>Let op:</strong> Deze link vervalt over <strong>{expiresIn}</strong>.
+            <Text style={styles.greeting}>
+              Hoi {userName},
             </Text>
-          </Section>
 
-          {/* Alternative Link */}
-          <Text style={styles.altText}>
-            <strong>Werkt de knop niet?</strong>
-            <br />
-            Kopieer deze link en plak hem in je browser:
-          </Text>
-
-          <div style={styles.linkBox}>
-            <Text style={styles.linkText}>
-              {resetUrl}
+            <Text style={styles.text}>
+              Je hebt een verzoek ingediend om je wachtwoord te herstellen.
+              Klik op onderstaande knop om een nieuw wachtwoord in te stellen.
             </Text>
-          </div>
 
-          <Hr style={styles.hr} />
+            {/* CTA Button */}
+            <Section style={styles.ctaSection}>
+              <Button href={resetUrl} style={styles.button}>
+                Nieuw wachtwoord instellen
+              </Button>
+            </Section>
 
-          {/* Security Notice */}
-          <Section style={styles.securityBox}>
-            <Text style={styles.securityHeading}>
-              🛡️ <strong>Veiligheid eerst!</strong>
+            {/* Warning */}
+            <Section style={styles.warningBox}>
+              <Text style={styles.warningText}>
+                <strong>Let op:</strong> Deze link is {expiresIn} geldig en kan slechts eenmaal worden gebruikt.
+              </Text>
+            </Section>
+
+            <Text style={styles.mutedText}>
+              Heb je dit verzoek niet gedaan? Dan kun je deze email veilig negeren.
+              Je wachtwoord blijft ongewijzigd.
             </Text>
-            <Text style={styles.securityText}>
-              • Heb je deze reset NIET aangevraagd? Negeer deze email dan. Je account blijft veilig.
-              <br />
-              • Deel deze link NOOIT met anderen.
-              <br />
-              • We vragen je NOOIT per email om je wachtwoord.
-            </Text>
+
+            {/* Alternative Link */}
+            <Section style={styles.linkBox}>
+              <Text style={styles.linkLabel}>
+                Werkt de knop niet? Kopieer deze link:
+              </Text>
+              <Text style={styles.linkText}>
+                {resetUrl}
+              </Text>
+            </Section>
           </Section>
 
           {/* Footer */}
-          <Text style={styles.footer}>
-            Als je hulp nodig hebt, neem dan contact met ons op.
-          </Text>
-
-          <Text style={styles.signature}>
-            Met liefde,
-            <br />
-            Het Liefde Voor Iedereen Team ❤️
-          </Text>
+          <Section style={styles.footer}>
+            <Img
+              src={BRAND.logoUrl}
+              width="120"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.footerLogo}
+            />
+            <Text style={styles.footerText}>
+              {BRAND.name}
+            </Text>
+            <Text style={styles.footerEmail}>
+              <a href={`mailto:${BRAND.email}`} style={styles.footerLink}>
+                {BRAND.email}
+              </a>
+            </Text>
+            <Text style={styles.footerDisclaimer}>
+              Dit bericht is verzonden door {BRAND.name}.
+            </Text>
+          </Section>
 
         </Container>
       </Body>
@@ -116,134 +129,130 @@ export default function PasswordResetEmail({
   )
 }
 
-// Styles
 const styles = {
   body: {
-    backgroundColor: '#fef2f2',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    backgroundColor: '#f9fafb',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     margin: 0,
     padding: 0
   },
   container: {
     backgroundColor: '#ffffff',
     margin: '40px auto',
-    padding: '40px 30px',
-    borderRadius: '16px',
+    borderRadius: '8px',
     maxWidth: '600px',
-    boxShadow: '0 4px 20px rgba(220, 38, 38, 0.15)'
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden' as const
   },
-  headerSection: {
+  header: {
+    padding: '32px 40px 24px',
     textAlign: 'center' as const,
-    marginBottom: '20px'
+    borderBottom: `1px solid ${BRAND.borderColor}`
   },
-  icon: {
-    fontSize: '48px',
-    textAlign: 'center' as const,
-    margin: '0 0 16px'
+  logo: {
+    display: 'block',
+    margin: '0 auto'
+  },
+  content: {
+    padding: '40px'
   },
   h1: {
-    color: '#dc2626',
-    fontSize: '32px',
-    fontWeight: 'bold',
-    textAlign: 'center' as const,
-    margin: '0',
-    lineHeight: '1.2'
-  },
-  hr: {
-    borderColor: '#f3f4f6',
-    margin: '30px 0'
+    color: BRAND.textColor,
+    fontSize: '24px',
+    fontWeight: '600',
+    margin: '0 0 24px',
+    lineHeight: '1.3'
   },
   greeting: {
-    fontSize: '18px',
-    color: '#111827',
-    margin: '0 0 20px',
-    fontWeight: '600'
+    fontSize: '15px',
+    color: BRAND.textColor,
+    margin: '0 0 16px',
+    lineHeight: '1.6'
   },
   text: {
-    fontSize: '16px',
-    lineHeight: '24px',
-    color: '#4b5563',
+    fontSize: '15px',
+    lineHeight: '1.6',
+    color: BRAND.textColor,
     margin: '0 0 16px'
   },
   ctaSection: {
     textAlign: 'center' as const,
-    margin: '30px 0'
+    margin: '24px 0'
   },
   button: {
-    backgroundColor: '#dc2626',
+    backgroundColor: BRAND.primaryColor,
     color: '#ffffff',
-    fontSize: '18px',
-    fontWeight: 'bold',
+    fontSize: '15px',
+    fontWeight: '600',
     textDecoration: 'none',
     textAlign: 'center' as const,
     display: 'inline-block',
-    padding: '16px 40px',
-    borderRadius: '12px',
-    margin: '0',
-    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+    padding: '14px 32px',
+    borderRadius: '6px'
   },
   warningBox: {
     backgroundColor: '#fef3c7',
-    borderLeft: '4px solid #f59e0b',
-    borderRadius: '8px',
+    borderLeft: '3px solid #f59e0b',
+    borderRadius: '0 6px 6px 0',
     padding: '16px',
-    margin: '20px 0'
+    margin: '24px 0'
   },
   warningText: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#92400e',
     margin: '0',
-    lineHeight: '1.5'
+    lineHeight: '1.6'
   },
-  altText: {
-    fontSize: '14px',
-    color: '#6b7280',
-    margin: '20px 0 12px',
-    lineHeight: '1.5'
+  mutedText: {
+    fontSize: '13px',
+    color: BRAND.textMuted,
+    margin: '0 0 24px',
+    lineHeight: '1.6'
   },
   linkBox: {
-    backgroundColor: '#f9fafb',
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    padding: '12px',
-    marginBottom: '20px'
+    backgroundColor: BRAND.bgColor,
+    borderRadius: '6px',
+    padding: '16px',
+    margin: '24px 0 0'
+  },
+  linkLabel: {
+    fontSize: '12px',
+    color: BRAND.textMuted,
+    margin: '0 0 8px'
   },
   linkText: {
     fontSize: '12px',
-    color: '#374151',
+    color: BRAND.textColor,
     margin: '0',
     wordBreak: 'break-all' as const,
-    lineHeight: '1.4'
-  },
-  securityBox: {
-    backgroundColor: '#dbeafe',
-    borderRadius: '8px',
-    padding: '20px',
-    margin: '20px 0'
-  },
-  securityHeading: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1e40af',
-    margin: '0 0 12px'
-  },
-  securityText: {
-    fontSize: '14px',
-    color: '#1e40af',
-    margin: '0',
-    lineHeight: '1.8'
+    lineHeight: '1.5'
   },
   footer: {
-    fontSize: '16px',
-    color: '#6b7280',
+    backgroundColor: BRAND.bgColor,
+    padding: '32px 40px',
     textAlign: 'center' as const,
-    margin: '20px 0'
+    borderTop: `1px solid ${BRAND.borderColor}`
   },
-  signature: {
-    fontSize: '15px',
+  footerLogo: {
+    display: 'block',
+    margin: '0 auto 16px'
+  },
+  footerText: {
+    fontSize: '13px',
+    color: BRAND.textMuted,
+    margin: '0 0 8px'
+  },
+  footerEmail: {
+    fontSize: '13px',
+    margin: '0 0 16px'
+  },
+  footerLink: {
+    color: BRAND.primaryColor,
+    textDecoration: 'none'
+  },
+  footerDisclaimer: {
+    fontSize: '12px',
     color: '#9ca3af',
-    textAlign: 'center' as const,
-    fontStyle: 'italic',
-    margin: '20px 0'
+    margin: '0'
   }
 }

@@ -70,11 +70,14 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         // Get fresh session to check profileComplete status and role
         const session = await getSession()
 
-        // Admins skip onboarding and go directly to their destination
+        // Admins skip onboarding and go directly to admin dashboard
         const isAdmin = session?.user?.role === 'ADMIN'
         const isAdminRoute = callbackUrl.startsWith('/admin')
 
-        if (isAdmin || isAdminRoute || session?.user?.profileComplete) {
+        if (isAdmin) {
+          // Admins always go to admin dashboard unless explicitly going to another admin route
+          router.push(isAdminRoute ? callbackUrl : '/admin/dashboard')
+        } else if (session?.user?.profileComplete) {
           router.push(callbackUrl)
         } else {
           router.push('/onboarding')

@@ -166,8 +166,8 @@ export default function SelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 pt-4 pb-24">
-      <div className="max-w-lg mx-auto px-4">
+    <div className="min-h-screen bg-stone-50 pt-4 pb-24 lg:ml-64 lg:pt-20">
+      <div className="max-w-lg mx-auto px-4 lg:max-w-4xl">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">

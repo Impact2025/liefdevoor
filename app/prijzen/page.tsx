@@ -46,9 +46,9 @@ export default function PrijzenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 lg:ml-64 lg:pt-16">
+      {/* Header - Hidden on desktop */}
+      <header className="lg:hidden bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2">

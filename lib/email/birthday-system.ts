@@ -221,36 +221,38 @@ export async function sendBirthdayEmail(user: BirthdayUser): Promise<void> {
 
     // Generate plain text version
     const text = `
-Gefeliciteerd ${user.name || 'daar'}!
+Gefeliciteerd, ${user.name || 'daar'}
 
-Je bent vandaag ${user.age} geworden! 🎂
+Vandaag word je ${user.age} jaar.
 
-${matches.count > 0 ? `We hebben ${matches.count} nieuwe matches voor je gevonden!` : ''}
+Het hele team van Liefde Voor Iedereen wenst je een fantastische verjaardag.
+
+${matches.count > 0 ? `We hebben ${matches.count} nieuwe matches voor je gevonden.` : ''}
 
 ${matches.featured ? `Bijvoorbeeld ${matches.featured.name}, ${matches.featured.age} uit ${matches.featured.city}.` : ''}
 
 ${isPremium ? `
-Als premium member heb je vandaag speciale bonussen:
-- Gratis Boost (3x meer zichtbaar)
-- Unlimited likes voor 24 uur
-- Birthday badge op je profiel
+Als premium member heb je vandaag speciale voordelen:
+- Gratis boost voor extra zichtbaarheid
+- Ongelimiteerde likes vandaag
+- Speciale verjaardagsbadge op je profiel
 ` : `
-Speciale verjaardag aanbieding: Upgrade naar Premium met 50% korting!
-Deze aanbieding vervalt om middernacht.
+Verjaardagsaanbieding: Upgrade naar Premium met 50% korting.
+Aanbieding geldig tot middernacht.
 `}
 
-Maak er een mooie ${user.age}e! 🎈
+Met vriendelijke groet,
+Het Liefde Voor Iedereen Team
 
-Met liefde,
-Het Liefde Voor Iedereen Team ❤️
-
-Bekijk je matches: http://localhost:3004/discover?birthday=true
+---
+Liefde Voor Iedereen
+info@liefdevooriedereen.nl
     `.trim()
 
     // Send email via Resend
     await sendEmail({
       to: user.email,
-      subject: `🎉 Gefeliciteerd ${user.name || 'daar'}! Je bent ${user.age} geworden!`,
+      subject: `Gefeliciteerd ${user.name || 'daar'} - Je wordt ${user.age} jaar`,
       html,
       text
     })

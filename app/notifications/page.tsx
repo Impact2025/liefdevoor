@@ -132,8 +132,8 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background p-6 lg:ml-64 lg:pt-16">
+      <div className="max-w-2xl mx-auto lg:max-w-4xl">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-primary">Meldingen</h1>
           {unreadCount > 0 && (

@@ -154,7 +154,7 @@ export default function LikesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 pt-4 pb-24">
+    <div className="min-h-screen bg-stone-50 pt-4 pb-24 lg:ml-64 lg:pt-20">
       <div className="max-w-lg mx-auto px-4">
         {/* Header */}
         <div className="mb-6">

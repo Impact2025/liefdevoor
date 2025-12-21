@@ -124,9 +124,12 @@ export default function DiscoverPage() {
     }
   }, [isRewinding, canRewind, users, setUsers])
 
-  // Check if user needs onboarding (no photos)
+  // Check if user needs onboarding (no photos) - skip for admins
   useEffect(() => {
     if (currentUser && !onboardingDismissed) {
+      // Admins don't need the onboarding modal
+      if (currentUser.role === 'ADMIN') return
+
       const hasPhotos = currentUser.photos && currentUser.photos.length > 0
       if (!hasPhotos && !currentUser.profileImage) {
         setShowOnboarding(true)
@@ -242,9 +245,9 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-gray-900 to-black overflow-hidden">
-      {/* Floating Header - Glassmorphism */}
-      <header className="absolute top-0 left-0 right-0 z-50 safe-area-inset-top">
+    <div className="fixed inset-0 lg:left-64 lg:top-16 bg-gradient-to-b from-gray-900 to-black overflow-hidden">
+      {/* Floating Header - Glassmorphism - Hidden on desktop (sidebar handles nav) */}
+      <header className="lg:hidden absolute top-0 left-0 right-0 z-50 safe-area-inset-top">
         <div className="max-w-lg mx-auto px-4 pt-2 pb-2">
           <div className="flex items-center justify-between">
             {/* Logo */}

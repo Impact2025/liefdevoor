@@ -155,14 +155,15 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 lg:ml-64 lg:pt-16">
       <AppHeader
         title="Mijn Profiel"
         subtitle="Beheer je profiel en voorkeuren"
+        className="lg:hidden"
       />
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8 lg:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Sidebar - Profile Picture & Photos */}
           <div className="lg:col-span-1">

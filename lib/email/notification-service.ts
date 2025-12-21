@@ -120,7 +120,7 @@ Het Liefde Voor Iedereen Team
     // Send email
     await sendEmail({
       to: user.email,
-      subject: `💖 Het is een Match! ${matchUser.name || 'Someone'} vindt jou ook leuk!`,
+      subject: `Nieuwe match: ${matchUser.name || 'Someone'} vindt jou ook leuk`,
       html,
       text
     })
@@ -224,7 +224,7 @@ Het Liefde Voor Iedereen Team
     // Send email
     await sendEmail({
       to: user.email,
-      subject: `💬 ${sender.name || 'Someone'} heeft je een bericht gestuurd`,
+      subject: `Nieuw bericht van ${sender.name || 'Someone'}`,
       html,
       text
     })
@@ -297,7 +297,7 @@ Het Liefde Voor Iedereen Team
     // Send email
     await sendEmail({
       to: user.email!,
-      subject: '🔐 Reset je wachtwoord - Liefde Voor Iedereen',
+      subject: 'Wachtwoord herstellen - Liefde Voor Iedereen',
       html,
       text
     })

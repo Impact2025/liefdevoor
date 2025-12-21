@@ -1,7 +1,7 @@
 /**
  * Match Notification Email Template
  *
- * Sent when two users match - most important email for engagement!
+ * Professional, minimalist design
  */
 
 import {
@@ -13,9 +13,21 @@ import {
   Text,
   Button,
   Img,
-  Section,
-  Hr
+  Section
 } from '@react-email/components'
+
+// Brand configuration
+const BRAND = {
+  name: 'Liefde Voor Iedereen',
+  logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
+  primaryColor: '#f43f5e',
+  textColor: '#1f2937',
+  textMuted: '#6b7280',
+  bgColor: '#f9fafb',
+  borderColor: '#e5e7eb',
+  email: 'info@liefdevooriedereen.nl',
+  website: 'https://liefdevooriedereen.nl'
+}
 
 interface MatchNotificationEmailProps {
   userName: string
@@ -42,97 +54,90 @@ export default function MatchNotificationEmail({
       <Body style={styles.body}>
         <Container style={styles.container}>
 
-          {/* Celebration Header */}
-          <Section style={styles.headerSection}>
-            <Text style={styles.celebrationEmoji}>🎉 💖 🎊</Text>
-            <Heading style={styles.h1}>
-              Het is een Match!
-            </Heading>
-            <Text style={styles.subtitle}>
-              {matchName} vindt jou ook leuk!
-            </Text>
-          </Section>
-
-          <Hr style={styles.hr} />
-
-          {/* Match Card */}
-          <Section style={styles.matchCard}>
-            {/* Profile Photo */}
+          {/* Header with Logo */}
+          <Section style={styles.header}>
             <Img
-              src={matchPhoto}
-              width="150"
-              height="150"
-              style={styles.matchPhoto}
-              alt={matchName}
+              src={BRAND.logoUrl}
+              width="180"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.logo}
             />
+          </Section>
 
-            {/* Match Info */}
-            <Heading style={styles.matchName}>
-              {matchName}, {matchAge}
+          {/* Content */}
+          <Section style={styles.content}>
+            <Heading style={styles.h1}>
+              Nieuwe match
             </Heading>
 
-            <Text style={styles.matchCity}>
-              📍 {matchCity}
+            <Text style={styles.subtitle}>
+              {matchName} en jij hebben een match
             </Text>
 
-            {matchBio && (
-              <Text style={styles.matchBio}>
-                "{matchBio}"
+            {/* Match Card */}
+            <Section style={styles.matchCard}>
+              <Img
+                src={matchPhoto}
+                width="120"
+                height="120"
+                style={styles.matchPhoto}
+                alt={matchName}
+              />
+
+              <Text style={styles.matchName}>
+                {matchName}, {matchAge}
               </Text>
-            )}
-          </Section>
 
-          {/* Excitement Message */}
-          <Section style={styles.messageSection}>
-            <Text style={styles.message}>
-              💘 <strong>Dit is het moment waar je op wachtte!</strong>
+              <Text style={styles.matchCity}>
+                {matchCity}
+              </Text>
+
+              {matchBio && (
+                <Text style={styles.matchBio}>
+                  {matchBio}
+                </Text>
+              )}
+            </Section>
+
+            <Text style={styles.text}>
+              Jullie hebben allebei interesse in elkaar getoond.
+              Dit is het moment om een gesprek te starten.
             </Text>
-            <Text style={styles.submessage}>
-              Jullie hebben allebei interesse in elkaar. Begin nu met chatten en wie weet waar dit toe leidt!
-            </Text>
-          </Section>
 
-          {/* Call to Action */}
-          <Section style={styles.ctaSection}>
-            <Button href={chatUrl} style={styles.button}>
-              💬 Begin met chatten!
-            </Button>
+            {/* CTA Button */}
+            <Section style={styles.ctaSection}>
+              <Button href={chatUrl} style={styles.button}>
+                Start een gesprek
+              </Button>
+            </Section>
           </Section>
-
-          {/* Tips Section */}
-          <Section style={styles.tipsBox}>
-            <Text style={styles.tipsHeading}>
-              💡 <strong>Tips voor het eerste bericht:</strong>
-            </Text>
-            <ul style={styles.tipsList}>
-              <li style={styles.tipItem}>Stel een vraag over hun profiel</li>
-              <li style={styles.tipItem}>Wees authentiek en jezelf</li>
-              <li style={styles.tipItem}>Gebruik humor (maar niet té veel)</li>
-              <li style={styles.tipItem}>Toon echte interesse</li>
-            </ul>
-          </Section>
-
-          <Hr style={styles.hr} />
 
           {/* Footer */}
-          <Text style={styles.footer}>
-            Veel succes met je nieuwe match! 🍀
-          </Text>
-
-          <Text style={styles.signature}>
-            Met liefde,
-            <br />
-            Het Liefde Voor Iedereen Team ❤️
-          </Text>
-
-          {/* Unsubscribe */}
-          <Text style={styles.unsubscribe}>
-            Je ontvangt deze email omdat je een nieuwe match hebt.
-            <br />
-            <a href="http://localhost:3004/settings/email-preferences" style={styles.unsubscribeLink}>
-              Email voorkeuren beheren
-            </a>
-          </Text>
+          <Section style={styles.footer}>
+            <Img
+              src={BRAND.logoUrl}
+              width="120"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.footerLogo}
+            />
+            <Text style={styles.footerText}>
+              {BRAND.name}
+            </Text>
+            <Text style={styles.footerEmail}>
+              <a href={`mailto:${BRAND.email}`} style={styles.footerLink}>
+                {BRAND.email}
+              </a>
+            </Text>
+            <Text style={styles.footerDisclaimer}>
+              Je ontvangt deze email omdat je een nieuwe match hebt.
+              <br />
+              <a href={`${BRAND.website}/settings/notifications`} style={styles.unsubscribeLink}>
+                Emailvoorkeuren beheren
+              </a>
+            </Text>
+          </Section>
 
         </Container>
       </Body>
@@ -140,162 +145,133 @@ export default function MatchNotificationEmail({
   )
 }
 
-// Styles
 const styles = {
   body: {
-    backgroundColor: '#fef2f2',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    backgroundColor: '#f9fafb',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     margin: 0,
     padding: 0
   },
   container: {
     backgroundColor: '#ffffff',
     margin: '40px auto',
-    padding: '40px 30px',
-    borderRadius: '16px',
+    borderRadius: '8px',
     maxWidth: '600px',
-    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.15)'
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden' as const
   },
-  headerSection: {
+  header: {
+    padding: '32px 40px 24px',
     textAlign: 'center' as const,
-    marginBottom: '20px'
+    borderBottom: `1px solid ${BRAND.borderColor}`
   },
-  celebrationEmoji: {
-    fontSize: '48px',
-    textAlign: 'center' as const,
-    margin: '0 0 20px',
-    letterSpacing: '10px'
+  logo: {
+    display: 'block',
+    margin: '0 auto'
+  },
+  content: {
+    padding: '40px'
   },
   h1: {
-    color: '#dc2626',
-    fontSize: '36px',
-    fontWeight: 'bold',
+    color: BRAND.textColor,
+    fontSize: '24px',
+    fontWeight: '600',
+    margin: '0 0 8px',
     textAlign: 'center' as const,
-    margin: '0 0 12px',
-    lineHeight: '1.2'
+    lineHeight: '1.3'
   },
   subtitle: {
-    fontSize: '18px',
-    color: '#6b7280',
+    fontSize: '15px',
+    color: BRAND.textMuted,
     textAlign: 'center' as const,
-    margin: '0'
-  },
-  hr: {
-    borderColor: '#f3f4f6',
-    margin: '30px 0'
+    margin: '0 0 32px'
   },
   matchCard: {
-    backgroundColor: '#fef2f2',
-    borderRadius: '16px',
-    padding: '30px',
+    backgroundColor: BRAND.bgColor,
+    borderRadius: '8px',
+    padding: '24px',
     textAlign: 'center' as const,
-    margin: '20px 0',
-    border: '2px solid #fecaca'
+    margin: '0 0 24px'
   },
   matchPhoto: {
-    borderRadius: '75px',
-    margin: '0 auto 20px',
+    borderRadius: '60px',
+    margin: '0 auto 16px',
     display: 'block',
-    border: '4px solid #ffffff',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+    border: '3px solid #ffffff',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
   },
   matchName: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#111827',
-    margin: '0 0 8px',
-    lineHeight: '1.2'
+    fontSize: '20px',
+    fontWeight: '600',
+    color: BRAND.textColor,
+    margin: '0 0 4px',
+    lineHeight: '1.3'
   },
   matchCity: {
-    fontSize: '16px',
-    color: '#6b7280',
-    margin: '0 0 16px'
+    fontSize: '14px',
+    color: BRAND.textMuted,
+    margin: '0 0 12px'
   },
   matchBio: {
+    fontSize: '14px',
+    color: BRAND.textColor,
+    margin: '0',
+    lineHeight: '1.5',
+    fontStyle: 'italic'
+  },
+  text: {
     fontSize: '15px',
-    color: '#4b5563',
-    fontStyle: 'italic',
-    margin: '0',
-    lineHeight: '1.5'
-  },
-  messageSection: {
-    textAlign: 'center' as const,
-    margin: '30px 0'
-  },
-  message: {
-    fontSize: '18px',
-    color: '#111827',
-    margin: '0 0 12px',
-    lineHeight: '1.5'
-  },
-  submessage: {
-    fontSize: '16px',
-    color: '#6b7280',
-    margin: '0',
-    lineHeight: '1.6'
+    lineHeight: '1.6',
+    color: BRAND.textColor,
+    margin: '0 0 24px',
+    textAlign: 'center' as const
   },
   ctaSection: {
     textAlign: 'center' as const,
-    margin: '30px 0'
+    margin: '0'
   },
   button: {
-    backgroundColor: '#dc2626',
+    backgroundColor: BRAND.primaryColor,
     color: '#ffffff',
-    fontSize: '18px',
-    fontWeight: 'bold',
+    fontSize: '15px',
+    fontWeight: '600',
     textDecoration: 'none',
     textAlign: 'center' as const,
     display: 'inline-block',
-    padding: '16px 40px',
-    borderRadius: '12px',
-    margin: '0',
-    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
-  },
-  tipsBox: {
-    backgroundColor: '#dbeafe',
-    borderLeft: '4px solid #3b82f6',
-    borderRadius: '8px',
-    padding: '20px',
-    margin: '20px 0'
-  },
-  tipsHeading: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1e40af',
-    margin: '0 0 12px'
-  },
-  tipsList: {
-    margin: '0',
-    paddingLeft: '20px',
-    color: '#1e40af',
-    fontSize: '14px',
-    lineHeight: '24px'
-  },
-  tipItem: {
-    marginBottom: '6px'
+    padding: '14px 32px',
+    borderRadius: '6px'
   },
   footer: {
-    fontSize: '16px',
-    color: '#6b7280',
+    backgroundColor: BRAND.bgColor,
+    padding: '32px 40px',
     textAlign: 'center' as const,
-    margin: '20px 0'
+    borderTop: `1px solid ${BRAND.borderColor}`
   },
-  signature: {
-    fontSize: '15px',
-    color: '#9ca3af',
-    textAlign: 'center' as const,
-    fontStyle: 'italic',
-    margin: '20px 0'
+  footerLogo: {
+    display: 'block',
+    margin: '0 auto 16px'
   },
-  unsubscribe: {
+  footerText: {
+    fontSize: '13px',
+    color: BRAND.textMuted,
+    margin: '0 0 8px'
+  },
+  footerEmail: {
+    fontSize: '13px',
+    margin: '0 0 16px'
+  },
+  footerLink: {
+    color: BRAND.primaryColor,
+    textDecoration: 'none'
+  },
+  footerDisclaimer: {
     fontSize: '12px',
     color: '#9ca3af',
-    textAlign: 'center' as const,
-    margin: '30px 0 0',
-    lineHeight: '18px'
+    margin: '0',
+    lineHeight: '1.6'
   },
   unsubscribeLink: {
-    color: '#6b7280',
+    color: BRAND.textMuted,
     textDecoration: 'underline'
   }
 }

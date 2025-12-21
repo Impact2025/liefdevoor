@@ -1,7 +1,7 @@
 /**
  * New Message Notification Email Template
  *
- * Sent when user receives a new message
+ * Professional, minimalist design
  */
 
 import {
@@ -13,9 +13,21 @@ import {
   Text,
   Button,
   Img,
-  Section,
-  Hr
+  Section
 } from '@react-email/components'
+
+// Brand configuration
+const BRAND = {
+  name: 'Liefde Voor Iedereen',
+  logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
+  primaryColor: '#f43f5e',
+  textColor: '#1f2937',
+  textMuted: '#6b7280',
+  bgColor: '#f9fafb',
+  borderColor: '#e5e7eb',
+  email: 'info@liefdevooriedereen.nl',
+  website: 'https://liefdevooriedereen.nl'
+}
 
 interface MessageNotificationEmailProps {
   userName: string
@@ -32,7 +44,7 @@ export default function MessageNotificationEmail({
   senderName = 'Sarah',
   senderAge = 27,
   senderPhoto = 'https://ui-avatars.com/api/?name=Sarah&size=400',
-  messagePreview = 'Hey! Hoe is je dag vandaag? 😊',
+  messagePreview = 'Hey! Hoe is je dag vandaag?',
   replyUrl = 'http://localhost:3004/matches',
   unreadCount = 1
 }: MessageNotificationEmailProps) {
@@ -42,92 +54,93 @@ export default function MessageNotificationEmail({
       <Body style={styles.body}>
         <Container style={styles.container}>
 
-          {/* Header */}
-          <Section style={styles.headerSection}>
-            <Text style={styles.icon}>💬</Text>
+          {/* Header with Logo */}
+          <Section style={styles.header}>
+            <Img
+              src={BRAND.logoUrl}
+              width="180"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.logo}
+            />
+          </Section>
+
+          {/* Content */}
+          <Section style={styles.content}>
             <Heading style={styles.h1}>
-              Nieuw Bericht!
+              Nieuw bericht
             </Heading>
+
             <Text style={styles.subtitle}>
               {senderName} heeft je een bericht gestuurd
             </Text>
-          </Section>
 
-          <Hr style={styles.hr} />
+            {/* Message Card */}
+            <Section style={styles.messageCard}>
+              <div style={styles.senderRow}>
+                <Img
+                  src={senderPhoto}
+                  width="48"
+                  height="48"
+                  style={styles.senderPhoto}
+                  alt={senderName}
+                />
+                <div style={styles.senderInfo}>
+                  <Text style={styles.senderName}>
+                    {senderName}, {senderAge}
+                  </Text>
+                  <Text style={styles.timeAgo}>
+                    Zojuist
+                  </Text>
+                </div>
+              </div>
 
-          {/* Message Card */}
-          <Section style={styles.messageCard}>
-            {/* Sender Photo */}
-            <div style={styles.senderRow}>
-              <Img
-                src={senderPhoto}
-                width="60"
-                height="60"
-                style={styles.senderPhoto}
-                alt={senderName}
-              />
-              <div style={styles.senderInfo}>
-                <Text style={styles.senderName}>
-                  {senderName}, {senderAge}
-                </Text>
-                <Text style={styles.timeAgo}>
-                  Zojuist
+              <div style={styles.messageBox}>
+                <Text style={styles.messageText}>
+                  {messagePreview}
                 </Text>
               </div>
-            </div>
 
-            {/* Message Preview */}
-            <div style={styles.messageBox}>
-              <Text style={styles.messageText}>
-                "{messagePreview}"
-              </Text>
-            </div>
-
-            {/* Unread Badge */}
-            {unreadCount && unreadCount > 1 && (
-              <div style={styles.unreadBadge}>
-                <Text style={styles.unreadText}>
+              {unreadCount && unreadCount > 1 && (
+                <Text style={styles.unreadBadge}>
                   +{unreadCount - 1} meer ongelezen {unreadCount === 2 ? 'bericht' : 'berichten'}
                 </Text>
-              </div>
-            )}
-          </Section>
+              )}
+            </Section>
 
-          {/* Call to Action */}
-          <Section style={styles.ctaSection}>
-            <Button href={replyUrl} style={styles.button}>
-              💬 Antwoord nu!
-            </Button>
+            {/* CTA Button */}
+            <Section style={styles.ctaSection}>
+              <Button href={replyUrl} style={styles.button}>
+                Bekijk bericht
+              </Button>
+            </Section>
           </Section>
-
-          {/* Tips Section */}
-          <Section style={styles.tipsBox}>
-            <Text style={styles.tipsText}>
-              💡 <strong>Tip:</strong> Reageer binnen 24 uur voor de beste kans op een gesprek!
-            </Text>
-          </Section>
-
-          <Hr style={styles.hr} />
 
           {/* Footer */}
-          <Text style={styles.footer}>
-            Veel plezier met chatten! 😊
-          </Text>
-
-          <Text style={styles.signature}>
-            Met liefde,
-            <br />
-            Het Liefde Voor Iedereen Team ❤️
-          </Text>
-
-          {/* Unsubscribe */}
-          <Text style={styles.unsubscribe}>
-            Je ontvangt deze email omdat je een nieuw bericht hebt ontvangen.
-            <br />
-            <a href="http://localhost:3004/settings/email-preferences" style={styles.unsubscribeLink}>
-              Email voorkeuren beheren
-            </a>
-          </Text>
+          <Section style={styles.footer}>
+            <Img
+              src={BRAND.logoUrl}
+              width="120"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.footerLogo}
+            />
+            <Text style={styles.footerText}>
+              {BRAND.name}
+            </Text>
+            <Text style={styles.footerEmail}>
+              <a href={`mailto:${BRAND.email}`} style={styles.footerLink}>
+                {BRAND.email}
+              </a>
+            </Text>
+            <Text style={styles.footerDisclaimer}>
+              Je ontvangt deze email omdat je een nieuw bericht hebt ontvangen.
+              <br />
+              <a href={`${BRAND.website}/settings/notifications`} style={styles.unsubscribeLink}>
+                Emailvoorkeuren beheren
+              </a>
+            </Text>
+          </Section>
 
         </Container>
       </Body>
@@ -135,55 +148,52 @@ export default function MessageNotificationEmail({
   )
 }
 
-// Styles
 const styles = {
   body: {
-    backgroundColor: '#f0f9ff',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    backgroundColor: '#f9fafb',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     margin: 0,
     padding: 0
   },
   container: {
     backgroundColor: '#ffffff',
     margin: '40px auto',
-    padding: '40px 30px',
-    borderRadius: '16px',
+    borderRadius: '8px',
     maxWidth: '600px',
-    boxShadow: '0 4px 20px rgba(59, 130, 246, 0.15)'
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden' as const
   },
-  headerSection: {
+  header: {
+    padding: '32px 40px 24px',
     textAlign: 'center' as const,
-    marginBottom: '20px'
+    borderBottom: `1px solid ${BRAND.borderColor}`
   },
-  icon: {
-    fontSize: '48px',
-    textAlign: 'center' as const,
-    margin: '0 0 16px'
+  logo: {
+    display: 'block',
+    margin: '0 auto'
+  },
+  content: {
+    padding: '40px'
   },
   h1: {
-    color: '#1e40af',
-    fontSize: '32px',
-    fontWeight: 'bold',
+    color: BRAND.textColor,
+    fontSize: '24px',
+    fontWeight: '600',
+    margin: '0 0 8px',
     textAlign: 'center' as const,
-    margin: '0 0 12px',
-    lineHeight: '1.2'
+    lineHeight: '1.3'
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#6b7280',
+    fontSize: '15px',
+    color: BRAND.textMuted,
     textAlign: 'center' as const,
-    margin: '0'
-  },
-  hr: {
-    borderColor: '#f3f4f6',
-    margin: '30px 0'
+    margin: '0 0 32px'
   },
   messageCard: {
-    backgroundColor: '#f0f9ff',
-    borderRadius: '12px',
-    padding: '24px',
-    margin: '20px 0',
-    border: '1px solid #bfdbfe'
+    backgroundColor: BRAND.bgColor,
+    borderRadius: '8px',
+    padding: '20px',
+    margin: '0 0 24px'
   },
   senderRow: {
     display: 'flex',
@@ -191,7 +201,7 @@ const styles = {
     marginBottom: '16px'
   },
   senderPhoto: {
-    borderRadius: '30px',
+    borderRadius: '24px',
     marginRight: '12px',
     border: '2px solid #ffffff'
   },
@@ -199,95 +209,82 @@ const styles = {
     flex: 1
   },
   senderName: {
-    fontSize: '18px',
+    fontSize: '16px',
     fontWeight: '600',
-    color: '#111827',
-    margin: '0 0 4px',
-    lineHeight: '1.2'
+    color: BRAND.textColor,
+    margin: '0 0 2px',
+    lineHeight: '1.3'
   },
   timeAgo: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: BRAND.textMuted,
     margin: '0'
   },
   messageBox: {
     backgroundColor: '#ffffff',
-    borderRadius: '8px',
+    borderRadius: '6px',
     padding: '16px',
-    border: '1px solid #e5e7eb'
+    border: `1px solid ${BRAND.borderColor}`
   },
   messageText: {
-    fontSize: '16px',
-    color: '#374151',
+    fontSize: '15px',
+    color: BRAND.textColor,
     margin: '0',
-    lineHeight: '1.6',
-    fontStyle: 'italic'
+    lineHeight: '1.6'
   },
   unreadBadge: {
-    backgroundColor: '#dbeafe',
-    borderRadius: '6px',
-    padding: '8px 12px',
-    marginTop: '12px',
-    textAlign: 'center' as const
-  },
-  unreadText: {
     fontSize: '13px',
-    color: '#1e40af',
-    margin: '0',
-    fontWeight: '600'
+    color: BRAND.primaryColor,
+    margin: '12px 0 0',
+    fontWeight: '500',
+    textAlign: 'center' as const
   },
   ctaSection: {
     textAlign: 'center' as const,
-    margin: '30px 0'
+    margin: '0'
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: BRAND.primaryColor,
     color: '#ffffff',
-    fontSize: '18px',
-    fontWeight: 'bold',
+    fontSize: '15px',
+    fontWeight: '600',
     textDecoration: 'none',
     textAlign: 'center' as const,
     display: 'inline-block',
-    padding: '16px 40px',
-    borderRadius: '12px',
-    margin: '0',
-    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
-  },
-  tipsBox: {
-    backgroundColor: '#fef3c7',
-    borderLeft: '4px solid #f59e0b',
-    borderRadius: '8px',
-    padding: '16px',
-    margin: '20px 0'
-  },
-  tipsText: {
-    fontSize: '14px',
-    color: '#92400e',
-    margin: '0',
-    lineHeight: '1.5'
+    padding: '14px 32px',
+    borderRadius: '6px'
   },
   footer: {
-    fontSize: '16px',
-    color: '#6b7280',
+    backgroundColor: BRAND.bgColor,
+    padding: '32px 40px',
     textAlign: 'center' as const,
-    margin: '20px 0'
+    borderTop: `1px solid ${BRAND.borderColor}`
   },
-  signature: {
-    fontSize: '15px',
-    color: '#9ca3af',
-    textAlign: 'center' as const,
-    fontStyle: 'italic',
-    margin: '20px 0'
+  footerLogo: {
+    display: 'block',
+    margin: '0 auto 16px'
   },
-  unsubscribe: {
+  footerText: {
+    fontSize: '13px',
+    color: BRAND.textMuted,
+    margin: '0 0 8px'
+  },
+  footerEmail: {
+    fontSize: '13px',
+    margin: '0 0 16px'
+  },
+  footerLink: {
+    color: BRAND.primaryColor,
+    textDecoration: 'none'
+  },
+  footerDisclaimer: {
     fontSize: '12px',
     color: '#9ca3af',
-    textAlign: 'center' as const,
-    margin: '30px 0 0',
-    lineHeight: '18px'
+    margin: '0',
+    lineHeight: '1.6'
   },
   unsubscribeLink: {
-    color: '#6b7280',
+    color: BRAND.textMuted,
     textDecoration: 'underline'
   }
 }

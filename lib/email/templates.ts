@@ -1,122 +1,91 @@
 /**
  * Email Templates
  *
- * Beautiful, LVB-friendly email templates
+ * Professional, minimalist email templates with brand consistency
  */
 
-interface EmailVerificationData {
-  name: string
-  verificationUrl: string
+// Brand configuration
+const BRAND = {
+  name: 'Liefde Voor Iedereen',
+  logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
+  primaryColor: '#f43f5e',
+  primaryDark: '#e11d48',
+  textColor: '#1f2937',
+  textMuted: '#6b7280',
+  bgColor: '#f9fafb',
+  borderColor: '#e5e7eb',
+  email: 'info@liefdevooriedereen.nl',
+  website: 'https://liefdevooriedereen.nl'
 }
 
-export function getVerificationEmailHtml(data: EmailVerificationData): string {
+// Shared email header with logo
+function getEmailHeader(): string {
+  return `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 32px 40px 24px; text-align: center; border-bottom: 1px solid ${BRAND.borderColor};">
+        <img src="${BRAND.logoUrl}" alt="${BRAND.name}" width="180" height="auto" style="display: block; margin: 0 auto;" />
+      </td>
+    </tr>
+  `
+}
+
+// Shared email footer with logo
+function getEmailFooter(): string {
+  return `
+    <!-- Footer -->
+    <tr>
+      <td style="background-color: ${BRAND.bgColor}; padding: 32px 40px; border-top: 1px solid ${BRAND.borderColor};">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align: center;">
+              <img src="${BRAND.logoUrl}" alt="${BRAND.name}" width="120" height="auto" style="display: block; margin: 0 auto 16px;" />
+              <p style="margin: 0 0 8px; color: ${BRAND.textMuted}; font-size: 13px; line-height: 1.5;">
+                ${BRAND.name}
+              </p>
+              <p style="margin: 0 0 16px; color: ${BRAND.textMuted}; font-size: 13px; line-height: 1.5;">
+                <a href="mailto:${BRAND.email}" style="color: ${BRAND.primaryColor}; text-decoration: none;">${BRAND.email}</a>
+              </p>
+              <p style="margin: 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">
+                Dit bericht is verzonden door ${BRAND.name}.<br />
+                <a href="${BRAND.website}/settings/notifications" style="color: ${BRAND.textMuted}; text-decoration: underline;">Emailvoorkeuren beheren</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `
+}
+
+// Base email wrapper
+function getEmailWrapper(content: string): string {
   return `
 <!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Activeer je account</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${BRAND.name}</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: ${BRAND.bgColor}; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: ${BRAND.bgColor}; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <!-- Main Container -->
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-
-          <!-- Header with gradient -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); padding: 40px 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
-                Welkom ${data.name}! 🎉
-              </h1>
-            </td>
-          </tr>
-
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px;">
-              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Super leuk dat je je hebt aangemeld bij <strong>Liefde Voor Iedereen</strong>!
-              </p>
-
-              <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Voordat je kunt beginnen met het vinden van je perfecte match, moeten we even controleren of dit jouw email adres is.
-              </p>
-
-              <!-- Big CTA Button -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding: 20px 0;">
-                    <a href="${data.verificationUrl}"
-                       style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
-                      ✅ Activeer mijn account
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Instructions Box -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-                <tr>
-                  <td style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 6px;">
-                    <p style="margin: 0 0 12px; color: #1e3a8a; font-size: 15px; font-weight: 600;">
-                      Wat gebeurt er als je klikt?
-                    </p>
-                    <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 14px; line-height: 1.8;">
-                      <li>Je email adres wordt geverifieerd</li>
-                      <li>Je account wordt geactiveerd</li>
-                      <li>Je wordt automatisch ingelogd</li>
-                      <li>Je kunt meteen beginnen met matchen!</li>
-                    </ul>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Alternative Link -->
-              <p style="margin: 20px 0 0; color: #6b7280; font-size: 13px; line-height: 1.6;">
-                <strong>Werkt de knop niet?</strong><br>
-                Kopieer deze link en plak hem in je browser:
-              </p>
-              <p style="margin: 10px 0; padding: 12px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; word-break: break-all; font-size: 12px; color: #374151;">
-                ${data.verificationUrl}
-              </p>
-            </td>
-          </tr>
-
-          <!-- Security Notice -->
-          <tr>
-            <td style="padding: 0 40px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 6px;">
-                    <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.6;">
-                      🔒 <strong>Veiligheid eerst!</strong><br>
-                      Deze link werkt maar 24 uur en kan maar 1 keer gebruikt worden. Heb je je niet aangemeld? Negeer deze email dan.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">
-                Met liefde gemaakt door het team van
-              </p>
-              <p style="margin: 0 0 20px; color: #ec4899; font-size: 18px; font-weight: 700;">
-                ❤️ Liefde Voor Iedereen
-              </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                Deze email werd verstuurd omdat je je hebt aangemeld op onze website.<br>
-                Vragen? Stuur een email naar <a href="mailto:info@liefdevooriedereen.nl" style="color: #ec4899; text-decoration: none;">info@liefdevooriedereen.nl</a>
-              </p>
-            </td>
-          </tr>
-
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); overflow: hidden;">
+          ${getEmailHeader()}
+          ${content}
+          ${getEmailFooter()}
         </table>
       </td>
     </tr>
@@ -126,31 +95,74 @@ export function getVerificationEmailHtml(data: EmailVerificationData): string {
   `.trim()
 }
 
+// Primary CTA button style
+function getPrimaryButton(text: string, url: string): string {
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center" style="padding: 24px 0;">
+          <a href="${url}" style="display: inline-block; background-color: ${BRAND.primaryColor}; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 15px; font-weight: 600; letter-spacing: 0.01em;">
+            ${text}
+          </a>
+        </td>
+      </tr>
+    </table>
+  `
+}
+
+interface EmailVerificationData {
+  name: string
+  verificationUrl: string
+}
+
+export function getVerificationEmailHtml(data: EmailVerificationData): string {
+  const content = `
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <h1 style="margin: 0 0 24px; color: ${BRAND.textColor}; font-size: 24px; font-weight: 600; line-height: 1.3;">
+          Welkom, ${data.name}
+        </h1>
+
+        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
+          Bedankt voor je aanmelding bij ${BRAND.name}. Om je account te activeren, verifieer je emailadres via onderstaande knop.
+        </p>
+
+        ${getPrimaryButton('Account activeren', data.verificationUrl)}
+
+        <p style="margin: 24px 0 0; color: ${BRAND.textMuted}; font-size: 13px; line-height: 1.6;">
+          Deze link is 24 uur geldig. Heb je je niet aangemeld bij ${BRAND.name}? Dan kun je deze email negeren.
+        </p>
+
+        <!-- Alternative Link -->
+        <div style="margin: 24px 0 0; padding: 16px; background-color: ${BRAND.bgColor}; border-radius: 6px;">
+          <p style="margin: 0 0 8px; color: ${BRAND.textMuted}; font-size: 12px;">
+            Werkt de knop niet? Kopieer deze link:
+          </p>
+          <p style="margin: 0; color: ${BRAND.textColor}; font-size: 12px; word-break: break-all; line-height: 1.5;">
+            ${data.verificationUrl}
+          </p>
+        </div>
+      </td>
+    </tr>
+  `
+  return getEmailWrapper(content)
+}
+
 export function getVerificationEmailText(data: EmailVerificationData): string {
   return `
-Welkom ${data.name}!
+Welkom, ${data.name}
 
-Super leuk dat je je hebt aangemeld bij Liefde Voor Iedereen!
+Bedankt voor je aanmelding bij ${BRAND.name}. Om je account te activeren, verifieer je emailadres via onderstaande link.
 
-Voordat je kunt beginnen met het vinden van je perfecte match, moeten we even controleren of dit jouw email adres is.
-
-ACTIVEER JE ACCOUNT:
+ACCOUNT ACTIVEREN:
 ${data.verificationUrl}
 
-Wat gebeurt er als je klikt?
-- Je email adres wordt geverifieerd
-- Je account wordt geactiveerd
-- Je wordt automatisch ingelogd
-- Je kunt meteen beginnen met matchen!
+Deze link is 24 uur geldig. Heb je je niet aangemeld bij ${BRAND.name}? Dan kun je deze email negeren.
 
-VEILIGHEID EERST:
-Deze link werkt maar 24 uur en kan maar 1 keer gebruikt worden.
-Heb je je niet aangemeld? Negeer deze email dan.
-
-Met liefde gemaakt door het team van
-❤️ Liefde Voor Iedereen
-
-Vragen? Stuur een email naar info@liefdevooriedereen.nl
+---
+${BRAND.name}
+${BRAND.email}
   `.trim()
 }
 
@@ -160,118 +172,68 @@ interface PasswordResetEmailData {
 }
 
 export function getPasswordResetEmailHtml(data: PasswordResetEmailData): string {
-  return `
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wachtwoord resetten</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+  const content = `
+    <!-- Content -->
     <tr>
-      <td align="center">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+      <td style="padding: 40px;">
+        <h1 style="margin: 0 0 24px; color: ${BRAND.textColor}; font-size: 24px; font-weight: 600; line-height: 1.3;">
+          Wachtwoord herstellen
+        </h1>
 
-          <tr>
-            <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
-                🔐 Wachtwoord resetten
-              </h1>
-            </td>
-          </tr>
+        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
+          Hoi ${data.name},
+        </p>
 
-          <tr>
-            <td style="padding: 40px;">
-              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Hoi ${data.name},
-              </p>
+        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
+          Je hebt een verzoek ingediend om je wachtwoord te herstellen. Klik op onderstaande knop om een nieuw wachtwoord in te stellen.
+        </p>
 
-              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Je hebt een verzoek ingediend om je wachtwoord te resetten. Klik op de knop hieronder om een nieuw wachtwoord in te stellen.
-              </p>
+        ${getPrimaryButton('Nieuw wachtwoord instellen', data.resetUrl)}
 
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding: 20px 0;">
-                    <a href="${data.resetUrl}"
-                       style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
-                      🔑 Nieuw wachtwoord instellen
-                    </a>
-                  </td>
-                </tr>
-              </table>
+        <!-- Warning -->
+        <div style="margin: 24px 0; padding: 16px; background-color: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 0 6px 6px 0;">
+          <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.6;">
+            <strong>Let op:</strong> Deze link is 1 uur geldig en kan slechts eenmaal worden gebruikt.
+          </p>
+        </div>
 
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-                <tr>
-                  <td style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 6px;">
-                    <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
-                      ⏰ <strong>Let op:</strong> Deze link is 1 uur geldig en kan maar 1 keer gebruikt worden.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+        <p style="margin: 0; color: ${BRAND.textMuted}; font-size: 13px; line-height: 1.6;">
+          Heb je dit verzoek niet gedaan? Dan kun je deze email veilig negeren. Je wachtwoord blijft ongewijzigd.
+        </p>
 
-              <p style="margin: 20px 0 0; color: #6b7280; font-size: 13px; line-height: 1.6;">
-                <strong>Werkt de knop niet?</strong><br>
-                Kopieer deze link en plak hem in je browser:
-              </p>
-              <p style="margin: 10px 0; padding: 12px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; word-break: break-all; font-size: 12px; color: #374151;">
-                ${data.resetUrl}
-              </p>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0 0;">
-                <tr>
-                  <td style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 6px;">
-                    <p style="margin: 0; color: #991b1b; font-size: 13px; line-height: 1.6;">
-                      🚨 <strong>Niet aangevraagd?</strong><br>
-                      Als jij dit verzoek niet hebt gedaan, kun je deze email veilig negeren. Je wachtwoord blijft ongewijzigd.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #ec4899; font-size: 18px; font-weight: 700;">
-                ❤️ Liefde Voor Iedereen
-              </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                Vragen? Stuur een email naar <a href="mailto:info@liefdevooriedereen.nl" style="color: #ec4899; text-decoration: none;">info@liefdevooriedereen.nl</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
+        <!-- Alternative Link -->
+        <div style="margin: 24px 0 0; padding: 16px; background-color: ${BRAND.bgColor}; border-radius: 6px;">
+          <p style="margin: 0 0 8px; color: ${BRAND.textMuted}; font-size: 12px;">
+            Werkt de knop niet? Kopieer deze link:
+          </p>
+          <p style="margin: 0; color: ${BRAND.textColor}; font-size: 12px; word-break: break-all; line-height: 1.5;">
+            ${data.resetUrl}
+          </p>
+        </div>
       </td>
     </tr>
-  </table>
-</body>
-</html>
-  `.trim()
+  `
+  return getEmailWrapper(content)
 }
 
 export function getPasswordResetEmailText(data: PasswordResetEmailData): string {
   return `
+Wachtwoord herstellen
+
 Hoi ${data.name},
 
-Je hebt een verzoek ingediend om je wachtwoord te resetten.
+Je hebt een verzoek ingediend om je wachtwoord te herstellen. Gebruik onderstaande link om een nieuw wachtwoord in te stellen.
 
 NIEUW WACHTWOORD INSTELLEN:
 ${data.resetUrl}
 
-LET OP: Deze link is 1 uur geldig en kan maar 1 keer gebruikt worden.
+Let op: Deze link is 1 uur geldig en kan slechts eenmaal worden gebruikt.
 
-NIET AANGEVRAAGD?
-Als jij dit verzoek niet hebt gedaan, kun je deze email veilig negeren. Je wachtwoord blijft ongewijzigd.
+Heb je dit verzoek niet gedaan? Dan kun je deze email veilig negeren. Je wachtwoord blijft ongewijzigd.
 
-Met vriendelijke groet,
-❤️ Liefde Voor Iedereen
-
-Vragen? Stuur een email naar info@liefdevooriedereen.nl
+---
+${BRAND.name}
+${BRAND.email}
   `.trim()
 }
 
@@ -281,91 +243,74 @@ interface WelcomeEmailData {
 }
 
 export function getWelcomeEmailHtml(data: WelcomeEmailData): string {
-  return `
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welkom bij Liefde Voor Iedereen!</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+  const content = `
+    <!-- Content -->
     <tr>
-      <td align="center">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+      <td style="padding: 40px;">
+        <h1 style="margin: 0 0 24px; color: ${BRAND.textColor}; font-size: 24px; font-weight: 600; line-height: 1.3;">
+          Je account is geactiveerd
+        </h1>
 
-          <tr>
-            <td style="background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); padding: 40px; text-align: center; border-radius: 12px 12px 0 0;">
-              <h1 style="margin: 0 0 10px; color: #ffffff; font-size: 32px; font-weight: 700;">
-                🎉 Je account is actief!
-              </h1>
-              <p style="margin: 0; color: #ffffff; font-size: 16px; opacity: 0.95;">
-                Welkom bij de Liefde Voor Iedereen familie, ${data.name}!
-              </p>
-            </td>
-          </tr>
+        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
+          Hoi ${data.name},
+        </p>
 
-          <tr>
-            <td style="padding: 40px;">
-              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Super! Je email is geverifieerd en je account is nu actief.
-              </p>
+        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
+          Je emailadres is geverifieerd en je account is nu actief. Je kunt direct beginnen met het ontdekken van nieuwe mensen.
+        </p>
 
-              <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
-                Je kunt nu beginnen met:
-              </p>
+        <!-- Features list -->
+        <div style="margin: 24px 0; padding: 20px; background-color: ${BRAND.bgColor}; border-radius: 6px;">
+          <p style="margin: 0 0 12px; color: ${BRAND.textColor}; font-size: 14px; font-weight: 600;">
+            Wat je nu kunt doen:
+          </p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding: 6px 0; color: ${BRAND.textColor}; font-size: 14px; line-height: 1.5;">
+                Ontdek nieuwe mensen in je omgeving
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: ${BRAND.textColor}; font-size: 14px; line-height: 1.5;">
+                Stuur likes en maak matches
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: ${BRAND.textColor}; font-size: 14px; line-height: 1.5;">
+                Chat met je matches
+              </td>
+            </tr>
+          </table>
+        </div>
 
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 30px;">
-                <tr>
-                  <td style="padding: 15px; background-color: #fef3f2; border-radius: 8px; margin-bottom: 10px;">
-                    <span style="font-size: 24px;">💘</span>
-                    <strong style="color: #374151; font-size: 15px; margin-left: 10px;">Ontdek nieuwe mensen in je buurt</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 15px; background-color: #fef3f2; border-radius: 8px; margin-bottom: 10px;">
-                    <span style="font-size: 24px;">💬</span>
-                    <strong style="color: #374151; font-size: 15px; margin-left: 10px;">Chat met je matches</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 15px; background-color: #fef3f2; border-radius: 8px;">
-                    <span style="font-size: 24px;">❤️</span>
-                    <strong style="color: #374151; font-size: 15px; margin-left: 10px;">Vind je perfecte match!</strong>
-                  </td>
-                </tr>
-              </table>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding: 20px 0;">
-                    <a href="${data.loginUrl}"
-                       style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
-                      🚀 Begin met matchen!
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #ec4899; font-size: 18px; font-weight: 700;">
-                ❤️ Liefde Voor Iedereen
-              </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                Vragen? Stuur een email naar <a href="mailto:info@liefdevooriedereen.nl" style="color: #ec4899; text-decoration: none;">info@liefdevooriedereen.nl</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
+        ${getPrimaryButton('Ga naar de app', data.loginUrl)}
       </td>
     </tr>
-  </table>
-</body>
-</html>
+  `
+  return getEmailWrapper(content)
+}
+
+export function getWelcomeEmailText(data: WelcomeEmailData): string {
+  return `
+Je account is geactiveerd
+
+Hoi ${data.name},
+
+Je emailadres is geverifieerd en je account is nu actief. Je kunt direct beginnen met het ontdekken van nieuwe mensen.
+
+Wat je nu kunt doen:
+- Ontdek nieuwe mensen in je omgeving
+- Stuur likes en maak matches
+- Chat met je matches
+
+GA NAAR DE APP:
+${data.loginUrl}
+
+---
+${BRAND.name}
+${BRAND.email}
   `.trim()
 }
+
+// Export brand config for use in other templates
+export { BRAND, getEmailWrapper, getEmailHeader, getEmailFooter, getPrimaryButton }

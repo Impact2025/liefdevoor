@@ -1,7 +1,7 @@
 /**
- * Birthday Email Template - World Class
+ * Birthday Email Template
  *
- * Beautiful, personalized birthday email with match suggestions
+ * Professional, minimalist design
  */
 
 import {
@@ -13,11 +13,21 @@ import {
   Text,
   Button,
   Img,
-  Hr,
-  Section,
-  Row,
-  Column
+  Section
 } from '@react-email/components'
+
+// Brand configuration
+const BRAND = {
+  name: 'Liefde Voor Iedereen',
+  logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
+  primaryColor: '#f43f5e',
+  textColor: '#1f2937',
+  textMuted: '#6b7280',
+  bgColor: '#f9fafb',
+  borderColor: '#e5e7eb',
+  email: 'info@liefdevooriedereen.nl',
+  website: 'https://liefdevooriedereen.nl'
+}
 
 interface BirthdayEmailProps {
   userName: string
@@ -45,136 +55,138 @@ export default function BirthdayEmail({
       <Body style={styles.body}>
         <Container style={styles.container}>
 
-          {/* Animated Birthday Banner */}
-          <Section style={styles.bannerSection}>
-            <Text style={styles.banner}>🎉 🎂 🎈</Text>
+          {/* Header with Logo */}
+          <Section style={styles.header}>
+            <Img
+              src={BRAND.logoUrl}
+              width="180"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.logo}
+            />
           </Section>
 
-          {/* Main Heading */}
-          <Heading style={styles.h1}>
-            Gefeliciteerd {userName}!
-          </Heading>
+          {/* Content */}
+          <Section style={styles.content}>
+            <Heading style={styles.h1}>
+              Gefeliciteerd, {userName}
+            </Heading>
 
-          {/* Age Celebration */}
-          <Text style={styles.ageText}>
-            🎂 Je bent vandaag <strong>{age}</strong> geworden!
-          </Text>
+            <Text style={styles.ageText}>
+              Vandaag word je {age} jaar
+            </Text>
 
-          {/* Birthday Message */}
-          <Text style={styles.text}>
-            Een nieuwe levensjaar, nieuwe kansen op liefde! ❤️
-          </Text>
+            <Text style={styles.text}>
+              Het hele team van {BRAND.name} wenst je een fantastische verjaardag.
+              Moge dit nieuwe levensjaar vol mooie ontmoetingen zijn.
+            </Text>
 
-          <Hr style={styles.hr} />
-
-          {/* Match Teaser */}
-          {newMatchesCount > 0 && (
-            <>
+            {/* New Matches Section */}
+            {newMatchesCount > 0 && (
               <Section style={styles.highlightBox}>
+                <Text style={styles.highlightTitle}>
+                  Verjaardagsverrassing
+                </Text>
                 <Text style={styles.highlightText}>
-                  🎁 <strong>Verjaardagscadeau:</strong>
-                  <br />
-                  We hebben <strong>{newMatchesCount} nieuwe matches</strong> voor je gevonden!
+                  We hebben {newMatchesCount} nieuwe matches voor je gevonden.
                 </Text>
               </Section>
+            )}
 
-              {/* Featured Match (if available) */}
-              {featuredMatch && (
-                <Section style={styles.matchCard}>
-                  <Img
-                    src={featuredMatch.photo}
-                    width="120"
-                    height="120"
-                    style={styles.matchPhoto}
-                    alt={featuredMatch.name}
-                  />
-                  <Text style={styles.matchText}>
-                    <strong>{featuredMatch.name}, {featuredMatch.age}</strong>
-                    <br />
-                    📍 {featuredMatch.city}
-                  </Text>
-                  <Text style={styles.matchSubtext}>
-                    Misschien is dit wel je perfecte match? 💘
-                  </Text>
-                </Section>
-              )}
-            </>
-          )}
+            {/* Featured Match */}
+            {featuredMatch && (
+              <Section style={styles.matchCard}>
+                <Img
+                  src={featuredMatch.photo}
+                  width="80"
+                  height="80"
+                  style={styles.matchPhoto}
+                  alt={featuredMatch.name}
+                />
+                <Text style={styles.matchName}>
+                  {featuredMatch.name}, {featuredMatch.age}
+                </Text>
+                <Text style={styles.matchCity}>
+                  {featuredMatch.city}
+                </Text>
+              </Section>
+            )}
 
-          {/* Premium Birthday Bonus */}
-          {isPremium && (
-            <Section style={styles.premiumBox}>
-              <Text style={styles.premiumHeading}>
-                ⭐ <strong>Premium Verjaardagsbonus:</strong>
-              </Text>
-              <ul style={styles.bonusList}>
-                <li style={styles.bonusItem}>🚀 Gratis Boost vandaag (3x meer zichtbaar!)</li>
-                <li style={styles.bonusItem}>💫 Unlimited likes voor 24 uur</li>
-                <li style={styles.bonusItem}>🎂 Special Birthday badge op je profiel</li>
-              </ul>
-              <Text style={styles.premiumNote}>
-                Je bonussen zijn automatisch geactiveerd! 🎉
-              </Text>
+            {/* Premium Benefits */}
+            {isPremium && (
+              <Section style={styles.premiumBox}>
+                <Text style={styles.premiumTitle}>
+                  Premium verjaardagsvoordelen
+                </Text>
+                <table role="presentation" width="100%" cellPadding="0" cellSpacing="0">
+                  <tr>
+                    <td style={styles.benefitItem}>Gratis boost voor extra zichtbaarheid</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.benefitItem}>Ongelimiteerde likes vandaag</td>
+                  </tr>
+                  <tr>
+                    <td style={styles.benefitItem}>Speciale verjaardagsbadge op je profiel</td>
+                  </tr>
+                </table>
+                <Text style={styles.premiumNote}>
+                  Je voordelen zijn automatisch geactiveerd.
+                </Text>
+              </Section>
+            )}
+
+            {/* Upgrade CTA for non-premium */}
+            {!isPremium && newMatchesCount > 0 && (
+              <Section style={styles.upgradeBox}>
+                <Text style={styles.upgradeTitle}>
+                  Verjaardagsaanbieding
+                </Text>
+                <Text style={styles.upgradeText}>
+                  Upgrade vandaag naar Premium met 50% korting.
+                  Ontgrendel meer matches en ongelimiteerd chatten.
+                </Text>
+                <Text style={styles.upgradeExpiry}>
+                  Aanbieding geldig tot middernacht.
+                </Text>
+              </Section>
+            )}
+
+            {/* CTA Button */}
+            <Section style={styles.ctaSection}>
+              <Button
+                href={`${BRAND.website}/discover`}
+                style={styles.button}
+              >
+                Bekijk je matches
+              </Button>
             </Section>
-          )}
-
-          {/* Free User Upgrade Prompt */}
-          {!isPremium && newMatchesCount > 0 && (
-            <Section style={styles.upgradeBox}>
-              <Text style={styles.upgradeHeading}>
-                🎁 <strong>Verjaardag Special:</strong>
-              </Text>
-              <Text style={styles.upgradeText}>
-                Upgrade vandaag naar Premium met <strong>50% korting</strong>!
-                <br />
-                <br />
-                🚀 10x meer matches
-                <br />
-                💬 Onbeperkt chatten
-                <br />
-                ⭐ Zie wie jou leuk vindt
-              </Text>
-              <Text style={styles.upgradeSubtext}>
-                Deze aanbieding vervalt om middernacht! ⏰
-              </Text>
-            </Section>
-          )}
-
-          {/* CTA Button */}
-          <Section style={styles.ctaSection}>
-            <Button
-              href={`http://localhost:3004/discover?birthday=true&utm_source=birthday_email&utm_campaign=birthday_${new Date().getFullYear()}`}
-              style={styles.button}
-            >
-              🎉 Bekijk je matches!
-            </Button>
           </Section>
 
-          <Hr style={styles.hr} />
-
-          {/* Sweet Message */}
-          <Text style={styles.footer}>
-            We hopen dat je een geweldige dag hebt!
-            <br />
-            Maak er een mooie {age}e! 🎈
-          </Text>
-
-          {/* Signature */}
-          <Text style={styles.signature}>
-            Met liefde,
-            <br />
-            Het Liefde Voor Iedereen Team ❤️
-          </Text>
-
-          {/* Unsubscribe */}
-          <Text style={styles.unsubscribe}>
-            Je ontvangt deze email omdat het je verjaardag is.
-            <br />
-            Wil je geen verjaardagsemails meer ontvangen?
-            <a href="http://localhost:3004/settings/email-preferences" style={styles.unsubscribeLink}>
-              Klik hier
-            </a>
-          </Text>
+          {/* Footer */}
+          <Section style={styles.footer}>
+            <Img
+              src={BRAND.logoUrl}
+              width="120"
+              height="auto"
+              alt={BRAND.name}
+              style={styles.footerLogo}
+            />
+            <Text style={styles.footerText}>
+              {BRAND.name}
+            </Text>
+            <Text style={styles.footerEmail}>
+              <a href={`mailto:${BRAND.email}`} style={styles.footerLink}>
+                {BRAND.email}
+              </a>
+            </Text>
+            <Text style={styles.footerDisclaimer}>
+              Je ontvangt deze email omdat het je verjaardag is.
+              <br />
+              <a href={`${BRAND.website}/settings/notifications`} style={styles.unsubscribeLink}>
+                Emailvoorkeuren beheren
+              </a>
+            </Text>
+          </Section>
 
         </Container>
       </Body>
@@ -182,10 +194,9 @@ export default function BirthdayEmail({
   )
 }
 
-// Styles
 const styles = {
   body: {
-    backgroundColor: '#fff5f7',
+    backgroundColor: '#f9fafb',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     margin: 0,
     padding: 0
@@ -193,180 +204,186 @@ const styles = {
   container: {
     backgroundColor: '#ffffff',
     margin: '40px auto',
-    padding: '40px 30px',
-    borderRadius: '16px',
+    borderRadius: '8px',
     maxWidth: '600px',
-    boxShadow: '0 4px 20px rgba(236, 72, 153, 0.15)'
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden' as const
   },
-  bannerSection: {
+  header: {
+    padding: '32px 40px 24px',
     textAlign: 'center' as const,
-    marginBottom: '20px'
+    borderBottom: `1px solid ${BRAND.borderColor}`
   },
-  banner: {
-    fontSize: '48px',
-    textAlign: 'center' as const,
-    margin: '0',
-    letterSpacing: '10px'
+  logo: {
+    display: 'block',
+    margin: '0 auto'
+  },
+  content: {
+    padding: '40px'
   },
   h1: {
-    color: '#ec4899',
-    fontSize: '32px',
-    fontWeight: 'bold',
+    color: BRAND.textColor,
+    fontSize: '24px',
+    fontWeight: '600',
+    margin: '0 0 8px',
     textAlign: 'center' as const,
-    margin: '0 0 20px',
-    lineHeight: '1.2'
+    lineHeight: '1.3'
   },
   ageText: {
-    fontSize: '24px',
+    fontSize: '18px',
+    color: BRAND.primaryColor,
     textAlign: 'center' as const,
-    color: '#374151',
-    margin: '0 0 20px',
-    lineHeight: '1.4'
+    margin: '0 0 24px',
+    fontWeight: '500'
   },
   text: {
-    fontSize: '16px',
-    lineHeight: '24px',
-    color: '#4b5563',
-    textAlign: 'center' as const,
-    margin: '0 0 20px'
-  },
-  hr: {
-    borderColor: '#f3f4f6',
-    margin: '30px 0'
-  },
-  highlightBox: {
-    backgroundColor: '#fef3c7',
-    border: '2px solid #fbbf24',
-    borderRadius: '12px',
-    padding: '20px',
-    margin: '20px 0',
+    fontSize: '15px',
+    lineHeight: '1.6',
+    color: BRAND.textColor,
+    margin: '0 0 24px',
     textAlign: 'center' as const
   },
-  highlightText: {
+  highlightBox: {
+    backgroundColor: BRAND.bgColor,
+    borderRadius: '8px',
+    padding: '20px',
+    margin: '0 0 24px',
+    textAlign: 'center' as const
+  },
+  highlightTitle: {
     fontSize: '16px',
-    lineHeight: '24px',
-    color: '#92400e',
+    fontWeight: '600',
+    color: BRAND.textColor,
+    margin: '0 0 8px'
+  },
+  highlightText: {
+    fontSize: '14px',
+    color: BRAND.textMuted,
     margin: '0'
   },
   matchCard: {
-    backgroundColor: '#fdf2f8',
-    borderRadius: '12px',
-    padding: '20px',
+    backgroundColor: BRAND.bgColor,
+    borderRadius: '8px',
+    padding: '24px',
     textAlign: 'center' as const,
-    margin: '20px 0'
+    margin: '0 0 24px'
   },
   matchPhoto: {
-    borderRadius: '60px',
-    margin: '0 auto 15px',
-    display: 'block'
+    borderRadius: '40px',
+    margin: '0 auto 12px',
+    display: 'block',
+    border: '3px solid #ffffff',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
   },
-  matchText: {
-    fontSize: '18px',
-    color: '#374151',
-    margin: '0 0 8px',
-    fontWeight: '600'
+  matchName: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: BRAND.textColor,
+    margin: '0 0 4px'
   },
-  matchSubtext: {
+  matchCity: {
     fontSize: '14px',
-    color: '#6b7280',
-    margin: '0',
-    fontStyle: 'italic'
+    color: BRAND.textMuted,
+    margin: '0'
   },
   premiumBox: {
-    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-    borderRadius: '12px',
+    backgroundColor: '#fef3c7',
+    borderRadius: '8px',
     padding: '20px',
-    margin: '20px 0'
+    margin: '0 0 24px'
   },
-  premiumHeading: {
-    color: '#ffffff',
-    fontSize: '18px',
-    textAlign: 'center' as const,
-    margin: '0 0 15px',
-    fontWeight: '700'
+  premiumTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#92400e',
+    margin: '0 0 12px',
+    textAlign: 'center' as const
   },
-  bonusList: {
-    color: '#ffffff',
-    fontSize: '15px',
-    lineHeight: '28px',
-    margin: '0 0 15px',
-    paddingLeft: '20px'
-  },
-  bonusItem: {
-    marginBottom: '8px'
+  benefitItem: {
+    fontSize: '14px',
+    color: '#92400e',
+    padding: '4px 0',
+    lineHeight: '1.5'
   },
   premiumNote: {
-    color: '#ffffff',
-    fontSize: '14px',
+    fontSize: '13px',
+    color: '#b45309',
+    margin: '12px 0 0',
     textAlign: 'center' as const,
-    margin: '0',
     fontStyle: 'italic'
   },
   upgradeBox: {
-    backgroundColor: '#dbeafe',
-    border: '2px dashed #3b82f6',
-    borderRadius: '12px',
+    backgroundColor: BRAND.bgColor,
+    border: `1px solid ${BRAND.borderColor}`,
+    borderRadius: '8px',
     padding: '20px',
-    margin: '20px 0',
+    margin: '0 0 24px',
     textAlign: 'center' as const
   },
-  upgradeHeading: {
-    color: '#1e40af',
-    fontSize: '18px',
-    margin: '0 0 12px',
-    fontWeight: '700'
+  upgradeTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: BRAND.textColor,
+    margin: '0 0 8px'
   },
   upgradeText: {
-    fontSize: '16px',
-    lineHeight: '24px',
-    color: '#1e40af',
-    margin: '0 0 12px'
-  },
-  upgradeSubtext: {
     fontSize: '14px',
-    color: '#3b82f6',
+    color: BRAND.textMuted,
+    margin: '0 0 8px',
+    lineHeight: '1.5'
+  },
+  upgradeExpiry: {
+    fontSize: '13px',
+    color: BRAND.primaryColor,
     margin: '0',
-    fontWeight: '600'
+    fontWeight: '500'
   },
   ctaSection: {
     textAlign: 'center' as const,
-    margin: '30px 0'
+    margin: '0'
   },
   button: {
-    backgroundColor: '#ec4899',
+    backgroundColor: BRAND.primaryColor,
     color: '#ffffff',
-    fontSize: '18px',
-    fontWeight: 'bold',
+    fontSize: '15px',
+    fontWeight: '600',
     textDecoration: 'none',
     textAlign: 'center' as const,
     display: 'inline-block',
-    padding: '16px 40px',
-    borderRadius: '12px',
-    margin: '0'
+    padding: '14px 32px',
+    borderRadius: '6px'
   },
   footer: {
-    fontSize: '16px',
-    lineHeight: '24px',
-    color: '#6b7280',
+    backgroundColor: BRAND.bgColor,
+    padding: '32px 40px',
     textAlign: 'center' as const,
-    margin: '20px 0'
+    borderTop: `1px solid ${BRAND.borderColor}`
   },
-  signature: {
-    fontSize: '15px',
-    color: '#9ca3af',
-    textAlign: 'center' as const,
-    fontStyle: 'italic',
-    margin: '20px 0'
+  footerLogo: {
+    display: 'block',
+    margin: '0 auto 16px'
   },
-  unsubscribe: {
+  footerText: {
+    fontSize: '13px',
+    color: BRAND.textMuted,
+    margin: '0 0 8px'
+  },
+  footerEmail: {
+    fontSize: '13px',
+    margin: '0 0 16px'
+  },
+  footerLink: {
+    color: BRAND.primaryColor,
+    textDecoration: 'none'
+  },
+  footerDisclaimer: {
     fontSize: '12px',
     color: '#9ca3af',
-    textAlign: 'center' as const,
-    margin: '30px 0 0',
-    lineHeight: '18px'
+    margin: '0',
+    lineHeight: '1.6'
   },
   unsubscribeLink: {
-    color: '#6b7280',
+    color: BRAND.textMuted,
     textDecoration: 'underline'
   }
 }
