@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Audit log
-    auditLog('user_blocked', {
+    auditLog('USER_BLOCKED', {
       userId: user.id,
       details: {
         blockId: block.id,
@@ -107,7 +107,7 @@ export async function DELETE(request: NextRequest) {
     })
 
     // Audit log
-    auditLog('user_unblocked', {
+    auditLog('USER_UNBLOCKED', {
       userId: user.id,
       details: { blockedId },
     })
