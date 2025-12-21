@@ -24,9 +24,13 @@ import {
   Flame,
   Crown,
   RotateCcw,
+  Globe,
+  Plane,
 } from 'lucide-react'
 import { DiscoverProfileCard } from '@/components/features/discover/DiscoverProfileCard'
 import { BoostButton } from '@/components/features/boost/BoostButton'
+import { StoriesCarousel, CreateStoryModal } from '@/components/features/stories'
+import { PassportModal } from '@/components/features/passport'
 import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
 import { Modal, Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
@@ -51,6 +55,11 @@ export default function DiscoverPage() {
   const [canRewind, setCanRewind] = useState(false)
   const [isRewinding, setIsRewinding] = useState(false)
   const [lastSwipedUser, setLastSwipedUser] = useState<any>(null)
+
+  // New features: Stories & Passport
+  const [showCreateStory, setShowCreateStory] = useState(false)
+  const [showPassportModal, setShowPassportModal] = useState(false)
+  const [activePassport, setActivePassport] = useState<{ city: string; expiresAt: Date } | null>(null)
 
   // Fetch subscription/swipe limits
   useEffect(() => {
@@ -285,6 +294,19 @@ export default function DiscoverPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Passport Button */}
+            <button
+              onClick={() => setShowPassportModal(true)}
+              className={`p-2.5 rounded-full transition-colors ${
+                activePassport
+                  ? 'bg-rose-100 text-rose-600'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+              }`}
+              aria-label="Passport"
+            >
+              {activePassport ? <Plane size={20} /> : <Globe size={20} />}
+            </button>
+
             {/* Boost Button */}
             <BoostButton />
 
@@ -331,8 +353,35 @@ export default function DiscoverPage() {
         </div>
       </header>
 
+      {/* Passport Active Banner */}
+      {activePassport && (
+        <div className="fixed top-14 left-0 right-0 z-30 bg-gradient-to-r from-rose-500 to-pink-500 text-white py-2 px-4">
+          <div className="max-w-lg mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Plane size={16} />
+              <span className="text-sm font-medium">
+                Je bent in {activePassport.city}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowPassportModal(true)}
+              className="text-sm underline"
+            >
+              Wijzigen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Stories Carousel */}
+      <div className={`fixed left-0 right-0 z-20 bg-white border-b ${activePassport ? 'top-24' : 'top-14'}`}>
+        <div className="max-w-lg mx-auto">
+          <StoriesCarousel onAddStory={() => setShowCreateStory(true)} />
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="pt-16 pb-24 px-4">
+      <main className={`pb-24 px-4 ${activePassport ? 'pt-44' : 'pt-36'}`}>
         <div className="max-w-lg mx-auto">
           {isLoading ? (
             <div className="animate-pulse">
