@@ -20,8 +20,6 @@ import {
   X,
   Star,
   MapPin,
-  ChevronDown,
-  Clock,
   Camera,
   Briefcase,
   GraduationCap,
@@ -33,7 +31,6 @@ import {
   ChevronRight,
   Volume2,
   VolumeX,
-  MoreHorizontal,
   Shield,
   Sparkles,
 } from 'lucide-react'
@@ -142,6 +139,23 @@ export function DiscoverProfileCard({
   // Motion values for swipe gestures
   const x = useMotionValue(0)
   const y = useMotionValue(0)
+
+  // Reset state when profile changes
+  React.useEffect(() => {
+    setCurrentPhotoIndex(0)
+    setIsScrolled(false)
+    setSwipeDirection(null)
+    setIsPlayingVoice(false)
+    x.set(0)
+    y.set(0)
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0
+    }
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause()
+      voiceAudioRef.current = null
+    }
+  }, [profile.id, x, y])
   const rotate = useTransform(x, [-200, 200], [-15, 15])
   const likeOpacity = useTransform(x, [0, 100], [0, 1])
   const passOpacity = useTransform(x, [-100, 0], [1, 0])
@@ -257,13 +271,6 @@ export function DiscoverProfileCard({
       voiceAudioRef.current.currentTime = 0
     }
     setIsPlayingVoice(false)
-  }
-
-  const scrollToInfo = () => {
-    scrollContainerRef.current?.scrollTo({
-      top: window.innerHeight * 0.6,
-      behavior: 'smooth',
-    })
   }
 
   // ============================================================================
@@ -433,48 +440,37 @@ export function DiscoverProfileCard({
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-          {/* User Info at Bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
+          {/* User Info at Bottom - positioned above action buttons */}
+          <div className="absolute bottom-24 left-0 right-0 px-6 pb-4 text-white z-10">
             {/* Name & Age */}
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-4xl font-bold">{profile.name}</h2>
-              <span className="text-3xl font-light">{profile.age}</span>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-3xl font-bold">{profile.name}</h2>
+              <span className="text-2xl font-light">{profile.age}</span>
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-2 text-white/90 mb-2">
-              <MapPin size={18} />
-              <span className="text-lg">{profile.city}</span>
+            <div className="flex items-center gap-2 text-white/90 mb-1">
+              <MapPin size={16} />
+              <span>{profile.city}</span>
               {profile.distance > 0 && (
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm ml-2">
+                <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs ml-1">
                   {profile.distance} km
                 </span>
               )}
             </div>
 
             {/* Online Status */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2">
               <div
                 className={`
-                  w-2.5 h-2.5 rounded-full
+                  w-2 h-2 rounded-full
                   ${onlineStatus === 'online' ? 'bg-green-400 animate-pulse' : ''}
                   ${onlineStatus === 'recent' ? 'bg-yellow-400' : ''}
                   ${onlineStatus === 'away' ? 'bg-gray-400' : ''}
                 `}
               />
-              <span className="text-sm text-white/80">{lastActiveText}</span>
+              <span className="text-xs text-white/80">{lastActiveText}</span>
             </div>
-
-            {/* Scroll Indicator */}
-            <button
-              onClick={scrollToInfo}
-              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors group"
-            >
-              <ChevronDown size={20} className="animate-bounce" />
-              <span className="text-sm font-medium">
-                Wil je alles weten over {profile.name}? Scrol verder voor meer info! 👀
-              </span>
-            </button>
           </div>
         </div>
 
@@ -587,46 +583,39 @@ export function DiscoverProfileCard({
       </div>
 
       {/* Fixed Action Buttons */}
-      <div
-        className={`
-          absolute bottom-0 left-0 right-0 p-4
-          bg-gradient-to-t from-white via-white/95 to-transparent
-          transition-opacity duration-300
-          ${isScrolled ? 'opacity-100' : 'opacity-100'}
-        `}
-      >
-        <div className="flex items-center justify-center gap-4">
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
+        <div className="flex items-center justify-center gap-5">
           {/* Pass Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.9 }}
             onClick={handlePass}
             disabled={isLoading}
-            className="w-14 h-14 rounded-full bg-white border-2 border-red-400 hover:border-red-500 hover:bg-red-50 shadow-lg flex items-center justify-center transition-colors disabled:opacity-50"
+            className="w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center transition-colors disabled:opacity-50 border-2 border-gray-100"
             aria-label="Niet interessant"
           >
-            <X size={28} className="text-red-500" />
+            <X size={32} className="text-red-500" strokeWidth={3} />
           </motion.button>
 
           {/* Super Like Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.9 }}
             onClick={handleSuperLike}
             disabled={isLoading}
-            className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex items-center justify-center disabled:opacity-50"
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl flex items-center justify-center disabled:opacity-50"
             aria-label="Super Like"
           >
-            <Star size={22} fill="white" className="text-white" />
+            <Star size={26} fill="white" className="text-white" />
           </motion.button>
 
           {/* Like Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.9 }}
             onClick={handleLike}
             disabled={isLoading}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 shadow-xl flex items-center justify-center disabled:opacity-50"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 shadow-xl flex items-center justify-center disabled:opacity-50"
             aria-label="Leuk!"
           >
             <Heart size={32} fill="white" className="text-white" />

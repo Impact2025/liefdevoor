@@ -257,6 +257,13 @@ export default function DiscoverPage() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* People nearby indicator */}
+              {users.length > 0 && (
+                <div className="hidden sm:flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl">
+                  <span className="text-sm text-white/80">{users.length}</span>
+                </div>
+              )}
+
               {/* Passport Button */}
               <button
                 onClick={() => setShowPassportModal(true)}
@@ -392,27 +399,21 @@ export default function DiscoverPage() {
         </div>
       </main>
 
-      {/* Floating Bottom Info */}
-      {users.length > 0 && (
-        <div className="absolute bottom-20 left-0 right-0 z-40 flex items-center justify-center gap-3">
-          {/* Rewind Button */}
-          {canRewind && lastSwipedUser && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleRewind}
-              disabled={isRewinding}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-medium text-sm shadow-lg transition-all disabled:opacity-50"
-            >
-              <RotateCcw size={16} className={isRewinding ? 'animate-spin' : ''} />
-              Terug
-            </motion.button>
-          )}
-          <p className="text-sm text-white/60 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
-            {users.length} {users.length === 1 ? 'persoon' : 'mensen'} in je buurt
-          </p>
+      {/* Rewind Button - Positioned above card */}
+      {users.length > 0 && canRewind && lastSwipedUser && (
+        <div className="absolute top-20 left-0 right-0 z-40 flex items-center justify-center">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRewind}
+            disabled={isRewinding}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-medium text-sm shadow-lg transition-all disabled:opacity-50"
+          >
+            <RotateCcw size={16} className={isRewinding ? 'animate-spin' : ''} />
+            Terug
+          </motion.button>
         </div>
       )}
 
