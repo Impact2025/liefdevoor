@@ -20,8 +20,9 @@ import { PostcodeInput } from '@/components/features/location/PostcodeInput'
 import { CityAutocomplete } from '@/components/features/location/CityAutocomplete'
 import { LocationMap } from '@/components/features/location/LocationMap'
 import { LocationPrivacy } from '@/components/features/location/LocationPrivacy'
+import { IncognitoToggle } from '@/components/features/incognito'
 import type { GeocodingResult, CityOption } from '@/lib/services/geocoding'
-import { MapPin } from 'lucide-react'
+import { MapPin, EyeOff } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
@@ -434,7 +435,17 @@ export default function SettingsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
+            </div>
+          </div>
 
+          {/* Incognito Mode - Premium Feature */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <IncognitoToggle />
+          </div>
+
+          {/* More Settings */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div className="p-4 space-y-1">
               <button
                 className="w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-between"
               >

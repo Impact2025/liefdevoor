@@ -712,6 +712,30 @@ export default function DiscoverPage() {
           </div>
         </motion.div>
       </Modal>
+
+      {/* Create Story Modal */}
+      <CreateStoryModal
+        isOpen={showCreateStory}
+        onClose={() => setShowCreateStory(false)}
+        onSuccess={() => {
+          setShowCreateStory(false)
+          // Optionally refresh stories
+        }}
+      />
+
+      {/* Passport Modal */}
+      <PassportModal
+        isOpen={showPassportModal}
+        onClose={() => setShowPassportModal(false)}
+        currentPassport={activePassport}
+        onSelect={(city) => {
+          setActivePassport({
+            city: city.name,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          })
+          refetch(filters) // Refresh discover with new location
+        }}
+      />
     </div>
   )
 }
