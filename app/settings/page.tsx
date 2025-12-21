@@ -59,19 +59,26 @@ export default function SettingsPage() {
         const response = await fetch('/api/profile')
         if (response.ok) {
           const data = await response.json()
+          const profile = data.profile || data
 
           // Update location state
-          if (data.postcode) setPostcode(data.postcode)
-          if (data.city) setCity(data.city)
-          if (data.latitude) setLatitude(data.latitude)
-          if (data.longitude) setLongitude(data.longitude)
+          if (profile.postcode) setPostcode(profile.postcode)
+          if (profile.city) setCity(profile.city)
+          if (profile.latitude) setLatitude(profile.latitude)
+          if (profile.longitude) setLongitude(profile.longitude)
+
+          // Parse preferences if it's a string
+          const prefs = typeof profile.preferences === 'string'
+            ? JSON.parse(profile.preferences)
+            : profile.preferences
 
           // Update settings state
           setSettings(prev => ({
             ...prev,
-            minAge: data.minAgePreference || 18,
-            maxAge: data.maxAgePreference || 99,
-            maxDistance: data.preferences?.maxDistance || 100,
+            minAge: prefs?.minAge || profile.minAgePreference || 18,
+            maxAge: prefs?.maxAge || profile.maxAgePreference || 99,
+            maxDistance: prefs?.maxDistance || 100,
+            showMe: prefs?.showMe || 'EVERYONE',
           }))
         }
       } catch (err) {
