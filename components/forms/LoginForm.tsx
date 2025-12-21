@@ -67,10 +67,14 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       } else if (result?.ok) {
         onSuccess?.()
 
-        // Get fresh session to check profileComplete status
+        // Get fresh session to check profileComplete status and role
         const session = await getSession()
 
-        if (session?.user?.profileComplete) {
+        // Admins skip onboarding and go directly to their destination
+        const isAdmin = session?.user?.role === 'ADMIN'
+        const isAdminRoute = callbackUrl.startsWith('/admin')
+
+        if (isAdmin || isAdminRoute || session?.user?.profileComplete) {
           router.push(callbackUrl)
         } else {
           router.push('/onboarding')
