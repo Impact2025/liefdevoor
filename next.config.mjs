@@ -16,6 +16,7 @@ const allowedConnectDomains = [
   "'self'",
   'https://api.uploadthing.com',
   'https://uploadthing.com',
+  'https://*.ingest.uploadthing.com',  // UploadThing file upload
   'https://nominatim.openstreetmap.org',
   'https://openrouter.ai',
   'https://*.ingest.sentry.io',  // Sentry error tracking
