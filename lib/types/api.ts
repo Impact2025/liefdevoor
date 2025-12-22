@@ -73,6 +73,14 @@ export interface UserProfile {
   gender: Gender | null
   city: string | null
   postcode: string | null
+  // Lifestyle fields
+  occupation: string | null
+  education: string | null
+  height: number | null
+  drinking: string | null
+  smoking: string | null
+  children: string | null
+  // Preferences & other
   preferences: UserPreferences | null
   voiceIntro: string | null
   role: Role

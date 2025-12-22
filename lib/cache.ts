@@ -66,6 +66,13 @@ export const getCachedProfile = unstable_cache(
         longitude: true,
         createdAt: true,
         updatedAt: true,
+        // Lifestyle fields
+        occupation: true,
+        education: true,
+        height: true,
+        drinking: true,
+        smoking: true,
+        children: true,
         photos: {
           select: {
             id: true,
@@ -120,6 +127,13 @@ export const getCachedProfileWithPhotos = unstable_cache(
         longitude: true,
         createdAt: true,
         updatedAt: true,
+        // Lifestyle fields
+        occupation: true,
+        education: true,
+        height: true,
+        drinking: true,
+        smoking: true,
+        children: true,
         photos: {
           select: {
             id: true,

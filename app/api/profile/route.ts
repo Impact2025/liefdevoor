@@ -77,6 +77,13 @@ interface ProfileUpdateData {
   preferences?: UserPreferences | null
   latitude?: number | null
   longitude?: number | null
+  // Lifestyle fields
+  occupation?: string | null
+  education?: string | null
+  height?: number | null
+  drinking?: string | null
+  smoking?: string | null
+  children?: string | null
 }
 
 /**
@@ -125,7 +132,10 @@ function validateProfileUpdate(data: ProfileUpdateData): string | null {
  * Update user profile with geocoding
  */
 async function updateProfile(userId: string, data: ProfileUpdateData): Promise<UserProfile> {
-  const { name, bio, birthDate, gender, city, postcode, interests, preferences, latitude, longitude } = data
+  const {
+    name, bio, birthDate, gender, city, postcode, interests, preferences, latitude, longitude,
+    occupation, education, height, drinking, smoking, children
+  } = data
 
   // Use provided coordinates or geocode from postcode
   let coordinates: { lat: number; lng: number } | null = null
@@ -152,6 +162,13 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
   if (postcode !== undefined) updateData.postcode = postcode ? postcode.trim().toUpperCase() : null
   if (interests !== undefined) updateData.interests = interests ? interests.trim() : null
   if (preferences !== undefined) updateData.preferences = preferences ? JSON.stringify(preferences) : null
+  // Lifestyle fields
+  if (occupation !== undefined) updateData.occupation = occupation ? occupation.trim() : null
+  if (education !== undefined) updateData.education = education ? education.trim() : null
+  if (height !== undefined) updateData.height = height || null
+  if (drinking !== undefined) updateData.drinking = drinking || null
+  if (smoking !== undefined) updateData.smoking = smoking || null
+  if (children !== undefined) updateData.children = children || null
   if (coordinates) {
     updateData.latitude = coordinates.lat
     updateData.longitude = coordinates.lng
@@ -181,6 +198,13 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
       createdAt: true,
       updatedAt: true,
       photos: true,
+      // Lifestyle fields
+      occupation: true,
+      education: true,
+      height: true,
+      drinking: true,
+      smoking: true,
+      children: true,
     },
   })
 

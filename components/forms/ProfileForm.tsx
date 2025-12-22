@@ -20,7 +20,7 @@ import { usePut } from '@/hooks'
 import type { ProfileUpdateData, UserProfile, UserPreferences } from '@/lib/types'
 import type { GeocodingResult, CityOption } from '@/lib/services/geocoding'
 import { Gender } from '@prisma/client'
-import { MapPin, Heart, Users, Sparkles, Check } from 'lucide-react'
+import { MapPin, Heart, Users, Sparkles, Check, Briefcase, GraduationCap, Ruler, Wine, Cigarette, Baby } from 'lucide-react'
 
 // Interest categories (same as onboarding)
 const INTEREST_CATEGORIES = [
@@ -55,6 +55,30 @@ const lookingForOptions = [
   { value: 'BOTH', label: 'Iedereen', description: 'Ik sta open voor iedereen' },
 ]
 
+// Lifestyle options
+const drinkingOptions = [
+  { value: '', label: 'Selecteer...' },
+  { value: 'Nooit', label: 'Nooit' },
+  { value: 'Zelden', label: 'Zelden' },
+  { value: 'Sociaal', label: 'Sociaal' },
+  { value: 'Regelmatig', label: 'Regelmatig' },
+]
+
+const smokingOptions = [
+  { value: '', label: 'Selecteer...' },
+  { value: 'Nooit', label: 'Nooit' },
+  { value: 'Soms sociaal', label: 'Soms sociaal' },
+  { value: 'Regelmatig', label: 'Regelmatig' },
+]
+
+const childrenOptions = [
+  { value: '', label: 'Selecteer...' },
+  { value: 'Geen, wil ook geen', label: 'Geen, wil ook geen' },
+  { value: 'Geen, wil wel', label: 'Geen, wil wel' },
+  { value: 'Heb kinderen', label: 'Heb kinderen' },
+  { value: 'Heb kinderen, wil meer', label: 'Heb kinderen, wil meer' },
+]
+
 export interface ProfileFormProps {
   initialData?: UserProfile
   onSuccess?: (updatedProfile: UserProfile) => void
@@ -66,6 +90,14 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
   const [bio, setBio] = useState(initialData?.bio || '')
   const [birthDate, setBirthDate] = useState(initialData?.birthDate || '')
   const [gender, setGender] = useState<Gender | undefined>(initialData?.gender || undefined)
+
+  // Lifestyle data
+  const [occupation, setOccupation] = useState(initialData?.occupation || '')
+  const [education, setEducation] = useState(initialData?.education || '')
+  const [height, setHeight] = useState<number | ''>(initialData?.height || '')
+  const [drinking, setDrinking] = useState(initialData?.drinking || '')
+  const [smoking, setSmoking] = useState(initialData?.smoking || '')
+  const [children, setChildren] = useState(initialData?.children || '')
 
   // Location data
   const [postcode, setPostcode] = useState(initialData?.postcode || '')
@@ -104,6 +136,12 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
       setBio(initialData.bio || '')
       setBirthDate(initialData.birthDate || '')
       setGender(initialData.gender || undefined)
+      setOccupation(initialData.occupation || '')
+      setEducation(initialData.education || '')
+      setHeight(initialData.height || '')
+      setDrinking(initialData.drinking || '')
+      setSmoking(initialData.smoking || '')
+      setChildren(initialData.children || '')
       setPostcode(initialData.postcode || '')
       setCity(initialData.city || '')
       setLatitude(initialData.latitude || null)
@@ -188,6 +226,12 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
       bio: bio || undefined,
       birthDate: birthDate || undefined,
       gender: gender || undefined,
+      occupation: occupation || undefined,
+      education: education || undefined,
+      height: height || undefined,
+      drinking: drinking || undefined,
+      smoking: smoking || undefined,
+      children: children || undefined,
       city: city || undefined,
       postcode: postcode || undefined,
       latitude: latitude || undefined,
@@ -272,6 +316,90 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
               { value: Gender.FEMALE, label: 'Vrouw' },
               { value: Gender.NON_BINARY, label: 'Non-binair' },
             ]}
+          />
+        </div>
+      </section>
+
+      {/* === LIFESTYLE SECTION === */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Briefcase className="w-5 h-5 text-rose-500" />
+          Werk & Lifestyle
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            id="occupation"
+            type="text"
+            label="Beroep"
+            placeholder="Bijv. Software Developer"
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+            fullWidth
+            disabled={isLoading}
+            icon={<Briefcase className="w-4 h-4" />}
+          />
+
+          <Input
+            id="education"
+            type="text"
+            label="Opleiding"
+            placeholder="Bijv. HBO Informatica"
+            value={education}
+            onChange={(e) => setEducation(e.target.value)}
+            fullWidth
+            disabled={isLoading}
+            icon={<GraduationCap className="w-4 h-4" />}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <Ruler className="w-4 h-4 inline mr-1" />
+              Lengte (cm)
+            </label>
+            <Input
+              id="height"
+              type="number"
+              placeholder="175"
+              value={height}
+              onChange={(e) => setHeight(e.target.value ? parseInt(e.target.value) : '')}
+              fullWidth
+              disabled={isLoading}
+              min={120}
+              max={220}
+            />
+          </div>
+
+          <Select
+            id="drinking"
+            label={<><Wine className="w-4 h-4 inline mr-1" />Alcohol</>}
+            value={drinking}
+            onChange={(e) => setDrinking(e.target.value)}
+            fullWidth
+            disabled={isLoading}
+            options={drinkingOptions}
+          />
+
+          <Select
+            id="smoking"
+            label={<><Cigarette className="w-4 h-4 inline mr-1" />Roken</>}
+            value={smoking}
+            onChange={(e) => setSmoking(e.target.value)}
+            fullWidth
+            disabled={isLoading}
+            options={smokingOptions}
+          />
+
+          <Select
+            id="children"
+            label={<><Baby className="w-4 h-4 inline mr-1" />Kinderen</>}
+            value={children}
+            onChange={(e) => setChildren(e.target.value)}
+            fullWidth
+            disabled={isLoading}
+            options={childrenOptions}
           />
         </div>
       </section>
@@ -529,6 +657,12 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
               setBio(initialData.bio || '')
               setBirthDate(initialData.birthDate || '')
               setGender(initialData.gender || undefined)
+              setOccupation(initialData.occupation || '')
+              setEducation(initialData.education || '')
+              setHeight(initialData.height || '')
+              setDrinking(initialData.drinking || '')
+              setSmoking(initialData.smoking || '')
+              setChildren(initialData.children || '')
               setPostcode(initialData.postcode || '')
               setCity(initialData.city || '')
               setLatitude(initialData.latitude || null)
