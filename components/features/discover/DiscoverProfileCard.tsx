@@ -12,7 +12,7 @@
 
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import Image from 'next/image'
 import {
@@ -144,8 +144,25 @@ export function DiscoverProfileCard({
   const passOpacity = useTransform(x, [-100, 0], [1, 0])
   const superLikeOpacity = useTransform(y, [-100, 0], [1, 0])
 
+  // Reset state when profile changes (critical for Android)
+  useEffect(() => {
+    // Reset all state for new profile
+    setCurrentPhotoIndex(0)
+    setIsScrolled(false)
+    setSwipeDirection(null)
+    setIsPlayingVoice(false)
+    // Reset motion values immediately
+    x.set(0)
+    y.set(0)
+    // Stop any playing audio
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause()
+      voiceAudioRef.current = null
+    }
+  }, [profile.id, x, y])
+
   // Cleanup audio on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (voiceAudioRef.current) {
         voiceAudioRef.current.pause()
@@ -174,43 +191,40 @@ export function DiscoverProfileCard({
   }, [])
 
   const handleLike = useCallback(() => {
-    if (isLoading) return
+    if (isLoading || swipeDirection) return // Prevent double-triggers
     hapticSuccess() // Haptic feedback for like
     setSwipeDirection('right')
+    // Call onLike after animation starts
     setTimeout(() => {
       onLike()
-      setSwipeDirection(null)
-      x.set(0)
-      y.set(0)
-    }, 300)
-  }, [isLoading, onLike, x, y])
+    }, 150)
+  }, [isLoading, swipeDirection, onLike])
 
   const handlePass = useCallback(() => {
-    if (isLoading) return
+    if (isLoading || swipeDirection) return // Prevent double-triggers
     hapticImpact() // Haptic feedback for pass
     setSwipeDirection('left')
+    // Call onPass after animation starts
     setTimeout(() => {
       onPass()
-      setSwipeDirection(null)
-      x.set(0)
-      y.set(0)
-    }, 300)
-  }, [isLoading, onPass, x, y])
+    }, 150)
+  }, [isLoading, swipeDirection, onPass])
 
   const handleSuperLike = useCallback(() => {
-    if (isLoading) return
+    if (isLoading || swipeDirection) return // Prevent double-triggers
     hapticHeavy() // Haptic feedback for super like
     setSwipeDirection('up')
+    // Call onSuperLike after animation starts
     setTimeout(() => {
       onSuperLike()
-      setSwipeDirection(null)
-      x.set(0)
-      y.set(0)
-    }, 300)
-  }, [isLoading, onSuperLike, x, y])
+    }, 150)
+  }, [isLoading, swipeDirection, onSuperLike])
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      // Don't process if already swiping
+      if (swipeDirection) return
+
       const { offset, velocity } = info
 
       if (Math.abs(offset.x) > SWIPE_THRESHOLD || Math.abs(velocity.x) > SWIPE_VELOCITY_THRESHOLD) {
@@ -222,11 +236,12 @@ export function DiscoverProfileCard({
       } else if (offset.y < -SWIPE_THRESHOLD || velocity.y < -SWIPE_VELOCITY_THRESHOLD) {
         handleSuperLike()
       } else {
+        // Animate back to center
         x.set(0)
         y.set(0)
       }
     },
-    [handleLike, handlePass, handleSuperLike, x, y]
+    [swipeDirection, handleLike, handlePass, handleSuperLike, x, y]
   )
 
   const nextPhoto = () => {
@@ -276,15 +291,17 @@ export function DiscoverProfileCard({
         x,
         y,
         rotate,
+        touchAction: 'none', // Critical for Android - prevents browser handling touch
       }}
-      drag={!isLoading}
+      drag={!isLoading && !swipeDirection}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.9}
+      dragMomentum={false}
       onDragEnd={handleDragEnd}
       className={`
         relative w-full h-full max-w-lg mx-auto
         bg-white rounded-3xl overflow-hidden shadow-2xl
-        cursor-grab active:cursor-grabbing
+        cursor-grab active:cursor-grabbing select-none
         ${swipeDirection === 'left' ? 'translate-x-[-150%] rotate-[-30deg] opacity-0' : ''}
         ${swipeDirection === 'right' ? 'translate-x-[150%] rotate-[30deg] opacity-0' : ''}
         ${swipeDirection === 'up' ? 'translate-y-[-150%] opacity-0' : ''}
@@ -324,7 +341,12 @@ export function DiscoverProfileCard({
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="h-full overflow-y-auto scroll-smooth snap-y snap-mandatory"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch', // Smooth scroll on iOS
+          touchAction: 'pan-y', // Allow vertical scroll, but let parent handle horizontal
+        }}
       >
         {/* Hero Section - Full Screen Photo */}
         <div className="relative h-full min-h-[400px] snap-start">
@@ -576,15 +598,19 @@ export function DiscoverProfileCard({
       </div>
 
       {/* Fixed Action Buttons */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-30" style={{ touchAction: 'manipulation' }}>
         <div className="flex items-center justify-center gap-5">
           {/* Pass Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              handlePass()
+            }}
             onClick={handlePass}
-            disabled={isLoading}
-            className="w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center transition-colors disabled:opacity-50 border-2 border-gray-100"
+            disabled={isLoading || !!swipeDirection}
+            className="w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center transition-colors disabled:opacity-50 border-2 border-gray-100 touch-manipulation"
             aria-label="Niet interessant"
           >
             <X size={32} className="text-red-500" strokeWidth={3} />
@@ -594,9 +620,13 @@ export function DiscoverProfileCard({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              handleSuperLike()
+            }}
             onClick={handleSuperLike}
-            disabled={isLoading}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl flex items-center justify-center disabled:opacity-50"
+            disabled={isLoading || !!swipeDirection}
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl flex items-center justify-center disabled:opacity-50 touch-manipulation"
             aria-label="Super Like"
           >
             <Star size={26} fill="white" className="text-white" />
@@ -606,9 +636,13 @@ export function DiscoverProfileCard({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              handleLike()
+            }}
             onClick={handleLike}
-            disabled={isLoading}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 shadow-xl flex items-center justify-center disabled:opacity-50"
+            disabled={isLoading || !!swipeDirection}
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 shadow-xl flex items-center justify-center disabled:opacity-50 touch-manipulation"
             aria-label="Leuk!"
           >
             <Heart size={32} fill="white" className="text-white" />
