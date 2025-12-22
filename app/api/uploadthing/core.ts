@@ -94,10 +94,10 @@ export const ourFileRouter = {
       console.log("Audio URL:", file.url);
 
       try {
-        // Update user's voiceIntro field
+        // Update user's voiceIntroUrl field
         await prisma.user.update({
           where: { id: metadata.userId },
-          data: { voiceIntro: file.url }
+          data: { voiceIntroUrl: file.url }
         });
 
         console.log("Voice intro opgeslagen in database");

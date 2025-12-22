@@ -57,6 +57,7 @@ export function useApi<T = any>(options: UseApiOptions = {}): UseApiResult<T> {
 
         const response = await fetch(endpoint, {
           ...fetchOptions,
+          credentials: 'same-origin',
           headers: {
             'Content-Type': 'application/json',
             ...fetchOptions.headers,
@@ -68,6 +69,7 @@ export function useApi<T = any>(options: UseApiOptions = {}): UseApiResult<T> {
         if (!response.ok || !responseData.success) {
           const errorMessage =
             responseData.error?.message || `Request failed with status ${response.status}`
+          console.error('[useApi] Request failed:', errorMessage, responseData)
           throw new Error(errorMessage)
         }
 
@@ -81,6 +83,7 @@ export function useApi<T = any>(options: UseApiOptions = {}): UseApiResult<T> {
         return result
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error occurred')
+        console.error('[useApi] Error:', error)
         setError(error)
 
         if (options.onError) {

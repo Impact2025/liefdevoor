@@ -2,18 +2,30 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { withAuth } from 'next-auth/middleware'
 import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
+import { getToken } from 'next-auth/jwt'
 
-// Routes that require a complete profile to access
-const PROFILE_REQUIRED_ROUTES = [
+// Routes that require onboarding to be complete
+const REQUIRES_ONBOARDING = [
   '/discover',
   '/chat',
   '/matches',
   '/profile',
+  '/settings',
 ]
 
-// Routes that should redirect to discover if profile IS complete
+// Routes that are part of onboarding flow (allow access even if not onboarded)
 const ONBOARDING_ROUTES = [
   '/onboarding',
+]
+
+// Public routes that don't require auth
+const PUBLIC_ROUTES = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/',
 ]
 
 /**
@@ -21,7 +33,7 @@ const ONBOARDING_ROUTES = [
  *
  * - Rate limiting for API routes
  * - Auth protection for protected routes
- * - Onboarding guard: redirect to /onboarding if profile incomplete
+ * - Onboarding guard: redirect to /onboarding if not onboarded
  */
 async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -63,6 +75,34 @@ async function middleware(request: NextRequest) {
     return response
   }
 
+  // Get token for onboarding check
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+
+  // If user is logged in, check onboarding status
+  if (token) {
+    const isOnboarded = token.isOnboarded as boolean
+
+    // Check if trying to access a route that requires onboarding
+    const needsOnboarding = REQUIRES_ONBOARDING.some(route =>
+      pathname.startsWith(route)
+    )
+
+    // If not onboarded and trying to access protected route -> redirect to onboarding
+    if (!isOnboarded && needsOnboarding) {
+      const onboardingUrl = new URL('/onboarding', request.url)
+      return NextResponse.redirect(onboardingUrl)
+    }
+
+    // If onboarded and trying to access onboarding -> redirect to discover
+    const isOnboardingRoute = ONBOARDING_ROUTES.some(route =>
+      pathname.startsWith(route)
+    )
+    if (isOnboarded && isOnboardingRoute) {
+      const discoverUrl = new URL('/discover', request.url)
+      return NextResponse.redirect(discoverUrl)
+    }
+  }
+
   // Continue with next middleware (auth check)
   return NextResponse.next()
 }
@@ -78,19 +118,25 @@ export default withAuth(middleware, {
         return token?.role === 'ADMIN'
       }
 
+      // Check if this is a public route
+      const isPublicRoute = PUBLIC_ROUTES.some(route =>
+        pathname === route || pathname.startsWith(route + '/')
+      )
+      if (isPublicRoute) {
+        return true
+      }
+
       // Protected routes that require login
-      const isProtectedRoute = PROFILE_REQUIRED_ROUTES.some(route =>
+      const requiresAuth = REQUIRES_ONBOARDING.some(route =>
         pathname.startsWith(route)
       )
 
-      if (isProtectedRoute) {
+      if (requiresAuth) {
         // Not logged in? Redirect to login
         if (!token) {
           return false
         }
-
-        // Logged in but profile not complete? The redirect is handled in the page
-        // We allow access here so the page can redirect to /onboarding
+        // Logged in - allow access (onboarding redirect handled in middleware)
         return true
       }
 
@@ -99,7 +145,7 @@ export default withAuth(middleware, {
         return !!token
       }
 
-      // API routes and public pages
+      // API routes and other pages
       return true
     },
   },
@@ -116,6 +162,7 @@ export const config = {
     '/chat/:path*',
     '/matches/:path*',
     '/profile/:path*',
+    '/settings/:path*',
     '/onboarding/:path*',
     // All API routes for rate limiting
     '/api/:path*',

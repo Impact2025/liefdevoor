@@ -79,6 +79,7 @@ export const authOptions: NextAuthOptions = {
             role: true,
             profileComplete: true,
             onboardingStep: true,
+            isOnboarded: true,
           }
         })
         if (!user || !user.passwordHash) {
@@ -125,6 +126,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           profileComplete: user.profileComplete,
           onboardingStep: user.onboardingStep,
+          isOnboarded: user.isOnboarded,
         }
       }
     })
@@ -176,17 +178,19 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role
         token.profileComplete = user.profileComplete
         token.onboardingStep = user.onboardingStep
+        token.isOnboarded = user.isOnboarded
       }
 
       // Refresh profile status from database on update
       if (trigger === 'update') {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { profileComplete: true, onboardingStep: true }
+          select: { profileComplete: true, onboardingStep: true, isOnboarded: true }
         })
         if (dbUser) {
           token.profileComplete = dbUser.profileComplete
           token.onboardingStep = dbUser.onboardingStep
+          token.isOnboarded = dbUser.isOnboarded
         }
       }
 
@@ -198,6 +202,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string
         session.user.profileComplete = token.profileComplete as boolean
         session.user.onboardingStep = token.onboardingStep as number
+        session.user.isOnboarded = token.isOnboarded as boolean
       }
       return session
     }

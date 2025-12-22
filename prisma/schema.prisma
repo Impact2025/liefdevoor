@@ -72,6 +72,10 @@ model User {
   isPhotoVerified Boolean @default(false)
   verifiedAt    DateTime?
 
+  // Voice & Liveness verification
+  voiceIntroUrl     String?           // URL naar voice intro opname
+  isLivenessVerified Boolean @default(false) // Is liveness check voltooid?
+
   // Subscription & Credits - "Vriend van de Liefde" Model
   subscriptionTier SubscriptionTier @default(FREE)
   credits          Int              @default(0) // Superberichten credits
@@ -82,7 +86,8 @@ model User {
   lookingFor        LookingFor?                    // Wie zoekt de gebruiker
   minAgePreference  Int              @default(18)  // Minimum leeftijd voorkeur
   maxAgePreference  Int              @default(99)  // Maximum leeftijd voorkeur
-  onboardingStep    Int              @default(0)   // Huidige stap in onboarding (0 = niet gestart)
+  onboardingStep    Int              @default(1)   // Huidige stap in onboarding (1 = eerste stap)
+  isOnboarded       Boolean          @default(false) // Is onboarding voltooid?
   onboardingMode    OnboardingMode?                // Gekozen onboarding mode
   profileComplete   Boolean          @default(false) // Is het profiel compleet?
   rulesAccepted     Boolean          @default(false) // Heeft gedragsregels geaccepteerd
@@ -136,6 +141,8 @@ model User {
   storyViews           StoryView[]
   // 🛡️ Safety & Verification
   photoVerifications   PhotoVerification[]
+  // 🧠 Psychological Profile
+  psychProfile         PsychProfile?
 
   // Privacy & GDPR Consent
   privacyPolicyAccepted    Boolean   @default(false)
@@ -159,6 +166,60 @@ model User {
   @@index([onboardingStep])
   @@index([incognitoMode])
   @@index([passportCity])
+}
+
+// ============================================
+// 🧠 PSYCHOLOGICAL PROFILE - For Deep Matching
+// ============================================
+
+enum ConflictStyle {
+  AVOIDING       // Vermijdt conflicten
+  ACCOMMODATING  // Geeft toe aan anderen
+  COMPETING      // Wil winnen
+  COMPROMISING   // Zoekt middenweg
+  COLLABORATING  // Zoekt win-win oplossingen
+}
+
+model PsychProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Persoonlijkheidsschalen (1-10)
+  introvertScale  Int?          // 1 = zeer introvert, 10 = zeer extravert
+  emotionalScale  Int?          // 1 = zeer rationeel, 10 = zeer emotioneel
+  spontaneityScale Int?         // 1 = plant alles, 10 = zeer spontaan
+  adventureScale  Int?          // 1 = houdt van routine, 10 = avontuurlijk
+
+  // Conflicthantering
+  conflictStyle   ConflictStyle?
+
+  // Communicatiestijl
+  communicationStyle String?    // "direct", "diplomatic", "analytical", "expressive"
+
+  // Waarden & Prioriteiten
+  familyImportance Int?         // 1-10: Hoe belangrijk is familie?
+  careerImportance Int?         // 1-10: Hoe belangrijk is carrière?
+  socialImportance Int?         // 1-10: Hoe belangrijk is sociaal leven?
+
+  // Love Language (Chapman's 5 Love Languages)
+  loveLangWords     Int?        // Woorden van bevestiging (1-5)
+  loveLangTime      Int?        // Quality time (1-5)
+  loveLangGifts     Int?        // Cadeaus ontvangen (1-5)
+  loveLangActs      Int?        // Behulpzaamheid (1-5)
+  loveLangTouch     Int?        // Fysieke aanraking (1-5)
+
+  // Attachment Style
+  attachmentStyle   String?     // "secure", "anxious", "avoidant", "fearful"
+
+  // Life Goals
+  wantsChildren     String?     // "yes", "no", "maybe", "already_have"
+  relationshipGoal  String?     // "casual", "serious", "marriage", "open"
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
 }
 
 model Photo {

@@ -182,16 +182,20 @@ export default function DiscoverPage() {
   })
 
   const handleLike = useCallback(async () => {
+    console.log('[Discover] handleLike called', { usersCount: users.length, isSwipeLoading })
     if (users.length === 0 || isSwipeLoading) return
 
     if (!isUnlimited && swipesRemaining !== null && swipesRemaining <= 0) {
+      console.log('[Discover] Swipe limit reached, showing upgrade modal')
       setShowUpgradeModal(true)
       return
     }
 
     const swipedUser = users[0]
+    console.log('[Discover] Swiping right on user:', swipedUser.id)
     setLastSwipedUser(swipedUser)
     const result = await swipePost({ swipedId: swipedUser.id, isLike: true })
+    console.log('[Discover] Swipe result:', result)
 
     if (result?.limits?.swipesRemaining !== undefined) {
       setSwipesRemaining(result.limits.swipesRemaining)

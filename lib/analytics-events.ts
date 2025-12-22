@@ -235,6 +235,26 @@ export function trackOnboardingComplete(userId: string, step: number) {
 }
 
 /**
+ * Track individual onboarding step progress
+ */
+export function trackOnboardingStep(stepName: string, stepNumber: number) {
+  trackEvent('onboarding_step', {
+    step_name: stepName,
+    step_number: stepNumber,
+  })
+}
+
+/**
+ * Track onboarding drop-off (when user leaves or skips)
+ */
+export function trackOnboardingDropoff(stepName: string, reason: string) {
+  trackEvent('onboarding_dropoff', {
+    step_name: stepName,
+    dropoff_reason: reason,
+  })
+}
+
+/**
  * Track share action
  */
 export function trackShare(userId: string, method: string, content: string) {
