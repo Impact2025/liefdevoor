@@ -827,22 +827,39 @@ model StoryView {
 }
 
 
-// Photo Verification for safety
+// Photo Verification for safety - Manual review + AI detection
 model PhotoVerification {
   id               String    @id @default(cuid())
   userId           String
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   photoUrl         String    // Selfie URL
   pose             String    @default("neutral") // Pose requested (for AI verification)
-  status           String    @default("pending") // pending, approved, rejected
+  status           String    @default("pending") // pending, approved, rejected, flagged
   submittedAt      DateTime  @default(now())
   reviewedAt       DateTime?
   reviewedBy       String?   // Admin user ID who reviewed
   rejectionReason  String?   @db.Text
 
+  // AI Detection Results
+  isAiGenerated    Boolean?  // True if AI thinks photo is AI-generated
+  aiConfidence     Float?    // 0.0 - 1.0 confidence score
+  aiAnalysis       String?   @db.Text // JSON with detailed analysis
+  aiCheckedAt      DateTime? // When AI analysis was performed
+
+  // Additional checks
+  hasFace          Boolean?  // Does the photo contain a face?
+  faceCount        Int?      // Number of faces detected
+  qualityScore     Float?    // 0.0 - 1.0 image quality score
+
+  // Moderator notes
+  moderatorNotes   String?   @db.Text // Internal notes for moderators
+  priority         Int       @default(0) // Higher = more urgent review (flagged by AI)
+
   @@index([userId])
   @@index([status])
   @@index([status, submittedAt])
+  @@index([priority, submittedAt])
+  @@index([isAiGenerated])
 }
 
 // Profile views tracking (for "Who viewed me" premium feature)

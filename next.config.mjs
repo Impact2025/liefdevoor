@@ -114,7 +114,7 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(self), geolocation=(self), interest-cohort=(), payment=()'
+            value: 'camera=(self), microphone=(self), geolocation=(self), interest-cohort=(), payment=()'
           },
           {
             key: 'Content-Security-Policy',

@@ -17,7 +17,9 @@ import {
   BarChart3,
   ArrowRight,
   Lock,
-  TrendingUp
+  TrendingUp,
+  Camera,
+  AlertTriangle
 } from 'lucide-react'
 
 interface AdminCard {
@@ -37,6 +39,14 @@ const adminSections: AdminCard[] = [
     icon: LayoutDashboard,
     color: 'from-blue-500 to-blue-600',
     stats: 'Live data'
+  },
+  {
+    title: 'Foto Verificatie',
+    description: 'Review verificatiefoto\'s en AI-gegenereerde foto detectie',
+    href: '/admin/verifications',
+    icon: Camera,
+    color: 'from-emerald-500 to-teal-600',
+    stats: 'AI + Handmatige review'
   },
   {
     title: 'Coupon Beheer',

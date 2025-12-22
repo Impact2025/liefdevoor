@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Sparkles,
   Eye,
-  Smile,
   ArrowLeft,
   ArrowRight,
   WifiOff
@@ -24,8 +23,8 @@ interface LivenessCheckProps {
   onSkip?: () => void;
 }
 
-type ChallengeType = 'center' | 'blink' | 'smile' | 'turn_left' | 'turn_right';
-type ChallengeStatus = 'pending' | 'detecting' | 'success' | 'failed';
+type ChallengeType = 'center' | 'turn_left' | 'turn_right';
+type ChallengeStatus = 'pending' | 'detecting' | 'success';
 
 interface Challenge {
   type: ChallengeType;
@@ -39,44 +38,30 @@ interface FaceDetectionResult {
   faceInCenter: boolean;
   faceTooClose: boolean;
   faceTooFar: boolean;
-  multipleFaces: boolean;
-  eyesOpen: boolean;
-  smiling: boolean;
   headTurnLeft: boolean;
   headTurnRight: boolean;
   headCenter: boolean;
-  boundingBox?: { x: number; y: number; width: number; height: number };
 }
 
-// Challenge definitions with real detection logic
+// Challenge definitions - only challenges that actually work without ML
+// 1. Center face - detects face in center region
+// 2. Turn head - detects face position shift
 const challenges: Challenge[] = [
   {
     type: 'center',
     instruction: 'Kijk recht in de camera',
     icon: <Eye className="w-6 h-6" />,
-    detectFn: (d) => d.faceDetected && d.faceInCenter && d.headCenter && !d.faceTooClose && !d.faceTooFar
-  },
-  {
-    type: 'blink',
-    instruction: 'Knijp je ogen even dicht',
-    icon: <span className="text-2xl">😌</span>,
-    detectFn: (d) => d.faceDetected && !d.eyesOpen
-  },
-  {
-    type: 'smile',
-    instruction: 'Lach naar de camera',
-    icon: <Smile className="w-6 h-6" />,
-    detectFn: (d) => d.faceDetected && d.smiling
+    detectFn: (d) => d.faceDetected && d.faceInCenter && d.headCenter
   },
   {
     type: 'turn_left',
-    instruction: 'Draai je hoofd naar links',
+    instruction: 'Draai langzaam naar links',
     icon: <ArrowLeft className="w-6 h-6" />,
     detectFn: (d) => d.faceDetected && d.headTurnLeft
   },
   {
     type: 'turn_right',
-    instruction: 'Draai je hoofd naar rechts',
+    instruction: 'Draai langzaam naar rechts',
     icon: <ArrowRight className="w-6 h-6" />,
     detectFn: (d) => d.faceDetected && d.headTurnRight
   },
@@ -97,8 +82,8 @@ const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'success' | 'error' 
 };
 
 export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -115,15 +100,10 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
   const [showFaceGuide, setShowFaceGuide] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isProcessingChallenge, setIsProcessingChallenge] = useState(false);
 
-  // Selected challenges (random 3 from pool)
-  const [selectedChallenges] = useState(() => {
-    const shuffled = [...challenges].sort(() => Math.random() - 0.5);
-    // Always include 'center' as first, then 2 random others
-    const center = challenges.find(c => c.type === 'center')!;
-    const others = shuffled.filter(c => c.type !== 'center').slice(0, 2);
-    return [center, ...others];
-  });
+  // All 3 challenges in fixed order: center first, then left, then right
+  const selectedChallenges = challenges;
 
   // Cleanup on unmount
   useEffect(() => {
@@ -174,6 +154,7 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     trackOnboardingStep('liveness_check', 1);
   }, []);
 
+
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -197,19 +178,8 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
       });
 
       streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
       setStep('camera');
       triggerHaptic('light');
-
-      // Start face detection after a short delay
-      setTimeout(() => {
-        startFaceDetection();
-      }, 500);
 
     } catch (err) {
       console.error('Camera error:', err);
@@ -242,9 +212,6 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
         faceInCenter: false,
         faceTooClose: false,
         faceTooFar: false,
-        multipleFaces: false,
-        eyesOpen: true,
-        smiling: false,
         headTurnLeft: false,
         headTurnRight: false,
         headCenter: true,
@@ -265,15 +232,23 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    // Simple skin color detection for face presence
-    // This is a simplified version - production would use TensorFlow.js or MediaPipe
+    // Simplified face detection - detect flesh tones in center region
+    // Production would use TensorFlow.js or MediaPipe for real face detection
     let skinPixels = 0;
     let totalPixels = 0;
     let minX = canvas.width, maxX = 0, minY = canvas.height, maxY = 0;
 
-    // Sample every 4th pixel for performance
-    for (let y = 0; y < canvas.height; y += 4) {
-      for (let x = 0; x < canvas.width; x += 4) {
+    // Focus on center region where face should be
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const regionWidth = canvas.width * 0.6;
+    const regionHeight = canvas.height * 0.7;
+
+    // Sample pixels in center region
+    for (let y = Math.floor(centerY - regionHeight / 2); y < centerY + regionHeight / 2; y += 4) {
+      for (let x = Math.floor(centerX - regionWidth / 2); x < centerX + regionWidth / 2; x += 4) {
+        if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue;
+
         const i = (y * canvas.width + x) * 4;
         const r = data[i];
         const g = data[i + 1];
@@ -281,18 +256,18 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
 
         totalPixels++;
 
-        // HSV-based skin detection (simplified)
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const v = max / 255;
-        const s = max === 0 ? 0 : (max - min) / max;
-
-        // Skin detection heuristics
-        const isSkin =
-          r > 95 && g > 40 && b > 20 &&
-          r > g && r > b &&
-          Math.abs(r - g) > 15 &&
-          v > 0.4 && s > 0.1 && s < 0.7;
+        // More lenient skin detection for various skin tones
+        // Works for light to dark skin tones
+        const isSkin = (
+          // Light skin tones
+          (r > 80 && g > 50 && b > 30 && r > b && (r - b) > 10) ||
+          // Medium skin tones
+          (r > 100 && g > 60 && b > 40 && r >= g) ||
+          // Darker skin tones
+          (r > 60 && g > 40 && b > 20 && r > b) ||
+          // Very light/pale skin
+          (r > 150 && g > 120 && b > 100 && Math.abs(r - g) < 50)
+        );
 
         if (isSkin) {
           skinPixels++;
@@ -304,8 +279,9 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
       }
     }
 
-    const skinRatio = skinPixels / totalPixels;
-    const faceDetected = skinRatio > 0.05 && skinRatio < 0.5;
+    const skinRatio = totalPixels > 0 ? skinPixels / totalPixels : 0;
+    // Much more lenient - just need some skin-like pixels in center
+    const faceDetected = skinRatio > 0.02;
 
     // Calculate bounding box
     const faceWidth = maxX - minX;
@@ -315,57 +291,32 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const canvasCenterX = canvas.width / 2;
     const canvasCenterY = canvas.height / 2;
 
-    // Check if face is centered (within 20% of center)
-    const centerThreshold = canvas.width * 0.2;
+    // Check if face is centered (within 35% of center - more lenient)
+    const centerThreshold = canvas.width * 0.35;
     const faceInCenter = faceDetected &&
       Math.abs(faceCenterX - canvasCenterX) < centerThreshold &&
-      Math.abs(faceCenterY - canvasCenterY) < centerThreshold * 0.75;
+      Math.abs(faceCenterY - canvasCenterY) < centerThreshold;
 
-    // Check face size for distance estimation
+    // Check face size for distance estimation (more lenient)
     const faceAreaRatio = (faceWidth * faceHeight) / (canvas.width * canvas.height);
-    const faceTooClose = faceAreaRatio > 0.4;
-    const faceTooFar = faceAreaRatio < 0.05;
+    const faceTooClose = faceAreaRatio > 0.6;
+    const faceTooFar = faceAreaRatio < 0.01;
 
     // Head position detection based on face bounding box position
-    const headTurnLeft = faceDetected && faceCenterX < canvasCenterX - centerThreshold;
-    const headTurnRight = faceDetected && faceCenterX > canvasCenterX + centerThreshold;
+    // Note: Video is mirrored on display, so we invert left/right detection
+    // When user turns head to their right, face moves LEFT in raw video, but appears RIGHT on mirrored display
+    const headTurnRight = faceDetected && faceCenterX < canvasCenterX - centerThreshold;
+    const headTurnLeft = faceDetected && faceCenterX > canvasCenterX + centerThreshold;
     const headCenter = faceDetected && !headTurnLeft && !headTurnRight;
-
-    // Brightness analysis for eye detection (simplified)
-    // When eyes are closed, the upper part of face is slightly darker
-    const upperFaceY = minY + faceHeight * 0.3;
-    let upperBrightness = 0;
-    let upperCount = 0;
-
-    for (let y = minY; y < upperFaceY; y += 4) {
-      for (let x = minX; x < maxX; x += 4) {
-        const i = (y * canvas.width + x) * 4;
-        upperBrightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
-        upperCount++;
-      }
-    }
-
-    const avgUpperBrightness = upperCount > 0 ? upperBrightness / upperCount : 128;
-    // This is a rough heuristic - real detection would need ML
-    const eyesOpen = avgUpperBrightness > 80;
-
-    // Smile detection based on face aspect ratio and mouth region brightness
-    // When smiling, face tends to be slightly wider and mouth region brighter
-    const aspectRatio = faceWidth / (faceHeight || 1);
-    const smiling = faceDetected && aspectRatio > 0.8 && skinRatio > 0.08;
 
     return {
       faceDetected,
       faceInCenter,
       faceTooClose,
       faceTooFar,
-      multipleFaces: false, // Would need more sophisticated detection
-      eyesOpen,
-      smiling,
       headTurnLeft,
       headTurnRight,
       headCenter,
-      boundingBox: faceDetected ? { x: minX, y: minY, width: faceWidth, height: faceHeight } : undefined,
     };
   }, []);
 
@@ -395,18 +346,34 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     }, 100);
   }, [detectFace]);
 
+  // Start face detection when on camera step and video is ready
+  useEffect(() => {
+    if (step === 'camera' && streamRef.current && !detectionIntervalRef.current) {
+      const checkAndStart = () => {
+        if (videoRef.current && videoRef.current.readyState >= 2) {
+          startFaceDetection();
+        } else {
+          // Try again in 100ms
+          setTimeout(checkAndStart, 100);
+        }
+      };
+      setTimeout(checkAndStart, 300);
+    }
+  }, [step, startFaceDetection]);
+
   const startChallenges = useCallback(() => {
     setStep('challenges');
     setCurrentChallengeIndex(0);
     setChallengeStatus('pending');
     setCompletedChallenges([]);
     setConsecutiveDetections(0);
+    setIsProcessingChallenge(false);
     triggerHaptic('medium');
   }, []);
 
   // Challenge detection loop
   useEffect(() => {
-    if (step !== 'challenges' || !detection) return;
+    if (step !== 'challenges' || !detection || isProcessingChallenge) return;
 
     const currentChallenge = selectedChallenges[currentChallengeIndex];
     if (!currentChallenge) return;
@@ -414,35 +381,41 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const isDetected = currentChallenge.detectFn(detection);
 
     if (isDetected) {
-      setConsecutiveDetections(prev => prev + 1);
+      setConsecutiveDetections(prev => {
+        const newCount = prev + 1;
 
-      // Need 5 consecutive detections (0.5 seconds) to confirm
-      if (consecutiveDetections >= 5) {
-        setChallengeStatus('success');
-        triggerHaptic('success');
+        // Need 5 consecutive detections (0.5 seconds) to confirm
+        if (newCount >= 5 && !isProcessingChallenge) {
+          setIsProcessingChallenge(true);
+          setChallengeStatus('success');
+          triggerHaptic('success');
 
-        // Move to next challenge after brief success display
-        setTimeout(() => {
-          const newCompleted = [...completedChallenges, true];
-          setCompletedChallenges(newCompleted);
+          // Move to next challenge after brief success display
+          setTimeout(() => {
+            setCompletedChallenges(prevCompleted => [...prevCompleted, true]);
 
-          if (currentChallengeIndex < selectedChallenges.length - 1) {
-            setCurrentChallengeIndex(prev => prev + 1);
-            setChallengeStatus('pending');
-            setConsecutiveDetections(0);
-          } else {
-            // All challenges complete - capture photo
-            captureVerificationPhoto();
-          }
-        }, 500);
-      } else {
-        setChallengeStatus('detecting');
-      }
+            if (currentChallengeIndex < selectedChallenges.length - 1) {
+              setCurrentChallengeIndex(currentChallengeIndex + 1);
+              setChallengeStatus('pending');
+              setConsecutiveDetections(0);
+              setIsProcessingChallenge(false);
+            } else {
+              // All challenges complete - capture photo
+              captureVerificationPhoto();
+            }
+          }, 500);
+        } else if (newCount < 5) {
+          setChallengeStatus('detecting');
+        }
+
+        return newCount;
+      });
     } else {
       setConsecutiveDetections(0);
       setChallengeStatus('pending');
     }
-  }, [step, detection, currentChallengeIndex, selectedChallenges, consecutiveDetections, completedChallenges]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, detection, currentChallengeIndex, selectedChallenges, isProcessingChallenge]);
 
   const captureVerificationPhoto = useCallback(async () => {
     setStep('capturing');
@@ -698,13 +671,20 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
             )}
 
             {/* Video Container */}
-            <div className="relative flex-1 mx-4 my-4 rounded-3xl overflow-hidden bg-black">
+            <div className="relative flex-1 min-h-[400px] mx-4 my-4 rounded-3xl overflow-hidden bg-black">
               <video
-                ref={videoRef}
+                ref={(el) => {
+                  videoRef.current = el;
+                  // Attach stream when video element is mounted
+                  if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                    el.srcObject = streamRef.current;
+                    el.play().catch(console.error);
+                  }
+                }}
                 autoPlay
                 playsInline
                 muted
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover z-0"
                 style={{ transform: 'scaleX(-1)' }}
               />
 
@@ -854,8 +834,8 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
               transition={{ type: 'spring', stiffness: 200 }}
               className="relative mb-6"
             >
-              <div className="w-28 h-28 bg-green-500 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30">
-                <CheckCircle2 className="w-14 h-14 text-white" />
+              <div className="w-28 h-28 bg-purple-500 rounded-full flex items-center justify-center shadow-xl shadow-purple-500/30">
+                <ShieldCheck className="w-14 h-14 text-white" />
               </div>
               <motion.div
                 className="absolute -top-1 -right-1"
@@ -868,14 +848,14 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
             </motion.div>
 
             <h2 className="text-2xl font-bold text-slate-900 mb-2">
-              Verificatie geslaagd!
+              Foto ingediend!
             </h2>
-            <p className="text-slate-600 mb-4">
-              Je profiel krijgt nu een verificatie badge
+            <p className="text-slate-600 mb-4 max-w-xs">
+              Je verificatiefoto wordt beoordeeld. Je krijgt bericht zodra dit is afgerond.
             </p>
-            <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full">
-              <ShieldCheck className="w-5 h-5 text-purple-600" />
-              <span className="text-purple-700 font-medium">Geverifieerd profiel</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-amber-100 rounded-full">
+              <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+              <span className="text-amber-700 font-medium">Wordt beoordeeld</span>
             </div>
           </motion.div>
         )}

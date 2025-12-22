@@ -4,6 +4,7 @@
  * Lightweight A/B testing system for optimizing user flows
  */
 
+import * as React from 'react';
 import { trackEvent } from '@/lib/gtag';
 
 // Experiment definitions
@@ -128,11 +129,19 @@ export function useExperiment(experimentId: string): {
   isVariant: (variantName: string) => boolean;
   trackConversion: (conversionType: string, value?: number) => void;
 } {
-  const variant = typeof window !== 'undefined' ? getOrAssignVariant(experimentId) : null;
+  // Use React hooks for proper hydration
+  const [variant, setVariant] = React.useState<string | null>(null);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+    const assignedVariant = getOrAssignVariant(experimentId);
+    setVariant(assignedVariant);
+  }, [experimentId]);
 
   return {
     variant,
-    isVariant: (variantName: string) => variant === variantName,
+    isVariant: (variantName: string) => isClient && variant === variantName,
     trackConversion: (conversionType: string, value?: number) => {
       trackExperimentConversion(experimentId, conversionType, value);
     },
