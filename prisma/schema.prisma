@@ -60,7 +60,7 @@ model User {
   smoking       String?
   children      String?
   interests     String?
-  preferences   String?
+  preferences   Json?
   profileImage  String?
   voiceIntro    String?
   role          Role      @default(USER)
