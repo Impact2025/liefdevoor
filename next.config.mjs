@@ -66,8 +66,34 @@ const nextConfig = {
   swcMinify: true,
   productionBrowserSourceMaps: false,
 
+  // Development optimizations
+  ...(isDev && {
+    // Faster compilation in dev mode
+    reactStrictMode: true,
+
+    // Optimize dev server
+    onDemandEntries: {
+      // Period (in ms) where the server will keep pages in the buffer
+      maxInactiveAge: 60 * 1000,
+      // Number of pages that should be kept simultaneously
+      pagesBufferLength: 5,
+    },
+  }),
+
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', '@radix-ui/react-icons'],
+
+    // Turbopack configuration for even faster dev mode
+    ...(isDev && {
+      turbo: {
+        rules: {
+          '*.svg': {
+            loaders: ['@svgr/webpack'],
+            as: '*.js',
+          },
+        },
+      },
+    }),
   },
 
   images: {

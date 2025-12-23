@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Heart, Check, Shield, Star, MessageCircle, Sparkles } from 'lucide-react'
@@ -19,10 +19,42 @@ interface CheckoutData {
 export default function PrijzenPage() {
   const { data: session } = useSession()
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null)
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true)
+
+  // Fetch current subscription on mount
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!session?.user) {
+        setIsLoadingSubscription(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/subscription')
+        if (response.ok) {
+          const data = await response.json()
+          setCurrentPlan(data.plan)
+        }
+      } catch (error) {
+        console.error('Error fetching subscription:', error)
+      } finally {
+        setIsLoadingSubscription(false)
+      }
+    }
+
+    fetchSubscription()
+  }, [session])
 
   const handleSubscriptionSelect = (planId: string) => {
     const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId)
     if (!plan) return
+
+    // Prevent selecting current plan
+    if (planId === currentPlan) {
+      alert('Je hebt dit abonnement al actief')
+      return
+    }
 
     setCheckoutData({
       type: 'subscription',
@@ -87,22 +119,38 @@ export default function PrijzenPage() {
 
         {/* Subscription Plans */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {SUBSCRIPTION_PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white rounded-2xl p-6 ${
-                plan.highlighted
-                  ? 'border-2 border-primary shadow-lg'
-                  : 'border border-gray-200'
-              }`}
-            >
-              {plan.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-primary text-white text-sm font-medium px-4 py-1 rounded-full">
-                    Meest gekozen
-                  </span>
-                </div>
-              )}
+          {SUBSCRIPTION_PLANS.map((plan) => {
+            const isCurrentPlan = plan.id === currentPlan
+            const isUpgrade = currentPlan === 'FREE' || (currentPlan === 'PLUS' && plan.id === 'COMPLETE')
+            const isDowngrade = (currentPlan === 'COMPLETE' && plan.id === 'PLUS') ||
+                               ((currentPlan === 'PLUS' || currentPlan === 'COMPLETE') && plan.id === 'FREE')
+
+            return (
+              <div
+                key={plan.id}
+                className={`relative bg-white rounded-2xl p-6 ${
+                  isCurrentPlan
+                    ? 'border-2 border-green-500 shadow-lg'
+                    : plan.highlighted
+                    ? 'border-2 border-primary shadow-lg'
+                    : 'border border-gray-200'
+                }`}
+              >
+                {isCurrentPlan && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-green-500 text-white text-sm font-medium px-4 py-1 rounded-full flex items-center gap-1">
+                      <Check size={14} />
+                      Huidig plan
+                    </span>
+                  </div>
+                )}
+                {!isCurrentPlan && plan.highlighted && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-primary text-white text-sm font-medium px-4 py-1 rounded-full">
+                      Meest gekozen
+                    </span>
+                  </div>
+                )}
 
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h2>
@@ -133,18 +181,34 @@ export default function PrijzenPage() {
 
               <button
                 onClick={() => handleSubscriptionSelect(plan.id)}
+                disabled={isCurrentPlan || isLoadingSubscription}
                 className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
-                  plan.id === 'FREE'
+                  isCurrentPlan
+                    ? 'bg-green-100 text-green-700 cursor-not-allowed'
+                    : isLoadingSubscription
+                    ? 'bg-gray-200 text-gray-400 cursor-wait'
+                    : plan.id === 'FREE'
                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     : plan.highlighted
                     ? 'bg-primary text-white hover:bg-rose-hover'
                     : 'bg-gray-900 text-white hover:bg-gray-800'
-                }`}
+                } ${(isCurrentPlan || isLoadingSubscription) ? 'opacity-75' : ''}`}
               >
-                {plan.id === 'FREE' ? 'Gratis starten' : 'Kies dit abonnement'}
+                {isLoadingSubscription
+                  ? 'Laden...'
+                  : isCurrentPlan
+                  ? 'Actief abonnement'
+                  : isUpgrade && currentPlan !== 'FREE'
+                  ? 'Upgrade naar dit plan'
+                  : isDowngrade
+                  ? 'Downgrade'
+                  : plan.id === 'FREE'
+                  ? 'Gratis starten'
+                  : 'Kies dit abonnement'}
               </button>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Superberichten Section */}

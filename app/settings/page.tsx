@@ -21,9 +21,10 @@ import { CityAutocomplete } from '@/components/features/location/CityAutocomplet
 import { LocationMap } from '@/components/features/location/LocationMap'
 import { LocationPrivacy } from '@/components/features/location/LocationPrivacy'
 import { IncognitoToggle } from '@/components/features/incognito'
+import { SubscriptionCard, PlanComparison, BillingHistory } from '@/components/subscription'
 import { useAdaptiveUI } from '@/components/adaptive/AdaptiveUIProvider'
 import type { GeocodingResult, CityOption } from '@/lib/services/geocoding'
-import { MapPin, EyeOff, Eye, Type, MousePointer, Palette } from 'lucide-react'
+import { MapPin, EyeOff, Eye, Type, MousePointer, Palette, Crown, ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
@@ -33,6 +34,8 @@ export default function SettingsPage() {
   const [isFetching, setIsFetching] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [showPlanComparison, setShowPlanComparison] = useState(false)
+  const [showBillingHistory, setShowBillingHistory] = useState(false)
 
   // Location state
   const [postcode, setPostcode] = useState('')
@@ -200,6 +203,57 @@ export default function SettingsPage() {
               {error}
             </Alert>
           )}
+
+          {/* Subscription Card - Professional Feature */}
+          <div className="mb-8">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Abonnement</h2>
+              <p className="text-sm text-gray-500">Beheer je lidmaatschap</p>
+            </div>
+            <SubscriptionCard />
+
+            {/* Plan Comparison Toggle */}
+            <div className="mt-3">
+              <button
+                onClick={() => setShowPlanComparison(!showPlanComparison)}
+                className="w-full bg-white border border-gray-200 hover:border-teal-300 rounded-lg p-3 transition-all flex items-center justify-between group"
+              >
+                <span className="text-sm font-medium text-gray-700">Vergelijk abonnementen</span>
+                {showPlanComparison ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+
+              {showPlanComparison && (
+                <div className="mt-3 bg-white rounded-lg border border-gray-200 p-6">
+                  <PlanComparison />
+                </div>
+              )}
+            </div>
+
+            {/* Billing History Toggle */}
+            <div className="mt-3">
+              <button
+                onClick={() => setShowBillingHistory(!showBillingHistory)}
+                className="w-full bg-white border border-gray-200 hover:border-teal-300 rounded-lg p-3 transition-all flex items-center justify-between group"
+              >
+                <span className="text-sm font-medium text-gray-700">Factuurgeschiedenis</span>
+                {showBillingHistory ? (
+                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+
+              {showBillingHistory && (
+                <div className="mt-3">
+                  <BillingHistory />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Location Settings */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
