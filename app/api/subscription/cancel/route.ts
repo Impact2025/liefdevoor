@@ -88,7 +88,7 @@ export async function POST() {
     console.log('[Subscription] Cancelled:', {
       userId: user.id,
       subscriptionId: subscription.id,
-      tier: subscription.tier,
+      plan: subscription.plan,
       accessUntil: subscription.endDate,
     })
 
