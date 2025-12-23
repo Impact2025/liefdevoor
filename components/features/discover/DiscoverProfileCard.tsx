@@ -137,6 +137,9 @@ export function DiscoverProfileCard({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null)
 
+  // Swipe lock using ref for more reliable locking (fixes second swipe bug)
+  const isSwipingRef = useRef(false)
+
   // Behavior tracking state
   const [viewStartTime] = useState(Date.now())
   const [maxPhotoViewed, setMaxPhotoViewed] = useState(0)
@@ -152,22 +155,29 @@ export function DiscoverProfileCard({
   const passOpacity = useTransform(x, [-100, 0], [1, 0])
   const superLikeOpacity = useTransform(y, [-100, 0], [1, 0])
 
-  // Reset state when profile changes (critical for Android)
+  // Reset state when profile changes - CRITICAL FIX: Remove x,y from deps (they're MotionValues!)
   useEffect(() => {
+    console.log('[DiscoverCard] Profile changed, resetting state', { profileId: profile.id })
+
     // Reset all state for new profile
     setCurrentPhotoIndex(0)
     setIsScrolled(false)
     setSwipeDirection(null)
     setIsPlayingVoice(false)
+
+    // Reset swipe lock - CRITICAL for second swipe to work
+    isSwipingRef.current = false
+
     // Reset motion values immediately
     x.set(0)
     y.set(0)
+
     // Stop any playing audio
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause()
       voiceAudioRef.current = null
     }
-  }, [profile.id, x, y])
+  }, [profile.id]) // Only profile.id - MotionValues are refs, not state!
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -223,42 +233,81 @@ export function DiscoverProfileCard({
   }, [profile.id, viewStartTime, maxPhotoViewed, bioExpanded, maxScrollDepth, voiceIntroPlayed])
 
   const handleLike = useCallback(() => {
-    if (isLoading || swipeDirection) return // Prevent double-triggers
+    // CRITICAL FIX: Use ref-based locking for more reliable double-trigger prevention
+    if (isLoading || swipeDirection || isSwipingRef.current) {
+      console.log('[DiscoverCard] Like blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current })
+      return
+    }
+
+    console.log('[DiscoverCard] Like triggered', { profileId: profile.id })
+    isSwipingRef.current = true // Lock immediately
     hapticSuccess() // Haptic feedback for like
     trackSwipe('RIGHT') // Track behavior
     setSwipeDirection('right')
-    // Call onLike after animation starts
+
+    // Call onLike after animation starts (300ms total animation, call parent at 150ms)
     setTimeout(() => {
       onLike()
+      // Reset lock after animation completes (do NOT reset swipeDirection - let useEffect handle it)
+      setTimeout(() => {
+        isSwipingRef.current = false
+      }, 200) // Extra buffer for animation to complete
     }, 150)
-  }, [isLoading, swipeDirection, onLike, trackSwipe])
+  }, [isLoading, swipeDirection, onLike, trackSwipe, profile.id])
 
   const handlePass = useCallback(() => {
-    if (isLoading || swipeDirection) return // Prevent double-triggers
+    // CRITICAL FIX: Use ref-based locking for more reliable double-trigger prevention
+    if (isLoading || swipeDirection || isSwipingRef.current) {
+      console.log('[DiscoverCard] Pass blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current })
+      return
+    }
+
+    console.log('[DiscoverCard] Pass triggered', { profileId: profile.id })
+    isSwipingRef.current = true // Lock immediately
     hapticImpact() // Haptic feedback for pass
     trackSwipe('LEFT') // Track behavior
     setSwipeDirection('left')
+
     // Call onPass after animation starts
     setTimeout(() => {
       onPass()
+      // Reset lock after animation completes
+      setTimeout(() => {
+        isSwipingRef.current = false
+      }, 200)
     }, 150)
-  }, [isLoading, swipeDirection, onPass, trackSwipe])
+  }, [isLoading, swipeDirection, onPass, trackSwipe, profile.id])
 
   const handleSuperLike = useCallback(() => {
-    if (isLoading || swipeDirection) return // Prevent double-triggers
+    // CRITICAL FIX: Use ref-based locking for more reliable double-trigger prevention
+    if (isLoading || swipeDirection || isSwipingRef.current) {
+      console.log('[DiscoverCard] SuperLike blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current })
+      return
+    }
+
+    console.log('[DiscoverCard] SuperLike triggered', { profileId: profile.id })
+    isSwipingRef.current = true // Lock immediately
     hapticHeavy() // Haptic feedback for super like
     trackSwipe('UP') // Track behavior
     setSwipeDirection('up')
+
     // Call onSuperLike after animation starts
     setTimeout(() => {
       onSuperLike()
+      // Reset lock after animation completes
+      setTimeout(() => {
+        isSwipingRef.current = false
+      }, 200)
     }, 150)
-  }, [isLoading, swipeDirection, onSuperLike, trackSwipe])
+  }, [isLoading, swipeDirection, onSuperLike, trackSwipe, profile.id])
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      // Don't process if already swiping
-      if (swipeDirection) return
+      // CRITICAL FIX: Check ref-based lock as well
+      if (swipeDirection || isSwipingRef.current) {
+        console.log('[DiscoverCard] DragEnd blocked', { swipeDirection, isSwipingRef: isSwipingRef.current })
+        return
+      }
 
       const { offset, velocity } = info
 
@@ -331,7 +380,7 @@ export function DiscoverProfileCard({
         rotate,
         touchAction: 'none', // Critical for Android - prevents browser handling touch
       }}
-      drag={!isLoading && !swipeDirection}
+      drag={!isLoading && !swipeDirection && !isSwipingRef.current}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.9}
       dragMomentum={false}
