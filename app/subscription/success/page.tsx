@@ -34,6 +34,8 @@ function SubscriptionSuccessContent() {
   const [status, setStatus] = useState<'checking' | 'success' | 'error'>('checking')
   const [message, setMessage] = useState('Betaling wordt geverifieerd...')
   const [countdown, setCountdown] = useState(8)
+  const [retryCount, setRetryCount] = useState(0)
+  const maxRetries = 10 // Max 30 seconds of retrying (10 retries × 3 seconds)
 
   // Payment verification
   useEffect(() => {
@@ -78,20 +80,33 @@ function SubscriptionSuccessContent() {
         }
 
         // Verify with order_id
+        console.log('[Success Page] Verifying payment:', { orderId, retryCount })
         const res = await fetch(`/api/subscription/verify?order_id=${orderId}`)
         const data = await res.json()
+
+        console.log('[Success Page] Verification response:', data)
 
         if (data.success && data.subscription?.status === 'active') {
           setStatus('success')
           setMessage('Je premium abonnement is geactiveerd!')
+          setRetryCount(0)
         } else if (data.subscription?.status === 'pending') {
-          setStatus('checking')
-          setMessage('Je betaling wordt nog verwerkt. Even geduld...')
-          // Retry after 3 seconds
-          setTimeout(verifyPayment, 3000)
+          // Check if we haven't exceeded max retries
+          if (retryCount < maxRetries) {
+            setStatus('checking')
+            setMessage(`Je betaling wordt verwerkt... (${retryCount + 1}/${maxRetries})`)
+            setRetryCount(prev => prev + 1)
+            // Retry after 3 seconds
+            setTimeout(verifyPayment, 3000)
+          } else {
+            setStatus('error')
+            setMessage('De betaling duurt langer dan verwacht. Check je email of neem contact op met support.')
+          }
         } else {
           setStatus('error')
-          setMessage(data.error || 'Betaling kon niet worden geverifieerd')
+          const errorMsg = data.error || data.message || 'Betaling kon niet worden geverifieerd'
+          setMessage(errorMsg)
+          console.error('[Success Page] Verification failed:', { orderId, error: errorMsg, data })
         }
       } catch (error) {
         setStatus('error')
