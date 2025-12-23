@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       throw new Error('User profile not found')
     }
 
-    const prefs: UserPreferences = currentUser.preferences ? JSON.parse(currentUser.preferences) : {}
+    const prefs: UserPreferences = (currentUser.preferences as UserPreferences) || {}
 
     // Check if passport mode is active
     const now = new Date()

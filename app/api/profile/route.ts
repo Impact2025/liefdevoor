@@ -210,7 +210,7 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
 
   return {
     ...updatedUser,
-    preferences: updatedUser.preferences ? JSON.parse(updatedUser.preferences) : null,
+    preferences: updatedUser.preferences || null,
     birthDate: updatedUser.birthDate ? updatedUser.birthDate.toISOString().split('T')[0] : null,
   } as UserProfile
 }

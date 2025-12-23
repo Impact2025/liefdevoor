@@ -265,13 +265,13 @@ export async function calculateAndStoreScores(userId: string, limit = 100): Prom
     throw new Error('User not found')
   }
 
-  // Parse preferences for gender filter
+  // Get preferences for gender filter
   let genderPreference: string[] | undefined
   try {
-    const prefs = user.preferences ? JSON.parse(user.preferences) : {}
+    const prefs = (user.preferences as any) || {}
     genderPreference = prefs.interestedIn
   } catch {
-    // Ignore parse errors
+    // Ignore errors
   }
 
   // Get potential matches (excluding blocked users and already swiped)

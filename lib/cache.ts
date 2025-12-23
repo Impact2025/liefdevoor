@@ -88,7 +88,7 @@ export const getCachedProfile = unstable_cache(
 
     return {
       ...user,
-      preferences: user.preferences ? JSON.parse(user.preferences) : null,
+      preferences: user.preferences || null,
       birthDate: user.birthDate ? user.birthDate.toISOString().split('T')[0] : null,
     }
   },
@@ -149,7 +149,7 @@ export const getCachedProfileWithPhotos = unstable_cache(
 
     return {
       ...user,
-      preferences: user.preferences ? JSON.parse(user.preferences) : null,
+      preferences: user.preferences || null,
       birthDate: user.birthDate ? user.birthDate.toISOString().split('T')[0] : null,
     }
   },

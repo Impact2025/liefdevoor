@@ -69,10 +69,8 @@ export default function SettingsPage() {
           if (profile.latitude) setLatitude(profile.latitude)
           if (profile.longitude) setLongitude(profile.longitude)
 
-          // Parse preferences if it's a string
-          const prefs = typeof profile.preferences === 'string'
-            ? JSON.parse(profile.preferences)
-            : profile.preferences
+          // Preferences is now stored as Json type, no parsing needed
+          const prefs = profile.preferences || {}
 
           // Update settings state
           setSettings(prev => ({
