@@ -7,8 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Heart } from 'lucide-react';
 import Image from 'next/image';
 
-// Step Components
-import LivenessCheck from '@/components/onboarding/steps/LivenessCheck';
+// Step Components (LivenessCheck temporarily disabled)
 import VoiceIntroRecorder from '@/components/onboarding/steps/VoiceIntroRecorder';
 import RelationshipGoalStep from '@/components/onboarding/steps/RelationshipGoalStep';
 import VibeCard, { VibeAnswers } from '@/components/onboarding/steps/VibeCard';
@@ -19,13 +18,12 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { trackOnboardingStep, trackOnboardingDropoff, trackOnboardingComplete } from '@/lib/analytics-events';
 import { useExperiment } from '@/lib/ab-testing';
 
-// Step configuration
+// Step configuration (Verificatie temporarily disabled due to mobile issues)
 const STEPS = [
-  { id: 1, name: 'Verificatie', description: 'Liveness check' },
-  { id: 2, name: 'Stem', description: 'Voice intro' },
-  { id: 3, name: 'Doel', description: 'Wat zoek je?' },
-  { id: 4, name: 'Vibe', description: 'Persoonlijkheid' },
-  { id: 5, name: 'Klaar', description: 'Profiel compleet' },
+  { id: 1, name: 'Stem', description: 'Voice intro' },
+  { id: 2, name: 'Doel', description: 'Wat zoek je?' },
+  { id: 3, name: 'Vibe', description: 'Persoonlijkheid' },
+  { id: 4, name: 'Klaar', description: 'Profiel compleet' },
 ];
 
 const slideVariants = {
@@ -101,7 +99,7 @@ export default function OnboardingPage() {
   // Navigate to next step
   const goToNextStep = useCallback(async (data?: Record<string, unknown>) => {
     const nextStep = currentStep + 1;
-    if (nextStep <= 5) {
+    if (nextStep <= 4) {
       await updateStepOnServer(nextStep, data);
       setDirection(1);
       setCurrentStep(nextStep);
@@ -112,15 +110,6 @@ export default function OnboardingPage() {
       trackConversion(`step_${currentStep}_complete`);
     }
   }, [currentStep, updateStepOnServer, trackConversion]);
-
-  // Handle liveness check completion
-  const handleLivenessComplete = useCallback(async (verificationPhotoUrl?: string) => {
-    await updateStepOnServer(2, {
-      isLivenessVerified: true,
-      verificationPhotoUrl
-    });
-    goToNextStep({ isLivenessVerified: true });
-  }, [goToNextStep, updateStepOnServer]);
 
   // Handle voice intro completion
   const handleVoiceComplete = useCallback(async (audioUrl: string | null) => {
@@ -141,17 +130,12 @@ export default function OnboardingPage() {
   const handleFinishComplete = useCallback(() => {
     // Track onboarding completion
     if (session?.user?.id) {
-      trackOnboardingComplete(session.user.id, 5);
+      trackOnboardingComplete(session.user.id, 4);
       trackConversion('onboarding_complete', 1);
     }
   }, [session?.user?.id, trackConversion]);
 
   // Skip handlers (optional steps)
-  const handleSkipLiveness = useCallback(() => {
-    trackOnboardingDropoff('liveness_check', 'skipped');
-    goToNextStep();
-  }, [goToNextStep]);
-
   const handleSkipVoice = useCallback(() => {
     trackOnboardingDropoff('voice_intro', 'skipped');
     goToNextStep();
@@ -250,20 +234,8 @@ export default function OnboardingPage() {
               }}
               className="h-full"
             >
-              {/* Step 1: Liveness Check */}
+              {/* Step 1: Voice Intro (Liveness check temporarily disabled) */}
               {currentStep === 1 && (
-                <ErrorBoundary
-                  onError={(error) => trackOnboardingDropoff('liveness_check', error.message)}
-                >
-                  <LivenessCheck
-                    onComplete={handleLivenessComplete}
-                    onSkip={handleSkipLiveness}
-                  />
-                </ErrorBoundary>
-              )}
-
-              {/* Step 2: Voice Intro */}
-              {currentStep === 2 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('voice_intro', error.message)}
                 >
@@ -274,8 +246,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 3: Relationship Goal */}
-              {currentStep === 3 && (
+              {/* Step 2: Relationship Goal */}
+              {currentStep === 2 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('relationship_goal', error.message)}
                 >
@@ -286,8 +258,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 4: Vibe Card */}
-              {currentStep === 4 && (
+              {/* Step 3: Vibe Card */}
+              {currentStep === 3 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('vibe_card', error.message)}
                 >
@@ -295,8 +267,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 5: Finish */}
-              {currentStep === 5 && (
+              {/* Step 4: Finish */}
+              {currentStep === 4 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('finish', error.message)}
                 >
