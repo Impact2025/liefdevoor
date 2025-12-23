@@ -25,7 +25,7 @@ interface Photo {
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { user, isLoading, error, refetch } = useCurrentUser()
+  const { user, isLoading, error, refetch, updateUser } = useCurrentUser()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loadingPhotos, setLoadingPhotos] = useState(true)
   const [isPlayingVoice, setIsPlayingVoice] = useState(false)
@@ -50,21 +50,26 @@ export default function ProfilePage() {
 
   const setMainPhoto = useCallback(async (photoUrl: string) => {
     try {
+      // Optimistic update - instant UI feedback
+      updateUser({ profileImage: photoUrl })
+
       const res = await fetch('/api/photos', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'setMain', photoId: photoUrl }),
       })
       if (res.ok) {
-        refetch() // Refresh user data to update profile image
+        await refetch() // Refresh user data to confirm
         alert('Profielfoto bijgewerkt!')
       } else {
+        await refetch() // Revert optimistic update on error
         alert('Kon profielfoto niet instellen')
       }
     } catch (error) {
+      await refetch() // Revert optimistic update on error
       alert('Kon profielfoto niet instellen')
     }
-  }, [refetch])
+  }, [refetch, updateUser])
 
   const deletePhoto = useCallback(async (photoId: string) => {
     if (!confirm('Weet je zeker dat je deze foto wilt verwijderen?')) return

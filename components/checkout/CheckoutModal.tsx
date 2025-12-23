@@ -95,7 +95,8 @@ export default function CheckoutModal({
       } else {
         const errorData = await res.json()
         console.error('Checkout error:', errorData)
-        alert(errorData.error || 'Er ging iets mis. Probeer het opnieuw.')
+        const errorMessage = errorData.details || errorData.error || 'Er ging iets mis. Probeer het opnieuw.'
+        alert(errorMessage)
         throw new Error(errorData.error || 'Payment failed')
       }
     } catch (error) {

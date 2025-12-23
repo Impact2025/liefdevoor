@@ -15,6 +15,7 @@ interface UseCurrentUserResult {
   isLoading: boolean
   error: Error | null
   refetch: () => Promise<void>
+  updateUser: (updates: Partial<UserProfile>) => void
 }
 
 /**
@@ -43,7 +44,8 @@ export function useCurrentUser(): UseCurrentUserResult {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('/api/profile')
+      // Add cache-busting parameter to prevent stale data
+      const response = await fetch(`/api/profile?t=${Date.now()}`)
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -74,10 +76,16 @@ export function useCurrentUser(): UseCurrentUserResult {
     fetchUser()
   }, [fetchUser])
 
+  // Function to update user state directly (for optimistic updates)
+  const updateUser = useCallback((updates: Partial<UserProfile>) => {
+    setUser((prev) => prev ? { ...prev, ...updates } : null)
+  }, [])
+
   return {
     user,
     isLoading,
     error,
     refetch: fetchUser,
+    updateUser,
   }
 }

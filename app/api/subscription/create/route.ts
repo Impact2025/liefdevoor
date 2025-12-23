@@ -24,10 +24,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Je moet ingelogd zijn' }, { status: 401 })
     }
 
-    const { planId, amount, couponCode } = await request.json()
+    const body = await request.json()
+    const { planId, amount, couponCode } = body
+
+    console.log('[Subscription Create] Request body:', { planId, amount, couponCode })
 
     if (!planId || !(planId in SUBSCRIPTION_PLANS)) {
-      return NextResponse.json({ error: 'Ongeldig abonnement' }, { status: 400 })
+      console.error('[Subscription Create] Invalid planId:', planId, 'Available plans:', Object.keys(SUBSCRIPTION_PLANS))
+      return NextResponse.json({
+        error: 'Ongeldig abonnement',
+        details: `Plan ID '${planId}' is niet geldig. Beschikbare plans: ${Object.keys(SUBSCRIPTION_PLANS).join(', ')}`
+      }, { status: 400 })
     }
 
     const plan = SUBSCRIPTION_PLANS[planId as PlanId]
@@ -115,6 +122,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingSubscription) {
+      console.log('[Subscription Create] Existing subscription found:', {
+        existingPlan: existingSubscription.plan,
+        requestedPlan: planId
+      })
+
       // Check if same plan
       if (existingSubscription.plan === planId) {
         return NextResponse.json(
