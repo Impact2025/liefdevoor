@@ -70,18 +70,26 @@ export async function POST() {
     // Optionally: Send cancellation email
     // await sendCancellationEmail(user.email)
 
-    // Log audit event
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: 'SUBSCRIPTION_CANCELLED',
-        details: {
-          subscriptionId: subscription.id,
-          tier: subscription.tier,
-          cancelledAt: new Date().toISOString(),
-          accessUntil: subscription.endDate?.toISOString(),
-        },
-      },
+    // TODO: Add audit logging when AuditLog model is added to Prisma schema
+    // await prisma.auditLog.create({
+    //   data: {
+    //     userId: user.id,
+    //     action: 'SUBSCRIPTION_CANCELLED',
+    //     details: {
+    //       subscriptionId: subscription.id,
+    //       tier: subscription.tier,
+    //       cancelledAt: new Date().toISOString(),
+    //       accessUntil: subscription.endDate?.toISOString(),
+    //     },
+    //   },
+    // })
+
+    // Log to console for now
+    console.log('[Subscription] Cancelled:', {
+      userId: user.id,
+      subscriptionId: subscription.id,
+      tier: subscription.tier,
+      accessUntil: subscription.endDate,
     })
 
     return NextResponse.json({
