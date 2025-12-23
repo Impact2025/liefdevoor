@@ -6,22 +6,25 @@ import { useRouter } from 'next/navigation'
 
 const plans = [
   {
-    id: 'basic',
-    name: 'Basic',
+    id: 'FREE',
+    name: 'Basis',
     price: 0,
-    features: ['5 swipes per day', 'Basic matching', 'Standard support']
+    period: 'maand',
+    features: ['Profiel aanmaken', '10 likes per dag', '1 chat per dag starten', 'Basis zoekfilters']
   },
   {
-    id: 'premium',
-    name: 'Premium',
-    price: 9.99,
-    features: ['Unlimited swipes', 'See who liked you', 'Advanced filters', 'Priority support']
+    id: 'PLUS',
+    name: 'Liefde Plus',
+    price: 9.95,
+    period: 'maand',
+    features: ['Onbeperkt chatten', 'Onbeperkt likes', 'Zien wie jou leuk vindt', 'Audioberichten sturen', 'Leesbevestigingen', 'Geen advertenties']
   },
   {
-    id: 'gold',
-    name: 'Gold',
-    price: 19.99,
-    features: ['All Premium features', 'Priority matching', 'Video chat', 'VIP support']
+    id: 'COMPLETE',
+    name: 'Liefde Compleet',
+    price: 24.95,
+    period: '3 maanden',
+    features: ['Alles van Liefde Plus', '3 Superberichten per maand', 'Prioriteit in ontdekken', 'Video chat', 'Geverifieerd badge']
   }
 ]
 
@@ -47,16 +50,17 @@ export default function SubscriptionPage() {
       if (res.ok) {
         const data = await res.json()
         if (data.success) {
-          alert('Subscription activated!')
-          router.push('/')
+          alert('Abonnement geactiveerd!')
+          router.push('/subscription/success')
         } else if (data.paymentUrl) {
           window.location.href = data.paymentUrl
         }
       } else {
-        alert('Failed to create subscription')
+        const data = await res.json()
+        alert(data.error || 'Kon abonnement niet aanmaken')
       }
     } catch (error) {
-      alert('Error creating subscription')
+      alert('Er ging iets mis. Probeer het opnieuw.')
     } finally {
       setLoading(null)
     }
@@ -65,15 +69,15 @@ export default function SubscriptionPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-primary">Choose Your Plan</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 text-primary">Kies je abonnement</h1>
 
         <div className="grid md:grid-cols-3 gap-6">
           {plans.map((plan) => (
             <div key={plan.id} className="bg-white rounded-lg shadow-md p-6 border">
               <h2 className="text-xl font-bold mb-4">{plan.name}</h2>
               <p className="text-2xl font-bold text-primary mb-4">
-                €{plan.price}
-                {plan.price > 0 && <span className="text-sm font-normal">/month</span>}
+                €{plan.price.toFixed(2)}
+                {plan.price > 0 && <span className="text-sm font-normal">/{plan.period}</span>}
               </p>
               <ul className="mb-6 space-y-2">
                 {plan.features.map((feature, i) => (
@@ -88,7 +92,7 @@ export default function SubscriptionPage() {
                 disabled={loading === plan.id}
                 className="w-full bg-primary text-white py-2 rounded-lg hover:bg-rose-hover disabled:opacity-50 transition-colors"
               >
-                {loading === plan.id ? 'Processing...' : plan.price === 0 ? 'Get Started' : 'Subscribe'}
+                {loading === plan.id ? 'Verwerken...' : plan.price === 0 ? 'Gratis starten' : 'Kies dit plan'}
               </button>
             </div>
           ))}

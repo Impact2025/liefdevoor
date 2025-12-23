@@ -303,12 +303,13 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const faceTooFar = faceAreaRatio < 0.01;
 
     // Head position detection based on face bounding box position
-    // Use smaller threshold (15% of width) to detect head turns more easily
-    const turnThreshold = canvas.width * 0.15;
-    // Note: Video is mirrored on display, so we invert left/right detection
-    // When user turns head to their right, face moves LEFT in raw video, but appears RIGHT on mirrored display
-    const headTurnRight = faceDetected && faceCenterX < canvasCenterX - turnThreshold;
+    // Use very small threshold (8% of width) to detect head turns easily
+    const turnThreshold = canvas.width * 0.08;
+    // Video is mirrored on display (scaleX(-1)), so detection is inverted:
+    // User turns LEFT physically → face moves RIGHT in raw canvas → faceCenterX > canvasCenterX
+    // User turns RIGHT physically → face moves LEFT in raw canvas → faceCenterX < canvasCenterX
     const headTurnLeft = faceDetected && faceCenterX > canvasCenterX + turnThreshold;
+    const headTurnRight = faceDetected && faceCenterX < canvasCenterX - turnThreshold;
     const headCenter = faceDetected && Math.abs(faceCenterX - canvasCenterX) < turnThreshold;
 
     return {

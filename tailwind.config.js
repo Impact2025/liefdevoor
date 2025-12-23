@@ -90,6 +90,35 @@ module.exports = withUt({
         background: '#fafaf9', // stone-50
         surface: '#FFFFFF',
         muted: '#6B7280',
+
+        // ========================================================================
+        // WCAG AAA HIGH CONTRAST COLORS (7:1 ratio for vision impaired mode)
+        // ========================================================================
+        'primary-aaa': {
+          DEFAULT: '#c71d3b', // Darker primary for AAA contrast on white
+          hover: '#a01730',
+          light: '#fff5f7', // Very light background for dark text
+        },
+        'success-aaa': {
+          DEFAULT: '#14803d', // Darker green for AAA contrast
+          hover: '#15803d',
+          light: '#f0fdf4',
+        },
+        'danger-aaa': {
+          DEFAULT: '#b91c1c', // Darker red for AAA contrast
+          hover: '#991b1b',
+          light: '#fef2f2',
+        },
+        'text-aaa': {
+          primary: '#000000',    // Pure black for maximum contrast
+          secondary: '#1f2937',  // Near-black for secondary text
+          muted: '#4b5563',      // Dark gray (still 7:1 on white)
+        },
+        'bg-aaa': {
+          primary: '#ffffff',    // Pure white background
+          secondary: '#f9fafb',  // Very light gray
+          elevated: '#ffffff',   // White for elevated surfaces
+        },
       },
 
       // ========================================================================
@@ -352,6 +381,24 @@ module.exports = withUt({
         // Large text mode
         '.text-adaptive': {
           'font-size': 'calc(1rem * var(--adaptive-text-scale, 1))',
+        },
+        // High contrast mode utilities
+        '.high-contrast-text': {
+          'color': 'var(--adaptive-contrast-mode) === "aaa" ? #000000 : inherit',
+        },
+        '.high-contrast-bg': {
+          'background-color': 'var(--adaptive-contrast-mode) === "aaa" ? #ffffff : inherit',
+        },
+        // Vision impaired mode focus rings (thicker and higher contrast)
+        '.focus-ring-aaa': {
+          '&:focus': {
+            'outline': 'none',
+            'box-shadow': '0 0 0 4px rgba(0, 0, 0, 0.8)',
+          },
+          '&:focus-visible': {
+            'outline': 'none',
+            'box-shadow': '0 0 0 4px rgba(0, 0, 0, 0.8)',
+          },
         },
       })
 

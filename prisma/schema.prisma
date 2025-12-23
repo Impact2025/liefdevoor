@@ -108,6 +108,15 @@ model User {
   // 🕵️ Incognito Mode - Browse without appearing in discover
   incognitoMode     Boolean          @default(false)
 
+  // ♿ Accessibility Preferences - Vision Impaired Mode
+  visionImpairedMode Boolean         @default(false) // Master toggle voor slechtzienden
+  extraHighContrast  Boolean         @default(false) // WCAG AAA 7:1 contrast
+  textToSpeech       Boolean         @default(false) // Text-to-speech functie
+  voiceCommands      Boolean         @default(false) // Voice commands (toekomstig)
+  colorBlindMode     String?                         // "none" | "deuteranopia" | "protanopia" | "tritanopia"
+  largeTextMode      Boolean         @default(false) // Grote tekst modus
+  largeTargetsMode   Boolean         @default(false) // Grote knoppen modus
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]

@@ -21,12 +21,14 @@ import { CityAutocomplete } from '@/components/features/location/CityAutocomplet
 import { LocationMap } from '@/components/features/location/LocationMap'
 import { LocationPrivacy } from '@/components/features/location/LocationPrivacy'
 import { IncognitoToggle } from '@/components/features/incognito'
+import { useAdaptiveUI } from '@/components/adaptive/AdaptiveUIProvider'
 import type { GeocodingResult, CityOption } from '@/lib/services/geocoding'
-import { MapPin, EyeOff } from 'lucide-react'
+import { MapPin, EyeOff, Eye, Type, MousePointer, Palette } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { preferences, updatePreferences, enableVisionImpairedMode, disableVisionImpairedMode } = useAdaptiveUI()
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
   const [success, setSuccess] = useState(false)
@@ -403,6 +405,149 @@ export default function SettingsPage() {
                   className="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"
                 />
               </label>
+            </div>
+          </div>
+
+          {/* Toegankelijkheid (Accessibility) */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <Eye className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Toegankelijkheid
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Optimaliseer de app voor slechtzienden en andere beperkingen
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Vision Impaired Mode - Master Toggle */}
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-4">
+                <label className="flex items-start justify-between cursor-pointer">
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Eye className="w-5 h-5 text-purple-600" />
+                      Slechtzienden Modus
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      Activeert extra groot lettertype (125%), maximaal contrast (WCAG AAA), en voorleesfunctie
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.visionImpairedMode}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        enableVisionImpairedMode()
+                      } else {
+                        disableVisionImpairedMode()
+                      }
+                    }}
+                    className="w-6 h-6 text-purple-600 rounded focus:ring-purple-500 ml-4"
+                  />
+                </label>
+              </div>
+
+              {/* Individual Settings */}
+              <div className="border-t pt-4">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Palette className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">Extra Hoog Contrast</div>
+                      <div className="text-sm text-gray-500">WCAG AAA compliant (7:1 ratio)</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.extraHighContrast}
+                    onChange={(e) => updatePreferences({ extraHighContrast: e.target.checked })}
+                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  />
+                </label>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Type className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">Voorleesfunctie</div>
+                      <div className="text-sm text-gray-500">Laat tekst voorlezen met een knop</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.textToSpeech}
+                    onChange={(e) => updatePreferences({ textToSpeech: e.target.checked })}
+                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  />
+                </label>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Type className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">Grote Tekst</div>
+                      <div className="text-sm text-gray-500">Vergroot alle tekst met 12.5%</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.largeText}
+                    onChange={(e) => updatePreferences({ largeText: e.target.checked })}
+                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  />
+                </label>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      <MousePointer className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">Grote Knoppen</div>
+                      <div className="text-sm text-gray-500">Minimaal 56px aanraakvlak</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.largeTargets}
+                    onChange={(e) => updatePreferences({ largeTargets: e.target.checked })}
+                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  />
+                </label>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Kleurenblind Modus
+                </label>
+                <select
+                  value={preferences.colorBlindMode}
+                  onChange={(e) => updatePreferences({ colorBlindMode: e.target.value as any })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                >
+                  <option value="none">Geen</option>
+                  <option value="deuteranopia">Deuteranopia (Rood-groen)</option>
+                  <option value="protanopia">Protanopia (Rood-groen)</option>
+                  <option value="tritanopia">Tritanopia (Blauw-geel)</option>
+                </select>
+              </div>
             </div>
           </div>
 
