@@ -642,7 +642,17 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
       </section>
 
       {/* === SUBMIT === */}
-      <div className="flex gap-4 pt-4 border-t border-gray-200">
+      {/* Sticky save button for mobile */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg lg:hidden z-50 safe-bottom">
+        <div className="max-w-lg mx-auto">
+          <Button type="submit" variant="primary" isLoading={isLoading} fullWidth>
+            {isLoading ? 'Bezig met opslaan...' : 'Opslaan'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Desktop save buttons */}
+      <div className="hidden lg:flex gap-4 pt-4 border-t border-gray-200">
         <Button type="submit" variant="primary" isLoading={isLoading} size="lg">
           Opslaan
         </Button>
