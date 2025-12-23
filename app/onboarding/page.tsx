@@ -10,6 +10,7 @@ import Image from 'next/image';
 // Step Components
 import LivenessCheck from '@/components/onboarding/steps/LivenessCheck';
 import VoiceIntroRecorder from '@/components/onboarding/steps/VoiceIntroRecorder';
+import RelationshipGoalStep from '@/components/onboarding/steps/RelationshipGoalStep';
 import VibeCard, { VibeAnswers } from '@/components/onboarding/steps/VibeCard';
 import FinishStep from '@/components/onboarding/steps/FinishStep';
 
@@ -22,8 +23,9 @@ import { useExperiment } from '@/lib/ab-testing';
 const STEPS = [
   { id: 1, name: 'Verificatie', description: 'Liveness check' },
   { id: 2, name: 'Stem', description: 'Voice intro' },
-  { id: 3, name: 'Vibe', description: 'Persoonlijkheid' },
-  { id: 4, name: 'Klaar', description: 'Profiel compleet' },
+  { id: 3, name: 'Doel', description: 'Wat zoek je?' },
+  { id: 4, name: 'Vibe', description: 'Persoonlijkheid' },
+  { id: 5, name: 'Klaar', description: 'Profiel compleet' },
 ];
 
 const slideVariants = {
@@ -99,7 +101,7 @@ export default function OnboardingPage() {
   // Navigate to next step
   const goToNextStep = useCallback(async (data?: Record<string, unknown>) => {
     const nextStep = currentStep + 1;
-    if (nextStep <= 4) {
+    if (nextStep <= 5) {
       await updateStepOnServer(nextStep, data);
       setDirection(1);
       setCurrentStep(nextStep);
@@ -125,6 +127,11 @@ export default function OnboardingPage() {
     await goToNextStep({ voiceIntroUrl: audioUrl });
   }, [goToNextStep]);
 
+  // Handle relationship goal completion
+  const handleRelationshipGoalComplete = useCallback(async (goal: string) => {
+    await goToNextStep({ relationshipGoal: goal });
+  }, [goToNextStep]);
+
   // Handle vibe card completion
   const handleVibeComplete = useCallback(async (answers: VibeAnswers) => {
     await goToNextStep({ psychProfile: answers });
@@ -134,7 +141,7 @@ export default function OnboardingPage() {
   const handleFinishComplete = useCallback(() => {
     // Track onboarding completion
     if (session?.user?.id) {
-      trackOnboardingComplete(session.user.id, 4);
+      trackOnboardingComplete(session.user.id, 5);
       trackConversion('onboarding_complete', 1);
     }
   }, [session?.user?.id, trackConversion]);
@@ -147,6 +154,11 @@ export default function OnboardingPage() {
 
   const handleSkipVoice = useCallback(() => {
     trackOnboardingDropoff('voice_intro', 'skipped');
+    goToNextStep();
+  }, [goToNextStep]);
+
+  const handleSkipRelationshipGoal = useCallback(() => {
+    trackOnboardingDropoff('relationship_goal', 'skipped');
     goToNextStep();
   }, [goToNextStep]);
 
@@ -262,8 +274,20 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 3: Vibe Card */}
+              {/* Step 3: Relationship Goal */}
               {currentStep === 3 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('relationship_goal', error.message)}
+                >
+                  <RelationshipGoalStep
+                    onComplete={handleRelationshipGoalComplete}
+                    onSkip={handleSkipRelationshipGoal}
+                  />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 4: Vibe Card */}
+              {currentStep === 4 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('vibe_card', error.message)}
                 >
@@ -271,8 +295,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 4: Finish */}
-              {currentStep === 4 && (
+              {/* Step 5: Finish */}
+              {currentStep === 5 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('finish', error.message)}
                 >

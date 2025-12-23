@@ -29,6 +29,7 @@ export async function GET() {
             adventureScale: true,
             conflictStyle: true,
             communicationStyle: true,
+            relationshipGoal: true,
           },
         },
       },

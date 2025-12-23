@@ -144,6 +144,12 @@ model User {
   // 🧠 Psychological Profile
   psychProfile         PsychProfile?
 
+  // 🎯 Progressive Profiling & Invisible Data Collection
+  semanticTags         String[]     // AI-generated tags from behavior ["outdoor-lover", "foodie", "night-owl"]
+  promptAnswers        UserPromptAnswer[]
+  swipeLogs            SwipeLog[]   // Detailed behavioral data
+  requiresLivenessRecheck Boolean   @default(false) // Safety: triggered by suspicious activity
+
   // Privacy & GDPR Consent
   privacyPolicyAccepted    Boolean   @default(false)
   privacyPolicyVersion     String?   // Welke versie van privacy policy geaccepteerd
@@ -492,9 +498,21 @@ model UserEmbedding {
   id        String   @id @default(cuid())
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  embedding Json
-  bioHash   String?
+
+  // Bio embedding for semantic matching
+  embedding Json     // OpenAI/Claude embedding vector (1536 dimensions)
+  bioHash   String?  // Hash to detect bio changes
+
+  // Prompt-enriched embedding (bio + answered prompts)
+  enrichedEmbedding Json?  // Combined profile vector
+  enrichedAt        DateTime?
+
+  // Semantic tags derived from embeddings
+  derivedTags       String[] // AI-generated: ["adventurous", "family-oriented", "creative"]
+
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // ============================================
@@ -875,4 +893,163 @@ model ProfileView {
   @@index([viewerId])
   @@index([viewedId])
   @@index([viewedId, viewedAt]) // For "recent viewers"
+}
+
+// ============================================
+// 🎯 PROGRESSIVE PROFILING - "Daily Candy" System
+// Invisible data collection through fun daily questions
+// ============================================
+
+model DailyPrompt {
+  id          String   @id @default(cuid())
+  question    String   // "Strand of Bergen?"
+  questionNl  String   // Dutch version for LVB users
+  emoji       String?  // Visual cue "🏖️ vs 🏔️"
+
+  // Answer options as JSON: [{"value": "beach", "label": "Strand", "emoji": "🏖️"}, ...]
+  options     Json
+
+  // AI/Matching metadata
+  vectorTag   String   // Tag applied to user: "beach-lover" or "mountain-person"
+  category    String   @default("lifestyle") // lifestyle, social, values, food, hobbies
+  weight      Float    @default(1.0) // Importance for matching (1.0 = normal, 2.0 = high priority)
+
+  // Admin controls
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0) // Higher = shown first to new users
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  answers     UserPromptAnswer[]
+
+  @@index([isActive, priority])
+  @@index([category])
+}
+
+model UserPromptAnswer {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId  String
+  prompt    DailyPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  // The answer
+  answer    String      // Selected option value
+  answerLabel String?   // Human-readable answer for display
+
+  // Metadata for AI learning
+  responseTimeMs Int?   // How long they took to answer (fast = confident)
+
+  createdAt DateTime    @default(now())
+
+  @@unique([userId, promptId]) // One answer per user per prompt
+  @@index([userId])
+  @@index([promptId])
+  @@index([userId, createdAt]) // For checking "answered in last 24h"
+}
+
+// ============================================
+// 📊 IMPLICIT DATA COLLECTION - Swipe Behavior
+// Track HOW users interact, not just WHAT they choose
+// ============================================
+
+enum SwipeDirection {
+  LEFT      // Rejected
+  RIGHT     // Liked
+  UP        // Super Like
+  TIMEOUT   // Didn't decide (data point!)
+}
+
+model SwipeLog {
+  id                String         @id @default(cuid())
+  userId            String
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetProfileId   String         // Who they were viewing
+
+  // The action
+  direction         SwipeDirection
+
+  // Behavioral signals (GOLD for AI matching)
+  viewingDurationMs Int            // How long they looked (long = interested even if swiped left)
+  photoViewCount    Int            @default(1) // How many photos they viewed
+  bioExpanded       Boolean        @default(false) // Did they read full bio?
+  scrollDepth       Float?         // 0.0-1.0, how far they scrolled on profile
+  voiceIntroPlayed  Boolean        @default(false) // Did they play voice intro?
+
+  // Context
+  sessionPosition   Int?           // Nth swipe in this session (fatigue detection)
+  timestamp         DateTime       @default(now())
+
+  // Device context
+  platform          String?        // "ios", "android", "web"
+
+  @@index([userId])
+  @@index([targetProfileId])
+  @@index([userId, timestamp])
+  @@index([direction])
+  @@index([userId, direction]) // For preference analysis
+}
+
+// ============================================
+// 🧠 AI PREFERENCE LEARNING - Implicit vs Explicit
+// When explicit prefs don't match behavior
+// ============================================
+
+model PreferenceDiscrepancy {
+  id              String   @id @default(cuid())
+  userId          String
+
+  // What they said vs what they do
+  explicitPref    String   // "Looking for: age 25-30"
+  implicitPref    String   // "Consistently swipes right on: age 35-45"
+
+  // Confidence
+  confidence      Float    // 0.0-1.0, how confident we are in the discrepancy
+  sampleSize      Int      // Number of data points
+
+  // Action taken
+  isApplied       Boolean  @default(false) // Did we update their matching?
+  appliedAt       DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isApplied])
+}
+
+// ============================================
+// 🔐 SAFETY SENTINEL - Message Monitoring
+// Protect users from scams/abuse
+// ============================================
+
+model SafetyFlag {
+  id          String   @id @default(cuid())
+  userId      String   // The flagged user
+
+  // What triggered it
+  triggerType String   // "message_nlp", "behavior_pattern", "report_threshold"
+  triggerId   String?  // messageId, etc.
+
+  // Scores
+  severity    Float    // 0.0-1.0, how severe
+  category    String   // "scam", "harassment", "spam", "underage_risk"
+
+  // Details
+  details     Json?    // NLP analysis results, pattern details
+
+  // Resolution
+  status      String   @default("pending") // pending, reviewed, actioned, dismissed
+  reviewedBy  String?  // Admin ID
+  reviewedAt  DateTime?
+  actionTaken String?  // "warned", "banned", "liveness_recheck"
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
 }

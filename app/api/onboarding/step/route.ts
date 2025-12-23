@@ -7,6 +7,7 @@ import { ConflictStyle } from '@prisma/client';
 interface StepData {
   isLivenessVerified?: boolean;
   voiceIntroUrl?: string | null;
+  relationshipGoal?: string;
   psychProfile?: {
     introvertScale: number;
     spontaneityScale: number;
@@ -31,7 +32,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { step, data } = body as { step: number; data?: StepData };
 
-    if (!step || step < 1 || step > 4) {
+    if (!step || step < 1 || step > 5) {
       return NextResponse.json(
         { error: 'Ongeldige stap' },
         { status: 400 }
@@ -50,6 +51,23 @@ export async function PUT(request: NextRequest) {
 
     if (data?.voiceIntroUrl !== undefined) {
       updateData.voiceIntroUrl = data.voiceIntroUrl;
+    }
+
+    // Handle relationship goal - save to PsychProfile
+    if (data?.relationshipGoal) {
+      const validGoals = ['casual', 'serious', 'marriage', 'open'];
+      if (validGoals.includes(data.relationshipGoal)) {
+        await prisma.psychProfile.upsert({
+          where: { userId: session.user.id },
+          create: {
+            userId: session.user.id,
+            relationshipGoal: data.relationshipGoal,
+          },
+          update: {
+            relationshipGoal: data.relationshipGoal,
+          },
+        });
+      }
     }
 
     // Update user

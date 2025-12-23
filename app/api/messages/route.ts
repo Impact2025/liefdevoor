@@ -3,6 +3,7 @@ import { requireAuth, requireCSRF, successResponse, handleApiError, validationEr
 import { prisma } from '@/lib/prisma'
 import { sendMessageNotification } from '@/lib/email/notification-service'
 import { sendMessageNotification as sendMessagePush } from '@/lib/services/push/push-notifications'
+import { analyzeMessageSafety, isSpammingMessages } from '@/lib/ai/safetySentinel'
 import type { Message } from '@/lib/types'
 
 interface SendMessageRequest {
@@ -41,6 +42,26 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
 
   if (blockExists) {
     throw new Error('Cannot send messages to this user')
+  }
+
+  // Safety Sentinel: Check for spam behavior
+  const isSpamming = await isSpammingMessages(userId)
+  if (isSpamming) {
+    throw new Error('Je stuurt te veel berichten. Wacht even.')
+  }
+
+  // Safety Sentinel: Analyze message content for threats/scams
+  if (content) {
+    const safetyAnalysis = await analyzeMessageSafety(content, userId)
+
+    if (safetyAnalysis.isBlocked) {
+      throw new Error(safetyAnalysis.details || 'Bericht kan niet worden verzonden')
+    }
+
+    // Log if there are any flags (even if not blocked)
+    if (safetyAnalysis.flags.length > 0) {
+      console.log(`[SafetySentinel] Message flagged for user ${userId}:`, safetyAnalysis.category)
+    }
   }
 
   // Create the message

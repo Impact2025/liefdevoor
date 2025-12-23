@@ -337,7 +337,7 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
             onChange={(e) => setOccupation(e.target.value)}
             fullWidth
             disabled={isLoading}
-            icon={<Briefcase className="w-4 h-4" />}
+            startIcon={<Briefcase className="w-4 h-4" />}
           />
 
           <Input
@@ -349,7 +349,7 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
             onChange={(e) => setEducation(e.target.value)}
             fullWidth
             disabled={isLoading}
-            icon={<GraduationCap className="w-4 h-4" />}
+            startIcon={<GraduationCap className="w-4 h-4" />}
           />
         </div>
 
@@ -374,7 +374,7 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
 
           <Select
             id="drinking"
-            label={<><Wine className="w-4 h-4 inline mr-1" />Alcohol</>}
+            label="Alcohol"
             value={drinking}
             onChange={(e) => setDrinking(e.target.value)}
             fullWidth
@@ -384,7 +384,7 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
 
           <Select
             id="smoking"
-            label={<><Cigarette className="w-4 h-4 inline mr-1" />Roken</>}
+            label="Roken"
             value={smoking}
             onChange={(e) => setSmoking(e.target.value)}
             fullWidth
@@ -394,7 +394,7 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
 
           <Select
             id="children"
-            label={<><Baby className="w-4 h-4 inline mr-1" />Kinderen</>}
+            label="Kinderen"
             value={children}
             onChange={(e) => setChildren(e.target.value)}
             fullWidth

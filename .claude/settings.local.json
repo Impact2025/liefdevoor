@@ -35,7 +35,10 @@
       "Bash(tee:*)",
       "Bash(git config:*)",
       "Bash(set NODE_OPTIONS=--max-old-space-size=4096)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(if exist \"D:\\\\Datingsite2026\\\\node_modules\\\\.prisma\" rmdir /s /q \"D:\\\\Datingsite2026\\\\node_modules\\\\.prisma\")",
+      "Bash(echo.:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

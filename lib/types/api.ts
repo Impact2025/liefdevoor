@@ -116,7 +116,7 @@ export interface Photo {
 /**
  * Discover user - profile shown in discover feed
  */
-export interface DiscoverUser extends Omit<UserProfile, 'email' | 'preferences'> {
+export interface DiscoverUser extends Omit<UserProfile, 'email' | 'preferences' | 'occupation' | 'education' | 'height' | 'drinking' | 'smoking' | 'children'> {
   distance?: number
   compatibility?: number
   photos: Photo[]
