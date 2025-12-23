@@ -69,6 +69,19 @@ export async function sendReEngagementEmails(): Promise<{
 
     console.log(`[Re-Engagement] Processing tier: ${tier.name} (${tier.minDays}-${tier.maxDays} days)`)
 
+    // Get user IDs who received re-engagement email recently (last 14 days)
+    const recentlyEmailed = await prisma.emailLog.findMany({
+      where: {
+        type: 're_engagement',
+        sentAt: {
+          gte: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+        },
+        userId: { not: null },
+      },
+      select: { userId: true },
+    })
+    const recentlyEmailedIds = recentlyEmailed.map(e => e.userId).filter(Boolean) as string[]
+
     // Find dormant users
     const dormantUsers = await prisma.user.findMany({
       where: {
@@ -79,18 +92,7 @@ export async function sendReEngagementEmails(): Promise<{
           { marketingEmailsConsent: true },
           { lastSeen: { gte: minDate, lte: maxDate } },
           // Exclude users who got re-engagement email recently
-          {
-            NOT: {
-              receivedEmails: {
-                some: {
-                  type: 're_engagement',
-                  sentAt: {
-                    gte: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), // Last 14 days
-                  },
-                },
-              },
-            },
-          },
+          { id: { notIn: recentlyEmailedIds } },
         ],
       },
       include: {

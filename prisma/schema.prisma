@@ -525,6 +525,31 @@ model EmailAnalytics {
   @@index([emailLogId])
 }
 
+// Email A/B Testing
+model EmailABTest {
+  id                  String   @id @default(cuid())
+  name                String
+  emailType           String
+  variantA            Json
+  variantB            Json
+  trafficSplitPercent Int      @default(50)
+  isActive            Boolean  @default(true)
+
+  // Metrics
+  variantASent        Int      @default(0)
+  variantBSent        Int      @default(0)
+  variantAOpens       Int      @default(0)
+  variantBOpens       Int      @default(0)
+  variantAClicks      Int      @default(0)
+  variantBClicks      Int      @default(0)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([emailType, isActive])
+  @@index([isActive])
+}
+
 // User email preferences (GDPR compliant)
 model EmailPreference {
   id                String   @id @default(cuid())

@@ -15,6 +15,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import Image from 'next/image'
+import { logSwipeBehavior } from '@/app/actions/tracking'
 import {
   Heart,
   X,
@@ -136,6 +137,13 @@ export function DiscoverProfileCard({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null)
 
+  // Behavior tracking state
+  const [viewStartTime] = useState(Date.now())
+  const [maxPhotoViewed, setMaxPhotoViewed] = useState(0)
+  const [bioExpanded, setBioExpanded] = useState(false)
+  const [voiceIntroPlayed, setVoiceIntroPlayed] = useState(false)
+  const [maxScrollDepth, setMaxScrollDepth] = useState(0)
+
   // Motion values for swipe gestures
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -188,37 +196,64 @@ export function DiscoverProfileCard({
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement
     setIsScrolled(target.scrollTop > 50)
+
+    // Track scroll depth for behavior analysis
+    const scrollDepth = target.scrollTop / (target.scrollHeight - target.clientHeight)
+    setMaxScrollDepth(prev => Math.max(prev, scrollDepth))
+
+    // Bio is considered "expanded" if scrolled past the hero section
+    if (target.scrollTop > 300) {
+      setBioExpanded(true)
+    }
   }, [])
+
+  // Track swipe behavior (non-blocking)
+  const trackSwipe = useCallback((direction: 'LEFT' | 'RIGHT' | 'UP') => {
+    const viewingDuration = Date.now() - viewStartTime
+    logSwipeBehavior({
+      targetId: profile.id,
+      direction,
+      viewingDurationMs: viewingDuration,
+      photoViewCount: maxPhotoViewed + 1, // 0-indexed to count
+      bioExpanded,
+      scrollDepth: maxScrollDepth,
+      voiceIntroPlayed,
+      platform: typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+    }).catch(() => {}) // Silent fail - don't block swipe
+  }, [profile.id, viewStartTime, maxPhotoViewed, bioExpanded, maxScrollDepth, voiceIntroPlayed])
 
   const handleLike = useCallback(() => {
     if (isLoading || swipeDirection) return // Prevent double-triggers
     hapticSuccess() // Haptic feedback for like
+    trackSwipe('RIGHT') // Track behavior
     setSwipeDirection('right')
     // Call onLike after animation starts
     setTimeout(() => {
       onLike()
     }, 150)
-  }, [isLoading, swipeDirection, onLike])
+  }, [isLoading, swipeDirection, onLike, trackSwipe])
 
   const handlePass = useCallback(() => {
     if (isLoading || swipeDirection) return // Prevent double-triggers
     hapticImpact() // Haptic feedback for pass
+    trackSwipe('LEFT') // Track behavior
     setSwipeDirection('left')
     // Call onPass after animation starts
     setTimeout(() => {
       onPass()
     }, 150)
-  }, [isLoading, swipeDirection, onPass])
+  }, [isLoading, swipeDirection, onPass, trackSwipe])
 
   const handleSuperLike = useCallback(() => {
     if (isLoading || swipeDirection) return // Prevent double-triggers
     hapticHeavy() // Haptic feedback for super like
+    trackSwipe('UP') // Track behavior
     setSwipeDirection('up')
     // Call onSuperLike after animation starts
     setTimeout(() => {
       onSuperLike()
     }, 150)
-  }, [isLoading, swipeDirection, onSuperLike])
+  }, [isLoading, swipeDirection, onSuperLike, trackSwipe])
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -247,7 +282,9 @@ export function DiscoverProfileCard({
   const nextPhoto = () => {
     if (currentPhotoIndex < photos.length - 1) {
       hapticSelection() // Light tap for photo navigation
-      setCurrentPhotoIndex(currentPhotoIndex + 1)
+      const newIndex = currentPhotoIndex + 1
+      setCurrentPhotoIndex(newIndex)
+      setMaxPhotoViewed(prev => Math.max(prev, newIndex))
     }
   }
 
@@ -271,6 +308,7 @@ export function DiscoverProfileCard({
     audio.onerror = () => setIsPlayingVoice(false)
     audio.play()
     setIsPlayingVoice(true)
+    setVoiceIntroPlayed(true) // Track that voice intro was played
   }
 
   const stopVoiceIntro = () => {

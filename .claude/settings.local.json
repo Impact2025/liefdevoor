@@ -39,7 +39,9 @@
       "Bash(if exist \"D:\\\\Datingsite2026\\\\node_modules\\\\.prisma\" rmdir /s /q \"D:\\\\Datingsite2026\\\\node_modules\\\\.prisma\")",
       "Bash(echo.:*)",
       "Bash(find:*)",
-      "Bash(start http://localhost:3001)"
+      "Bash(start http://localhost:3001)",
+      "Bash(dir \"D:\\\\datingsite2026\\\\public\")",
+      "Bash(dir \"D:\\\\datingsite2026\\\\app\")"
     ],
     "deny": [],
     "ask": []

@@ -29,6 +29,11 @@ import { Modal, Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
 import type { DiscoverFilters, SwipeResult } from '@/lib/types'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
+
+// Lazy load profiling components
+const DailyPrompter = dynamic(() => import('@/components/profiling/DailyPrompter'), { ssr: false })
+const BonusProfileBooster = dynamic(() => import('@/components/profiling/BonusProfileBooster'), { ssr: false })
 
 // Lazy load confetti for better initial bundle size
 const fireConfetti = async () => {
@@ -72,6 +77,10 @@ export default function DiscoverPage() {
   // Passport feature
   const [showPassportModal, setShowPassportModal] = useState(false)
   const [activePassport, setActivePassport] = useState<{ city: string; expiresAt: Date } | null>(null)
+
+  // Daily Prompter state
+  const [showDailyPrompter, setShowDailyPrompter] = useState(false)
+  const [showBonusBooster, setShowBonusBooster] = useState(false)
 
   // Fetch subscription/swipe limits
   useEffect(() => {
@@ -136,6 +145,23 @@ export default function DiscoverPage() {
       }
     }
   }, [currentUser, onboardingDismissed])
+
+  // Check for Daily Prompter (show once per session after initial load)
+  useEffect(() => {
+    if (!session?.user || isLoading) return
+
+    // Don't show if already shown this session
+    const shownThisSession = sessionStorage.getItem('daily-prompter-shown')
+    if (shownThisSession) return
+
+    // Wait a bit before showing to not overwhelm user
+    const timer = setTimeout(() => {
+      setShowDailyPrompter(true)
+      sessionStorage.setItem('daily-prompter-shown', 'true')
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [session, isLoading])
 
   // Confetti celebration for matches - lazy loaded
   const celebrateMatch = useCallback(() => {
@@ -352,23 +378,36 @@ export default function DiscoverPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="h-full flex items-center justify-center"
             >
-              <div className="text-center px-8">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-500 to-rose-600 rounded-full flex items-center justify-center shadow-xl">
-                  <Sparkles className="w-12 h-12 text-white" />
+              {showBonusBooster ? (
+                <BonusProfileBooster
+                  onComplete={() => {
+                    setShowBonusBooster(false)
+                    refetch()
+                  }}
+                  onSkip={() => setShowBonusBooster(false)}
+                />
+              ) : (
+                <div className="text-center px-8">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-500 to-rose-600 rounded-full flex items-center justify-center shadow-xl">
+                    <Sparkles className="w-12 h-12 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Geen profielen meer</h3>
+                  <p className="text-gray-400 mb-6">
+                    Je hebt alle profielen in je omgeving gezien. Beantwoord een paar vragen voor betere matches!
+                  </p>
+                  <div className="flex gap-3 justify-center flex-wrap">
+                    <Button variant="primary" onClick={() => setShowBonusBooster(true)}>
+                      Vragen beantwoorden
+                    </Button>
+                    <Button variant="secondary" onClick={clearFilters}>
+                      Reset filters
+                    </Button>
+                    <Button variant="secondary" onClick={() => refetch()}>
+                      Vernieuwen
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Geen profielen meer</h3>
-                <p className="text-gray-400 mb-6">
-                  Je hebt alle profielen in je omgeving gezien. Pas je filters aan of kom later terug!
-                </p>
-                <div className="flex gap-3 justify-center">
-                  <Button variant="secondary" onClick={clearFilters}>
-                    Reset filters
-                  </Button>
-                  <Button variant="primary" onClick={() => refetch()}>
-                    Vernieuwen
-                  </Button>
-                </div>
-              </div>
+              )}
             </motion.div>
           ) : (
             <div className="relative h-full">
@@ -635,6 +674,14 @@ export default function DiscoverPage() {
           refetch(filters)
         }}
       />
+
+      {/* Daily Prompter - Progressive Profiling */}
+      {showDailyPrompter && (
+        <DailyPrompter
+          onComplete={() => setShowDailyPrompter(false)}
+          onSkip={() => setShowDailyPrompter(false)}
+        />
+      )}
     </div>
   )
 }
