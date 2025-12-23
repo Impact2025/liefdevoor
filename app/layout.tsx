@@ -64,8 +64,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl">
-      <body className={inter.className}>
+    <html lang="nl" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <GoogleAnalytics />
         <Providers>
           <AnalyticsProvider>

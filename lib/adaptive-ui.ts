@@ -21,6 +21,13 @@ export interface UIPreferences {
   reducedMotion: boolean
   largeTargets: boolean
 
+  // Visuele beperkingen voorkeuren (Vision Impaired Mode)
+  visionImpairedMode: boolean  // Master toggle voor slechtzienden
+  extraHighContrast: boolean   // WCAG AAA 7:1 contrast ratio
+  textToSpeech: boolean         // Text-to-speech voor content
+  voiceCommands: boolean        // Voice commands (toekomstig)
+  colorBlindMode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia'  // Kleurenblind modi
+
   // Interactie voorkeuren
   audioFeedback: boolean
   hapticFeedback: boolean
@@ -82,6 +89,11 @@ export const DEFAULT_PREFERENCES: UIPreferences = {
   highContrast: false,
   reducedMotion: false,
   largeTargets: false,
+  visionImpairedMode: false,
+  extraHighContrast: false,
+  textToSpeech: false,
+  voiceCommands: false,
+  colorBlindMode: 'none',
   audioFeedback: false,
   hapticFeedback: true,
   autoReadAloud: false,
@@ -287,6 +299,53 @@ export function detectOptimalMode(capabilities: DetectedCapabilities): UIMode {
   if (simpleScore >= 4) return 'simple'
   if (simpleScore <= 1 && capabilities.isLargeScreen) return 'advanced'
   return 'standard'
+}
+
+/**
+ * Get Vision Impaired Mode preferences
+ * Optimized for slechtzienden met WCAG AAA compliance
+ */
+export function getVisionImpairedPreferences(): Partial<UIPreferences> {
+  return {
+    visionImpairedMode: true,
+    largeText: true,
+    extraHighContrast: true,
+    highContrast: true,
+    largeTargets: true,
+    reducedMotion: false, // Motion can help with visual cues
+    textToSpeech: true,
+    audioFeedback: true,
+    autoReadAloud: true,
+    showHints: true,
+    showTooltips: true,
+    confirmActions: true,
+    simplifiedLanguage: true,
+    stepByStepMode: true,
+    showAdvancedFilters: false,
+    keyboardShortcuts: true, // Helpful for navigation without precise mouse
+  }
+}
+
+/**
+ * Detect if user would benefit from Vision Impaired Mode
+ * Based on system preferences and user agent hints
+ */
+export function shouldSuggestVisionImpairedMode(capabilities: DetectedCapabilities): boolean {
+  // Strong signal: High contrast preference is often used by visually impaired users
+  if (capabilities.prefersHighContrast) {
+    return true
+  }
+
+  // Check for screen reader or other assistive tech (via user agent)
+  if (typeof navigator !== 'undefined') {
+    const ua = navigator.userAgent.toLowerCase()
+    // Screen readers often identify themselves
+    if (ua.includes('nvda') || ua.includes('jaws') || ua.includes('voiceover')) {
+      return true
+    }
+  }
+
+  return false
 }
 
 export function mergePreferences(

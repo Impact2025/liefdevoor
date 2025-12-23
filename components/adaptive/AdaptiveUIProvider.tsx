@@ -47,6 +47,8 @@ import {
   detectOptimalMode,
   mergePreferences,
   triggerHapticFeedback,
+  getVisionImpairedPreferences,
+  shouldSuggestVisionImpairedMode,
 } from '@/lib/adaptive-ui'
 
 // ============================================================================
@@ -65,10 +67,13 @@ interface AdaptiveUIContextType {
   isSimpleMode: boolean
   isStandardMode: boolean
   isAdvancedMode: boolean
+  isVisionImpairedMode: boolean
 
   // Actions
   setMode: (mode: UIMode, isManual?: boolean) => void
   updatePreferences: (prefs: Partial<UIPreferences>) => void
+  enableVisionImpairedMode: () => void
+  disableVisionImpairedMode: () => void
   resetToDefaults: () => void
   completeOnboarding: () => void
 
@@ -277,6 +282,21 @@ export function AdaptiveUIProvider({
     }
   }, [])
 
+  const enableVisionImpairedMode = useCallback(() => {
+    const visionImpairedPrefs = getVisionImpairedPreferences()
+    updatePreferences(visionImpairedPrefs)
+    announceToScreenReader('Slechtzienden modus ingeschakeld. Extra groot lettertype en hoog contrast zijn nu actief.')
+  }, [updatePreferences])
+
+  const disableVisionImpairedMode = useCallback(() => {
+    updatePreferences({
+      visionImpairedMode: false,
+      extraHighContrast: false,
+      textToSpeech: false,
+    })
+    announceToScreenReader('Slechtzienden modus uitgeschakeld.')
+  }, [updatePreferences])
+
   // ============================================================================
   // UTILITIES
   // ============================================================================
@@ -310,8 +330,11 @@ export function AdaptiveUIProvider({
     isSimpleMode: mode === 'simple',
     isStandardMode: mode === 'standard',
     isAdvancedMode: mode === 'advanced',
+    isVisionImpairedMode: preferences.visionImpairedMode,
     setMode,
     updatePreferences,
+    enableVisionImpairedMode,
+    disableVisionImpairedMode,
     resetToDefaults,
     completeOnboarding,
     triggerHaptic,
@@ -324,6 +347,8 @@ export function AdaptiveUIProvider({
     capabilities,
     setMode,
     updatePreferences,
+    enableVisionImpairedMode,
+    disableVisionImpairedMode,
     resetToDefaults,
     completeOnboarding,
     triggerHaptic,
@@ -337,11 +362,12 @@ export function AdaptiveUIProvider({
   // Add CSS custom properties for adaptive styling
   const cssVariables = useMemo(() => {
     const vars: Record<string, string> = {
-      '--adaptive-text-scale': preferences.largeText ? '1.125' : '1',
-      '--adaptive-target-min': preferences.largeTargets ? '56px' : '44px',
+      '--adaptive-text-scale': preferences.visionImpairedMode ? '1.25' : preferences.largeText ? '1.125' : '1',
+      '--adaptive-target-min': preferences.visionImpairedMode ? '56px' : preferences.largeTargets ? '56px' : '44px',
       '--adaptive-spacing-scale': preferences.largeTargets ? '1.25' : '1',
       '--adaptive-animation-duration': preferences.reducedMotion ? '0ms' : '200ms',
       '--adaptive-transition': preferences.reducedMotion ? 'none' : 'all 200ms ease',
+      '--adaptive-contrast-mode': preferences.extraHighContrast ? 'aaa' : preferences.highContrast ? 'aa' : 'normal',
     }
     return vars
   }, [preferences])

@@ -474,12 +474,46 @@ model EmailLog {
   clickedAt     DateTime?
   bouncedAt     DateTime?
   errorMessage  String?
+  // A/B Testing
+  abTestId      String?
+  abTestVariant String?   // 'A' or 'B'
+  // Analytics relation
+  analytics     EmailAnalytics?
 
   @@index([userId])
   @@index([email])
   @@index([type, category])
   @@index([sentAt])
   @@index([status])
+  @@index([abTestId])
+}
+
+// Email analytics tracking
+model EmailAnalytics {
+  id                String    @id @default(cuid())
+  emailLogId        String    @unique
+  emailLog          EmailLog  @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
+
+  // Open tracking
+  openCount         Int       @default(0)
+  firstOpenedAt     DateTime?
+  lastOpenedAt      DateTime?
+
+  // Click tracking
+  clickCount        Int       @default(0)
+  clickedLinks      String[]
+  ctaClicked        String?
+
+  // Conversion tracking
+  convertedToAction Boolean   @default(false)
+  conversionType    String?
+  convertedAt       DateTime?
+  revenueGenerated  Float?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([emailLogId])
 }
 
 // User email preferences (GDPR compliant)
