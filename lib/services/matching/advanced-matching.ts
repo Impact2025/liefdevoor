@@ -11,6 +11,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 // Types
 interface UserProfile {
@@ -67,14 +68,14 @@ const THRESHOLDS = {
 } as const
 
 /**
- * Parse preferences from JSON string
+ * Parse preferences from Json type (no longer needs JSON.parse)
  */
-function parsePreferences(prefsString: string | null): UserPreferences {
-  if (!prefsString) {
+function parsePreferences(prefs: Prisma.JsonValue | null): UserPreferences {
+  if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs)) {
     return { minAge: 18, maxAge: 99, maxDistance: 100, genderPreference: null }
   }
   try {
-    const parsed = JSON.parse(prefsString)
+    const parsed = prefs as any
     return {
       minAge: parsed.minAge ?? 18,
       maxAge: parsed.maxAge ?? 99,
