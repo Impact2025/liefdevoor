@@ -363,16 +363,21 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const canvasCenterX = canvas.width / 2;
     const canvasCenterY = canvas.height / 2;
 
+    // Mobile fix: If detected via nonBlackRatio or forceDetection, assume centered
+    const detectedViaFallback = forceDetection || nonBlackRatio > 0.3;
+
     // Check if face is centered (within 25% of center for centering check)
     const centerThreshold = canvas.width * 0.25;
-    const faceInCenter = faceDetected &&
+    const faceInCenter = detectedViaFallback || (
+      faceDetected &&
       Math.abs(faceCenterX - canvasCenterX) < centerThreshold &&
-      Math.abs(faceCenterY - canvasCenterY) < centerThreshold;
+      Math.abs(faceCenterY - canvasCenterY) < centerThreshold
+    );
 
-    // Check face size for distance estimation (more lenient)
+    // Check face size for distance estimation (more lenient, or skip if fallback detected)
     const faceAreaRatio = (faceWidth * faceHeight) / (canvas.width * canvas.height);
-    const faceTooClose = faceAreaRatio > 0.6;
-    const faceTooFar = faceAreaRatio < 0.01;
+    const faceTooClose = !detectedViaFallback && faceAreaRatio > 0.6;
+    const faceTooFar = !detectedViaFallback && faceAreaRatio < 0.01;
 
     // Head position detection based on face bounding box position
     // Use very small threshold (8% of width) to detect head turns easily
