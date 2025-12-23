@@ -4,12 +4,22 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Flag, Mic, Square, Send, X, Play, Pause, Smile, Sparkles, ImageIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAudioRecorder, formatDuration, useTypingIndicator } from '@/hooks'
 import { TypingBubble } from '@/components/ui'
-import { IcebreakersPanel } from '@/components/chat/IcebreakersPanel'
-import { GifPicker } from '@/components/chat/GifPicker'
+
+// Lazy load heavy chat components (only needed when user interacts)
+const IcebreakersPanel = dynamic(() => import('@/components/chat/IcebreakersPanel').then(mod => ({ default: mod.IcebreakersPanel })), {
+  ssr: false,
+  loading: () => null
+})
+
+const GifPicker = dynamic(() => import('@/components/chat/GifPicker').then(mod => ({ default: mod.GifPicker })), {
+  ssr: false,
+  loading: () => null
+})
 
 interface Message {
   id: string

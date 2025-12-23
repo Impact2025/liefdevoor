@@ -23,7 +23,6 @@ import {
 } from 'lucide-react'
 import { DiscoverProfileCard } from '@/components/features/discover/DiscoverProfileCard'
 import { BoostButton } from '@/components/features/boost/BoostButton'
-import { PassportModal } from '@/components/features/passport'
 import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
 import { Modal, Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
@@ -34,6 +33,12 @@ import dynamic from 'next/dynamic'
 // Lazy load profiling components
 const DailyPrompter = dynamic(() => import('@/components/profiling/DailyPrompter'), { ssr: false })
 const BonusProfileBooster = dynamic(() => import('@/components/profiling/BonusProfileBooster'), { ssr: false })
+
+// Lazy load Passport Modal (only used when user clicks passport button)
+const PassportModal = dynamic(() => import('@/components/features/passport').then(mod => ({ default: mod.PassportModal })), {
+  ssr: false,
+  loading: () => null
+})
 
 // Lazy load confetti for better initial bundle size
 const fireConfetti = async () => {

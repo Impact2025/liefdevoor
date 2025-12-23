@@ -51,6 +51,9 @@ export type { AlertProps } from './Alert'
 export { Skeleton, SkeletonCard, SkeletonProfile, SkeletonList } from './Skeleton'
 export type { SkeletonProps } from './Skeleton'
 
+// Page-level skeletons (for Suspense boundaries)
+export { DiscoverSkeleton, MatchesSkeleton, ChatSkeleton } from './skeletons'
+
 export { OnlineIndicator } from './OnlineIndicator'
 export type { OnlineIndicatorProps } from './OnlineIndicator'
 
