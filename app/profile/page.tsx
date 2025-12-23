@@ -254,20 +254,20 @@ export default function ProfilePage() {
                         </div>
                       )}
 
-                      {/* Set as main photo button */}
+                      {/* Set as main photo button - always visible on mobile, hover on desktop */}
                       {user?.profileImage !== photo.url && (
                         <button
                           onClick={() => setMainPhoto(photo.url)}
-                          className="absolute bottom-2 left-2 px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity font-medium hover:bg-purple-700"
+                          className="absolute bottom-2 left-2 px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg font-medium hover:bg-purple-700 shadow-lg lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                         >
                           Stel in als profielfoto
                         </button>
                       )}
 
-                      {/* Delete button */}
+                      {/* Delete button - always visible on mobile, hover on desktop */}
                       <button
                         onClick={() => deletePhoto(photo.id)}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                         aria-label="Delete photo"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

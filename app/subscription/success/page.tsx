@@ -39,20 +39,56 @@ function SubscriptionSuccessContent() {
   useEffect(() => {
     const orderId = searchParams.get('order_id')
 
-    if (!orderId) {
-      setStatus('error')
-      setMessage('Geen order ID gevonden')
-      return
-    }
-
     const verifyPayment = async () => {
       try {
+        // If no order_id, try to find user's most recent subscription
+        if (!orderId) {
+          if (!session?.user?.id) {
+            setStatus('error')
+            setMessage('Geen order ID gevonden. Log in om je betaling te controleren.')
+            return
+          }
+
+          // Check for recent active subscription
+          const res = await fetch('/api/subscription')
+
+          if (!res.ok) {
+            setStatus('error')
+            setMessage('Kon abonnementsstatus niet controleren. Log in en probeer opnieuw.')
+            return
+          }
+
+          const data = await res.json()
+
+          if (data.status === 'active' && (data.isPlus || data.isComplete)) {
+            setStatus('success')
+            setMessage('Je premium abonnement is geactiveerd!')
+            return
+          } else if (data.status === 'pending') {
+            setStatus('checking')
+            setMessage('Je betaling wordt nog verwerkt. Even geduld...')
+            // Retry after 3 seconds
+            setTimeout(verifyPayment, 3000)
+            return
+          } else {
+            setStatus('error')
+            setMessage('Geen actieve betaling gevonden. Probeer je abonnement opnieuw te activeren.')
+            return
+          }
+        }
+
+        // Verify with order_id
         const res = await fetch(`/api/subscription/verify?order_id=${orderId}`)
         const data = await res.json()
 
         if (data.success && data.subscription?.status === 'active') {
           setStatus('success')
           setMessage('Je premium abonnement is geactiveerd!')
+        } else if (data.subscription?.status === 'pending') {
+          setStatus('checking')
+          setMessage('Je betaling wordt nog verwerkt. Even geduld...')
+          // Retry after 3 seconds
+          setTimeout(verifyPayment, 3000)
         } else {
           setStatus('error')
           setMessage(data.error || 'Betaling kon niet worden geverifieerd')
@@ -64,7 +100,7 @@ function SubscriptionSuccessContent() {
     }
 
     verifyPayment()
-  }, [searchParams, router])
+  }, [searchParams, router, session])
 
   // Confetti celebration effect (only on success)
   useEffect(() => {
