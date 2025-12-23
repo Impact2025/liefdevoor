@@ -82,6 +82,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q')?.trim() || ''
 
+    console.log('[Passport Search] Query received:', { query, length: query.length })
+
     if (query.length < 2) {
       return NextResponse.json({ results: [] })
     }
@@ -134,8 +136,17 @@ export async function GET(request: NextRequest) {
         population: city.population,
       }))
 
-      // Then try Nominatim for more results
-      const nominatimResults = await searchViaNominatim(query)
+      console.log('[Passport Search] Static results:', staticResults.length)
+
+      // Then try Nominatim for more results (but don't block on it)
+      let nominatimResults: any[] = []
+      try {
+        nominatimResults = await searchViaNominatim(query)
+        console.log('[Passport Search] Nominatim results:', nominatimResults.length)
+      } catch (err) {
+        console.error('[Passport Search] Nominatim error:', err)
+        // Continue with static results only
+      }
 
       // Merge results, preferring static (has population data)
       const staticNames = new Set(staticResults.map(r => r.name.toLowerCase()))
@@ -145,6 +156,8 @@ export async function GET(request: NextRequest) {
 
       results = [...staticResults, ...uniqueNominatim].slice(0, 10)
     }
+
+    console.log('[Passport Search] Total results:', results.length)
 
     // Cache results
     searchCache.set(cacheKey, { results, timestamp: Date.now() })
