@@ -106,7 +106,11 @@ export function reportWebVitals(metric: Metric) {
  */
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
+    gtag?: (
+      command: string,
+      targetId: string | Date,
+      config?: Record<string, any>
+    ) => void
     Sentry?: {
       captureMessage: (message: string, context?: any) => void
     }
