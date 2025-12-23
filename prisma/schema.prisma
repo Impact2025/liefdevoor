@@ -52,6 +52,13 @@ model User {
   gender        Gender?
   city          String?
   postcode      String?
+  // Lifestyle fields
+  occupation    String?
+  education     String?
+  height        Int?
+  drinking      String?
+  smoking       String?
+  children      String?
   interests     String?
   preferences   String?
   profileImage  String?
@@ -155,6 +162,10 @@ model User {
   privacyPolicyVersion     String?   // Welke versie van privacy policy geaccepteerd
   privacyPolicyAcceptedAt  DateTime?
   marketingEmailsConsent   Boolean   @default(false)
+
+  // 🌍 Passport History & Favorites
+  passportHistory          PassportHistory[]
+  favoriteCities           FavoriteCity[]
 
   @@index([gender])
   @@index([birthDate])
@@ -1052,4 +1063,44 @@ model SafetyFlag {
   @@index([status])
   @@index([severity])
   @@index([createdAt])
+}
+
+// ============================================
+// 🌍 PASSPORT FEATURE - Travel to other cities
+// ============================================
+
+// Track passport usage history (recent locations)
+model PassportHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Location data
+  city        String
+  latitude    Float
+  longitude   Float
+
+  // Usage tracking
+  usedAt      DateTime @default(now())
+  duration    Int      // Hours used
+
+  @@index([userId])
+  @@index([userId, usedAt])
+}
+
+// User's saved favorite cities for quick access
+model FavoriteCity {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Location data
+  city        String
+  latitude    Float
+  longitude   Float
+
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, city])
+  @@index([userId])
 }

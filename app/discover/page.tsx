@@ -627,7 +627,6 @@ export default function DiscoverPage() {
       <PassportModal
         isOpen={showPassportModal}
         onClose={() => setShowPassportModal(false)}
-        currentPassport={activePassport}
         onSelect={(city) => {
           setActivePassport({
             city: city.name,

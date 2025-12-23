@@ -181,6 +181,13 @@ export async function GET(request: NextRequest) {
         safetyScore: true,
         createdAt: true,
         updatedAt: true,
+        // Lifestyle fields
+        occupation: true,
+        education: true,
+        height: true,
+        drinking: true,
+        smoking: true,
+        children: true,
         photos: {
           select: { id: true, url: true, order: true },
           orderBy: { order: 'asc' },
