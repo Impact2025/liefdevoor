@@ -238,11 +238,11 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     let totalPixels = 0;
     let minX = canvas.width, maxX = 0, minY = canvas.height, maxY = 0;
 
-    // Focus on center region where face should be
+    // Focus on wider region to detect head turns
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const regionWidth = canvas.width * 0.6;
-    const regionHeight = canvas.height * 0.7;
+    const regionWidth = canvas.width * 0.9;  // Wider region for head turn detection
+    const regionHeight = canvas.height * 0.8;
 
     // Sample pixels in center region
     for (let y = Math.floor(centerY - regionHeight / 2); y < centerY + regionHeight / 2; y += 4) {
@@ -291,8 +291,8 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const canvasCenterX = canvas.width / 2;
     const canvasCenterY = canvas.height / 2;
 
-    // Check if face is centered (within 35% of center - more lenient)
-    const centerThreshold = canvas.width * 0.35;
+    // Check if face is centered (within 25% of center for centering check)
+    const centerThreshold = canvas.width * 0.25;
     const faceInCenter = faceDetected &&
       Math.abs(faceCenterX - canvasCenterX) < centerThreshold &&
       Math.abs(faceCenterY - canvasCenterY) < centerThreshold;
@@ -303,11 +303,13 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const faceTooFar = faceAreaRatio < 0.01;
 
     // Head position detection based on face bounding box position
+    // Use smaller threshold (15% of width) to detect head turns more easily
+    const turnThreshold = canvas.width * 0.15;
     // Note: Video is mirrored on display, so we invert left/right detection
     // When user turns head to their right, face moves LEFT in raw video, but appears RIGHT on mirrored display
-    const headTurnRight = faceDetected && faceCenterX < canvasCenterX - centerThreshold;
-    const headTurnLeft = faceDetected && faceCenterX > canvasCenterX + centerThreshold;
-    const headCenter = faceDetected && !headTurnLeft && !headTurnRight;
+    const headTurnRight = faceDetected && faceCenterX < canvasCenterX - turnThreshold;
+    const headTurnLeft = faceDetected && faceCenterX > canvasCenterX + turnThreshold;
+    const headCenter = faceDetected && Math.abs(faceCenterX - canvasCenterX) < turnThreshold;
 
     return {
       faceDetected,

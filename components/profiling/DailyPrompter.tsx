@@ -28,7 +28,12 @@ export default function DailyPrompter({ onComplete, onSkip }: DailyPrompterProps
   const [isLoading, setIsLoading] = useState(true);
   const [isAnswering, setIsAnswering] = useState(false);
   const [hasAnsweredToday, setHasAnsweredToday] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState<number>(0);
+
+  // Set startTime on client only to avoid hydration mismatch
+  useEffect(() => {
+    setStartTime(Date.now());
+  }, []);
 
   // Motion values for swipe effect
   const x = useMotionValue(0);

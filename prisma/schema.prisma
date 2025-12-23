@@ -162,6 +162,7 @@ model User {
   privacyPolicyVersion     String?   // Welke versie van privacy policy geaccepteerd
   privacyPolicyAcceptedAt  DateTime?
   marketingEmailsConsent   Boolean   @default(false)
+  emailPreference          EmailPreference?
 
   // 🌍 Passport History & Favorites
   passportHistory          PassportHistory[]
@@ -479,6 +480,39 @@ model EmailLog {
   @@index([type, category])
   @@index([sentAt])
   @@index([status])
+}
+
+// User email preferences (GDPR compliant)
+model EmailPreference {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Email category preferences
+  dailyDigest       Boolean  @default(true)
+  profileNudge      Boolean  @default(true)
+  perfectMatch      Boolean  @default(true)
+  reEngagement      Boolean  @default(true)
+  weeklyHighlights  Boolean  @default(true)
+  specialEvents     Boolean  @default(true)
+  productUpdates    Boolean  @default(false)
+
+  // Rate limiting
+  maxEmailsPerDay   Int      @default(2)
+  maxEmailsPerWeek  Int      @default(7)
+
+  // Quiet hours
+  quietHoursStart   Int?     // Hour (0-23)
+  quietHoursEnd     Int?     // Hour (0-23)
+
+  // Personalization
+  preferredSendTime Int?     // Preferred hour to receive emails
+  timezone          String   @default("Europe/Amsterdam")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // ============================================

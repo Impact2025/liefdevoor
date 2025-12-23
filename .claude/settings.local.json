@@ -38,7 +38,8 @@
       "Bash(git restore:*)",
       "Bash(if exist \"D:\\\\Datingsite2026\\\\node_modules\\\\.prisma\" rmdir /s /q \"D:\\\\Datingsite2026\\\\node_modules\\\\.prisma\")",
       "Bash(echo.:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(start http://localhost:3001)"
     ],
     "deny": [],
     "ask": []
