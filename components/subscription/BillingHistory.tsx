@@ -1,7 +1,7 @@
 /**
  * BillingHistory - Show subscription billing history
  *
- * Displays past payments and invoices
+ * Responsive design: stack on mobile, horizontal on desktop
  */
 
 'use client'
@@ -86,12 +86,12 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-2xl shadow-sm border border-gray-200 p-6 ${className}`}>
+      <div className={`bg-white rounded-3xl shadow-sm border border-slate-200/50 p-4 sm:p-6 ${className}`}>
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-1/3" />
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded" />
+              <div key={i} className="h-20 bg-gray-100 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -102,13 +102,13 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid':
-        return <CheckCircle className="w-5 h-5 text-green-600" />
+        return <CheckCircle className="w-4 h-4" />
       case 'pending':
-        return <Clock className="w-5 h-5 text-amber-600" />
+        return <Clock className="w-4 h-4" />
       case 'failed':
-        return <XCircle className="w-5 h-5 text-red-600" />
+        return <XCircle className="w-4 h-4" />
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-600" />
+        return <AlertCircle className="w-4 h-4" />
     }
   }
 
@@ -117,7 +117,7 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
       case 'paid':
         return 'Betaald'
       case 'pending':
-        return 'In behandeling'
+        return 'Behandeling'
       case 'failed':
         return 'Mislukt'
       default:
@@ -128,39 +128,39 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-50 text-green-700 border-green-200'
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
       case 'pending':
         return 'bg-amber-50 text-amber-700 border-amber-200'
       case 'failed':
         return 'bg-red-50 text-red-700 border-red-200'
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
+        return 'bg-slate-50 text-slate-700 border-slate-200'
     }
   }
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-gray-200 ${className}`}>
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+    <div className={`bg-white rounded-3xl shadow-sm border border-slate-200/50 overflow-hidden ${className}`}>
+      {/* Header - Mobiel Optimized */}
+      <div className="p-4 sm:p-6 border-b border-slate-200/50 bg-gradient-to-br from-slate-50 to-white">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
             <Receipt className="w-5 h-5 text-blue-600" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Factuurgeschiedenis</h3>
-            <p className="text-sm text-gray-500">Bekijk je eerdere betalingen en download facturen</p>
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">Factuurgeschiedenis</h3>
+            <p className="text-xs sm:text-sm text-slate-600 truncate">Bekijk eerdere betalingen</p>
           </div>
         </div>
       </div>
 
-      {/* Billing Records */}
-      <div className="p-6">
+      {/* Billing Records - MOBIEL RESPONSIVE */}
+      <div className="p-4 sm:p-6">
         {records.length === 0 ? (
           <div className="text-center py-12">
             <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Geen factuurgeschiedenis gevonden</p>
+            <p className="text-gray-500">Geen factuurgeschiedenis</p>
             <p className="text-sm text-gray-400 mt-1">
-              Jouw betalingen zullen hier verschijnen
+              Jouw betalingen verschijnen hier
             </p>
           </div>
         ) : (
@@ -171,14 +171,16 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors"
+                className="bg-slate-50/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-200/50 hover:border-slate-300/50 transition-all"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 flex-1">
-                    {/* Date */}
-                    <div className="flex items-center gap-2 min-w-[120px]">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-900">
+                {/* MOBILE LAYOUT - Stack everything */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+
+                  {/* Top Row - Date & Status on Mobile */}
+                  <div className="flex items-center justify-between sm:hidden">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      <span className="text-sm font-medium text-slate-900">
                         {new Date(record.date).toLocaleDateString('nl-NL', {
                           day: 'numeric',
                           month: 'short',
@@ -186,39 +188,56 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
                         })}
                       </span>
                     </div>
-
-                    {/* Description */}
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{record.description}</p>
-                      {record.plan && (
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {record.plan === 'PLUS' ? 'Liefde Plus' :
-                           record.plan === 'COMPLETE' ? 'Liefde Compleet' : 'Basis'}
-                        </p>
-                      )}
+                    <div className={`px-2.5 py-1 rounded-full border text-xs font-medium flex items-center gap-1 ${getStatusColor(record.status)}`}>
+                      {getStatusIcon(record.status)}
+                      <span className="hidden xs:inline">{getStatusLabel(record.status)}</span>
                     </div>
+                  </div>
 
+                  {/* Description & Plan */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate sm:text-base">
+                      {record.plan === 'PLUS' ? 'Liefde Plus' :
+                       record.plan === 'COMPLETE' ? 'Liefde Compleet' : 'Basis'}
+                    </p>
+                    <p className="text-xs text-slate-600 mt-0.5">Maandelijks abonnement</p>
+                  </div>
+
+                  {/* Desktop Date - Hidden on mobile */}
+                  <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm font-medium text-slate-700">
+                      {new Date(record.date).toLocaleDateString('nl-NL', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Bottom Row - Amount & Actions */}
+                  <div className="flex items-center justify-between sm:contents">
                     {/* Amount */}
-                    <div className="text-right min-w-[80px]">
-                      <p className="text-lg font-bold text-gray-900">
-                        {formatPrice(record.amount)}
+                    <div>
+                      <p className="text-xl sm:text-lg font-bold text-slate-900">
+                        €{record.amount.toFixed(2)}
                       </p>
                     </div>
 
-                    {/* Status */}
-                    <div className={`px-3 py-1 rounded-full border text-xs font-medium flex items-center gap-1.5 ${getStatusColor(record.status)}`}>
+                    {/* Desktop Status - Hidden on mobile */}
+                    <div className={`hidden sm:flex px-3 py-1.5 rounded-full border text-xs font-medium items-center gap-1.5 ${getStatusColor(record.status)}`}>
                       {getStatusIcon(record.status)}
                       {getStatusLabel(record.status)}
                     </div>
 
-                    {/* Invoice Download */}
+                    {/* Download Button */}
                     {record.invoiceUrl && record.status === 'paid' && (
                       <button
                         onClick={() => window.open(record.invoiceUrl, '_blank')}
-                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+                        className="p-2 sm:p-2.5 hover:bg-blue-50 rounded-xl transition-colors group border border-transparent hover:border-blue-200"
                         title="Download factuur"
                       >
-                        <Download className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
+                        <Download className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
                       </button>
                     )}
                   </div>
@@ -229,15 +248,15 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
         )}
       </div>
 
-      {/* Summary */}
+      {/* Summary - Mobiel Optimized */}
       {records.length > 0 && (
-        <div className="p-6 bg-gray-50 border-t border-gray-200 rounded-b-2xl">
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-white border-t border-slate-200/50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
               <CreditCard className="w-4 h-4" />
-              <span>Totaal betaald</span>
+              <span className="font-medium">Totaal betaald</span>
             </div>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl sm:text-2xl font-bold text-slate-900">
               {formatPrice(records.filter(r => r.status === 'paid').reduce((sum, r) => sum + r.amount, 0))}
             </p>
           </div>
