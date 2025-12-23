@@ -206,7 +206,21 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (!video || !canvas || video.readyState !== 4) {
+    // Android fix: Allow readyState >= 2 (HAVE_CURRENT_DATA) instead of only 4
+    if (!video || !canvas || video.readyState < 2) {
+      return {
+        faceDetected: false,
+        faceInCenter: false,
+        faceTooClose: false,
+        faceTooFar: false,
+        headTurnLeft: false,
+        headTurnRight: false,
+        headCenter: true,
+      };
+    }
+
+    // Android fix: Check if video has valid dimensions
+    if (!video.videoWidth || !video.videoHeight || video.videoWidth === 0 || video.videoHeight === 0) {
       return {
         faceDetected: false,
         faceInCenter: false,
@@ -258,6 +272,7 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
 
         // More lenient skin detection for various skin tones
         // Works for light to dark skin tones
+        // Android fix: More lenient thresholds for different camera sensors
         const isSkin = (
           // Light skin tones
           (r > 80 && g > 50 && b > 30 && r > b && (r - b) > 10) ||
@@ -266,7 +281,9 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
           // Darker skin tones
           (r > 60 && g > 40 && b > 20 && r > b) ||
           // Very light/pale skin
-          (r > 150 && g > 120 && b > 100 && Math.abs(r - g) < 50)
+          (r > 150 && g > 120 && b > 100 && Math.abs(r - g) < 50) ||
+          // Android fallback: Any warm-toned pixel (more lenient)
+          (r > 50 && g > 30 && b > 20 && r > b)
         );
 
         if (isSkin) {
@@ -280,8 +297,9 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
     }
 
     const skinRatio = totalPixels > 0 ? skinPixels / totalPixels : 0;
-    // Much more lenient - just need some skin-like pixels in center
-    const faceDetected = skinRatio > 0.02;
+    // Android fix: Even more lenient threshold (0.015 instead of 0.02)
+    // Just need some skin-like pixels in center region
+    const faceDetected = skinRatio > 0.015;
 
     // Calculate bounding box
     const faceWidth = maxX - minX;
@@ -353,14 +371,17 @@ export default function LivenessCheck({ onComplete, onSkip }: LivenessCheckProps
   useEffect(() => {
     if (step === 'camera' && streamRef.current && !detectionIntervalRef.current) {
       const checkAndStart = () => {
-        if (videoRef.current && videoRef.current.readyState >= 2) {
+        const video = videoRef.current;
+        // Android fix: Also check for valid video dimensions
+        if (video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
           startFaceDetection();
         } else {
           // Try again in 100ms
           setTimeout(checkAndStart, 100);
         }
       };
-      setTimeout(checkAndStart, 300);
+      // Android fix: Longer initial delay (500ms instead of 300ms)
+      setTimeout(checkAndStart, 500);
     }
   }, [step, startFaceDetection]);
 
