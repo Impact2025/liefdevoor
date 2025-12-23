@@ -350,7 +350,7 @@ export default function ChatPage() {
       </motion.div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Nog geen berichten. Begin het gesprek!</p>
@@ -429,9 +429,9 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
+      {/* Message Input - Fixed to bottom, above mobile nav */}
       <motion.div
-        className="bg-white border-t p-4"
+        className="bg-white border-t p-4 mb-16 sm:mb-0 sticky bottom-0 z-20 shadow-lg"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
