@@ -49,8 +49,19 @@ export async function GET(request: NextRequest) {
     // Query MultiSafepay API to get payment status
     if (subscription.multisafepayId) {
       try {
+        // Use test API if in test mode
+        const baseUrl = process.env.MULTISAFEPAY_TEST_MODE === 'true'
+          ? 'https://testapi.multisafepay.com'
+          : 'https://api.multisafepay.com'
+
+        console.log('[Subscription Verify] Checking payment:', {
+          baseUrl,
+          orderId: subscription.multisafepayId,
+          subscriptionId: subscription.id,
+        })
+
         const res = await fetch(
-          `https://api.multisafepay.com/v1/json/orders/${subscription.multisafepayId}`,
+          `${baseUrl}/v1/json/orders/${subscription.multisafepayId}`,
           {
             headers: {
               'api_key': process.env.MULTISAFEPAY_API_KEY!,
@@ -62,11 +73,30 @@ export async function GET(request: NextRequest) {
           const paymentData = await res.json()
           const paymentStatus = paymentData.data?.status
 
+          console.log('[Subscription Verify] Payment status:', {
+            status: paymentStatus,
+            subscriptionId: subscription.id,
+            data: paymentData.data,
+          })
+
           // Update subscription based on payment status
           if (paymentStatus === 'completed') {
+            // Update subscription AND user tier
             const updatedSubscription = await prisma.subscription.update({
               where: { id: subscription.id },
               data: { status: 'active' },
+            })
+
+            // Also update user's subscriptionTier
+            await prisma.user.update({
+              where: { id: subscription.userId },
+              data: { subscriptionTier: subscription.plan as any },
+            })
+
+            console.log('[Subscription Verify] Subscription activated:', {
+              subscriptionId: subscription.id,
+              userId: subscription.userId,
+              plan: subscription.plan,
             })
 
             return successResponse({
@@ -80,12 +110,24 @@ export async function GET(request: NextRequest) {
             })
 
             throw new Error('Payment was cancelled or expired')
+          } else {
+            console.log('[Subscription Verify] Payment not completed yet:', {
+              status: paymentStatus,
+              subscriptionId: subscription.id,
+            })
           }
+        } else {
+          console.error('[Subscription Verify] API call failed:', {
+            status: res.status,
+            statusText: res.statusText,
+          })
         }
       } catch (error) {
-        console.error('MultiSafepay verification error:', error)
+        console.error('[Subscription Verify] Error:', error)
         // Continue to return current status if API call fails
       }
+    } else {
+      console.log('[Subscription Verify] No multisafepayId found for subscription:', subscription.id)
     }
 
     // Return current status
