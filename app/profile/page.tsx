@@ -48,6 +48,24 @@ export default function ProfilePage() {
     }
   }, [])
 
+  const setMainPhoto = useCallback(async (photoUrl: string) => {
+    try {
+      const res = await fetch('/api/photos', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setMain', photoId: photoUrl }),
+      })
+      if (res.ok) {
+        refetch() // Refresh user data to update profile image
+        alert('Profielfoto bijgewerkt!')
+      } else {
+        alert('Kon profielfoto niet instellen')
+      }
+    } catch (error) {
+      alert('Kon profielfoto niet instellen')
+    }
+  }, [refetch])
+
   const deletePhoto = useCallback(async (photoId: string) => {
     if (!confirm('Weet je zeker dat je deze foto wilt verwijderen?')) return
 
@@ -57,13 +75,14 @@ export default function ProfilePage() {
       })
       if (res.ok) {
         setPhotos((prev) => prev.filter((p) => p.id !== photoId))
+        refetch() // Refresh user data in case this was profile image
       } else {
         alert('Failed to delete photo')
       }
     } catch (error) {
       alert('Failed to delete photo')
     }
-  }, [])
+  }, [refetch])
 
   const playVoiceIntro = useCallback(() => {
     if (user?.voiceIntro) {
@@ -223,11 +242,32 @@ export default function ProfilePage() {
                       <img
                         src={photo.url}
                         alt="Profile photo"
-                        className="w-full h-full object-cover rounded-lg"
+                        className={`w-full h-full object-cover rounded-lg ${
+                          user?.profileImage === photo.url ? 'ring-4 ring-purple-500' : ''
+                        }`}
                       />
+
+                      {/* Profile photo indicator */}
+                      {user?.profileImage === photo.url && (
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-purple-600 text-white text-xs rounded-full font-medium">
+                          Profielfoto
+                        </div>
+                      )}
+
+                      {/* Set as main photo button */}
+                      {user?.profileImage !== photo.url && (
+                        <button
+                          onClick={() => setMainPhoto(photo.url)}
+                          className="absolute bottom-2 left-2 px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity font-medium hover:bg-purple-700"
+                        >
+                          Stel in als profielfoto
+                        </button>
+                      )}
+
+                      {/* Delete button */}
                       <button
                         onClick={() => deletePhoto(photo.id)}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                         aria-label="Delete photo"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
