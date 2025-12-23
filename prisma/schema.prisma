@@ -527,27 +527,53 @@ model EmailAnalytics {
 
 // Email A/B Testing
 model EmailABTest {
-  id                  String   @id @default(cuid())
+  id                  String    @id @default(cuid())
   name                String
   emailType           String
   variantA            Json
   variantB            Json
-  trafficSplitPercent Int      @default(50)
-  isActive            Boolean  @default(true)
+  trafficSplitPercent Int       @default(50)
+  isActive            Boolean   @default(true)
 
   // Metrics
-  variantASent        Int      @default(0)
-  variantBSent        Int      @default(0)
-  variantAOpens       Int      @default(0)
-  variantBOpens       Int      @default(0)
-  variantAClicks      Int      @default(0)
-  variantBClicks      Int      @default(0)
+  variantASent        Int       @default(0)
+  variantBSent        Int       @default(0)
+  variantAOpens       Int       @default(0)
+  variantBOpens       Int       @default(0)
+  variantAClicks      Int       @default(0)
+  variantBClicks      Int       @default(0)
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  // Results
+  winningVariant      String?   // "A" or "B" or null
+  confidenceScore     Float?    // 0-100
+  endedAt             DateTime?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@index([emailType, isActive])
   @@index([isActive])
+}
+
+// Email Send Time Optimization (ML-based)
+model EmailSendTimeOptimization {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+
+  // Open/click rates by hour (JSON: {"0": 0.5, "1": 0.3, ...})
+  openRateByHour   Json      @default("{}")
+  clickRateByHour  Json      @default("{}")
+
+  // ML-calculated optimal send time
+  optimalSendHour  Int?      // 0-23
+  confidenceScore  Float     @default(0)
+  dataPoints       Int       @default(0)
+
+  lastCalculatedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
 }
 
 // User email preferences (GDPR compliant)
@@ -1206,3 +1232,4 @@ model FavoriteCity {
   @@unique([userId, city])
   @@index([userId])
 }
+

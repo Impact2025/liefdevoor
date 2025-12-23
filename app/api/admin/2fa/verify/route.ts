@@ -9,6 +9,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import speakeasy from 'speakeasy'
+import { decrypt } from '@/lib/encryption'
 
 /**
  * POST /api/admin/2fa/verify
@@ -48,9 +49,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Decrypt the 2FA secret 🔓
+    const decryptedSecret = decrypt(user.twoFactorSecret)
+
     // Verify the TOTP token
     const verified = speakeasy.totp.verify({
-      secret: user.twoFactorSecret,
+      secret: decryptedSecret,
       encoding: 'base32',
       token: token.replace(/\s/g, ''), // Remove any spaces
       window: 2 // Allow 2 time steps before/after for clock drift

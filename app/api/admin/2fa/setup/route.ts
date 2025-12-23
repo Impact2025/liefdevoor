@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma'
 import speakeasy from 'speakeasy'
 import QRCode from 'qrcode'
 import crypto from 'crypto'
+import { encrypt } from '@/lib/encryption'
 
 /**
  * POST /api/admin/2fa/setup
@@ -42,13 +43,13 @@ export async function POST(request: NextRequest) {
     // Generate QR code data URL
     const qrCodeDataUrl = await QRCode.toDataURL(secret.otpauth_url!)
 
-    // Store secret in database (NOT enabled yet - user must verify first)
+    // Store secret in database (ENCRYPTED - NOT enabled yet - user must verify first)
     await prisma.user.update({
       where: { id: userId },
       data: {
-        twoFactorSecret: secret.base32,
+        twoFactorSecret: encrypt(secret.base32), // 🔐 Encrypted
         twoFactorEnabled: false, // Not enabled until verified
-        twoFactorBackupCodes: JSON.stringify(backupCodes)
+        twoFactorBackupCodes: encrypt(JSON.stringify(backupCodes)) // 🔐 Encrypted
       }
     })
 
