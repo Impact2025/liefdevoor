@@ -11,11 +11,25 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
   const pathname = usePathname()
 
+  // Don't show sidebar/navigation on admin pages
+  const isAdminPage = pathname?.startsWith('/admin')
+
   // Don't apply sidebar padding on auth pages or landing page when not logged in
   const shouldShowSidebar = session &&
     !pathname?.startsWith('/login') &&
     !pathname?.startsWith('/register') &&
-    !pathname?.startsWith('/onboarding')
+    !pathname?.startsWith('/onboarding') &&
+    !isAdminPage
+
+  // Don't show navigation on admin pages
+  if (isAdminPage) {
+    return (
+      <>
+        {children}
+        <CookieBanner />
+      </>
+    )
+  }
 
   return (
     <>
