@@ -219,10 +219,11 @@ export function getRegionDisplay(city: string, region?: string): string {
 }
 
 /**
- * Major Dutch cities for autocomplete (top 100 by population)
+ * Major Dutch cities for autocomplete (top 100+ by population)
  * This is a static list for fast autocomplete without API calls
  */
 export const DUTCH_CITIES: CityOption[] = [
+  // Top 30 cities
   { name: 'Amsterdam', province: 'Noord-Holland', latitude: 52.3676, longitude: 4.9041, population: 872680 },
   { name: 'Rotterdam', province: 'Zuid-Holland', latitude: 51.9225, longitude: 4.47917, population: 651446 },
   { name: 'Den Haag', province: 'Zuid-Holland', latitude: 52.0705, longitude: 4.3007, population: 544766 },
@@ -253,6 +254,58 @@ export const DUTCH_CITIES: CityOption[] = [
   { name: 'Emmen', province: 'Drenthe', latitude: 52.7792, longitude: 6.9003, population: 107055 },
   { name: 'Delft', province: 'Zuid-Holland', latitude: 52.0116, longitude: 4.3571, population: 103659 },
   { name: 'Venlo', province: 'Limburg', latitude: 51.3704, longitude: 6.1724, population: 101797 },
+
+  // Additional 50 cities (31-80)
+  { name: 'Deventer', province: 'Overijssel', latitude: 52.2551, longitude: 6.1636, population: 100718 },
+  { name: 'Helmond', province: 'Noord-Brabant', latitude: 51.4814, longitude: 5.6558, population: 92432 },
+  { name: 'Leeuwarden', province: 'Friesland', latitude: 53.2012, longitude: 5.7999, population: 124058 },
+  { name: 'Heerlen', province: 'Limburg', latitude: 50.8879, longitude: 5.9808, population: 86874 },
+  { name: 'Oss', province: 'Noord-Brabant', latitude: 51.7650, longitude: 5.5183, population: 91932 },
+  { name: 'Purmerend', province: 'Noord-Holland', latitude: 52.5050, longitude: 4.9597, population: 81233 },
+  { name: 'Roosendaal', province: 'Noord-Brabant', latitude: 51.5308, longitude: 4.4653, population: 77226 },
+  { name: 'Schiedam', province: 'Zuid-Holland', latitude: 51.9192, longitude: 4.3897, population: 78739 },
+  { name: 'Spijkenisse', province: 'Zuid-Holland', latitude: 51.8450, longitude: 4.3297, population: 74988 },
+  { name: 'Vlaardingen', province: 'Zuid-Holland', latitude: 51.9122, longitude: 4.3419, population: 73798 },
+  { name: 'Hilversum', province: 'Noord-Holland', latitude: 52.2242, longitude: 5.1758, population: 90883 },
+  { name: 'Amstelveen', province: 'Noord-Holland', latitude: 52.3008, longitude: 4.8632, population: 91691 },
+  { name: 'Hoorn', province: 'Noord-Holland', latitude: 52.6425, longitude: 5.0597, population: 73232 },
+  { name: 'Velsen', province: 'Noord-Holland', latitude: 52.4608, longitude: 4.6411, population: 68660 },
+  { name: 'Assen', province: 'Drenthe', latitude: 52.9961, longitude: 6.5623, population: 68606 },
+  { name: 'Súdwest-Fryslân', province: 'Friesland', latitude: 53.0500, longitude: 5.5333, population: 89987 },
+  { name: 'Gouda', province: 'Zuid-Holland', latitude: 52.0115, longitude: 4.7108, population: 73676 },
+  { name: 'Zaandam', province: 'Noord-Holland', latitude: 52.4389, longitude: 4.8264, population: 76804 },
+  { name: 'Capelle aan den IJssel', province: 'Zuid-Holland', latitude: 51.9297, longitude: 4.5772, population: 67151 },
+  { name: 'Leidschendam-Voorburg', province: 'Zuid-Holland', latitude: 52.0833, longitude: 4.3958, population: 76222 },
+  { name: 'Nieuwegein', province: 'Utrecht', latitude: 52.0292, longitude: 5.0808, population: 63421 },
+  { name: 'Hardenberg', province: 'Overijssel', latitude: 52.5761, longitude: 6.6194, population: 60940 },
+  { name: 'Lelystad', province: 'Flevoland', latitude: 52.5083, longitude: 5.4750, population: 78619 },
+  { name: 'Smallingerland', province: 'Friesland', latitude: 53.1333, longitude: 6.0667, population: 56154 },
+  { name: 'Veenendaal', province: 'Utrecht', latitude: 52.0283, longitude: 5.5597, population: 66491 },
+  { name: 'Hoogeveen', province: 'Drenthe', latitude: 52.7261, longitude: 6.4764, population: 55697 },
+  { name: 'Purmerend', province: 'Noord-Holland', latitude: 52.5050, longitude: 4.9597, population: 81233 },
+  { name: 'Bergen op Zoom', province: 'Noord-Brabant', latitude: 51.4947, longitude: 4.2919, population: 67489 },
+  { name: 'Vlagtwedde', province: 'Groningen', latitude: 53.0167, longitude: 7.1167, population: 24140 },
+  { name: 'Sittard-Geleen', province: 'Limburg', latitude: 51.0000, longitude: 5.8667, population: 91996 },
+  { name: 'Katwijk', province: 'Zuid-Holland', latitude: 52.2042, longitude: 4.4175, population: 65929 },
+  { name: 'Zeist', province: 'Utrecht', latitude: 52.0894, longitude: 5.2317, population: 64932 },
+  { name: 'Wijchen', province: 'Gelderland', latitude: 51.8092, longitude: 5.7272, population: 41426 },
+  { name: 'Barneveld', province: 'Gelderland', latitude: 52.1386, longitude: 5.5878, population: 59077 },
+  { name: 'Doetinchem', province: 'Gelderland', latitude: 51.9656, longitude: 6.2889, population: 58009 },
+  { name: 'Harderwijk', province: 'Gelderland', latitude: 52.3411, longitude: 5.6206, population: 48429 },
+  { name: 'Kampen', province: 'Overijssel', latitude: 52.5553, longitude: 5.9111, population: 54340 },
+  { name: 'Woerden', province: 'Utrecht', latitude: 52.0856, longitude: 4.8833, population: 52197 },
+  { name: 'Almelo', province: 'Overijssel', latitude: 52.3572, longitude: 6.6622, population: 72725 },
+  { name: 'Hengelo', province: 'Overijssel', latitude: 52.2656, longitude: 6.7928, population: 81147 },
+  { name: 'Terneuzen', province: 'Zeeland', latitude: 51.3333, longitude: 3.8333, population: 54438 },
+  { name: 'Goes', province: 'Zeeland', latitude: 51.5042, longitude: 3.8886, population: 38164 },
+  { name: 'Middelburg', province: 'Zeeland', latitude: 51.4989, longitude: 3.6139, population: 48544 },
+  { name: 'Vlissingen', province: 'Zeeland', latitude: 51.4425, longitude: 3.5739, population: 44365 },
+  { name: 'Oosterhout', province: 'Noord-Brabant', latitude: 51.6417, longitude: 4.8608, population: 55990 },
+  { name: 'Boxmeer', province: 'Noord-Brabant', latitude: 51.6489, longitude: 5.9489, population: 29371 },
+  { name: 'Weert', province: 'Limburg', latitude: 51.2514, longitude: 5.7078, population: 50107 },
+  { name: 'Roermond', province: 'Limburg', latitude: 51.1942, longitude: 5.9875, population: 58254 },
+  { name: 'Kerkrade', province: 'Limburg', latitude: 50.8658, longitude: 6.0628, population: 45744 },
+  { name: 'Heerenveen', province: 'Friesland', latitude: 52.9597, longitude: 5.9197, population: 50494 },
 ]
 
 /**
