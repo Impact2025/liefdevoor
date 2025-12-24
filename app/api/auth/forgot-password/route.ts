@@ -31,10 +31,10 @@ export async function POST(request: NextRequest) {
       const verification = await verifyTurnstileToken(turnstileToken, clientIP)
 
       if (!verification.success) {
-        auditLog('SECURITY_VIOLATION', {
-          ip: clientIP,
+        auditLog('PASSWORD_RESET_REQUEST', {
+          userId: undefined,
           details: `Turnstile verification failed: ${verification.error}`,
-          success: false
+          clientInfo: getClientInfo(request)
         })
 
         return NextResponse.json(
