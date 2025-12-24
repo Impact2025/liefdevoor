@@ -80,6 +80,36 @@ const nextConfig = {
     },
   }),
 
+  // Webpack configuration to exclude server-only modules from client bundle
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Exclude server-only packages from client bundle
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+      };
+
+      // Alias ioredis to false to prevent it from being bundled on client
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        ioredis: false,
+      };
+    }
+
+    return config;
+  },
+
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', '@radix-ui/react-icons'],
 
