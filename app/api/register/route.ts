@@ -60,9 +60,10 @@ export async function POST(request: NextRequest) {
       const verification = await verifyTurnstileToken(turnstileToken, clientIP)
 
       if (!verification.success) {
-        auditLog('REGISTER_TURNSTILE_FAILED', {
-          ip: clientIP,
-          details: verification.error,
+        auditLog('REGISTER', {
+          userId: undefined,
+          details: `Turnstile verification failed: ${verification.error}`,
+          clientInfo: getClientInfo(request),
           success: false
         })
 
