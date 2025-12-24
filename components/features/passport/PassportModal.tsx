@@ -333,26 +333,6 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            {/* Premium gate */}
-            {!hasFeature && !isLoading && (
-              <div className="p-6 text-center">
-                <Crown className="w-16 h-16 mx-auto text-amber-400 mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Liefde Compleet Feature
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Met Passport kun je swipen in andere steden voordat je daar bent.
-                  Ideaal voor als je op reis gaat!
-                </p>
-                <a
-                  href="/prijzen"
-                  className="inline-block px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-xl font-semibold"
-                >
-                  Upgrade naar Compleet
-                </a>
-              </div>
-            )}
-
             {/* Loading state */}
             {isLoading && (
               <div className="p-4 space-y-2">
@@ -362,9 +342,30 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
               </div>
             )}
 
-            {/* City lists */}
-            {hasFeature && !isLoading && (
+            {/* City lists - Show for everyone, gate activation instead */}
+            {!isLoading && (
               <div className="p-4 space-y-2">
+                {/* Premium gate banner (collapsed, above results) */}
+                {!hasFeature && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <Crown className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 mb-1">Liefde Compleet Feature</h4>
+                        <p className="text-sm text-gray-600 mb-2">
+                          Upgrade om in andere steden te swipen!
+                        </p>
+                        <a
+                          href="/prijzen"
+                          className="inline-block px-4 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-lg text-sm font-semibold hover:shadow-md transition-shadow"
+                        >
+                          Upgrade naar Compleet
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Search results */}
                 {activeTab === 'search' && (
                   <>
@@ -412,7 +413,7 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
           </div>
 
           {/* City preview and actions */}
-          {selectedCity && hasFeature && (
+          {selectedCity && (
             <div className="border-t bg-gray-50 p-4 flex-shrink-0">
               {/* Mini map */}
               <div className="h-32 rounded-xl overflow-hidden mb-4">
@@ -435,53 +436,78 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={(e) => handleToggleFavorite(e, selectedCity)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isFavorite(selectedCity.name)
-                      ? 'text-amber-500 bg-amber-50'
-                      : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'
-                  }`}
-                >
-                  <Star className="w-5 h-5" fill={isFavorite(selectedCity.name) ? 'currentColor' : 'none'} />
-                </button>
-              </div>
-
-              {/* Duration selector */}
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">Hoe lang wil je reizen?</p>
-                <div className="flex gap-2">
-                  {DURATION_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setSelectedDuration(option.value)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedDuration === option.value
-                          ? 'bg-rose-500 text-white'
-                          : 'bg-white border border-gray-200 text-gray-600 hover:border-rose-300'
-                      }`}
-                    >
-                      {option.short}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Activate button */}
-              <button
-                onClick={handleActivate}
-                disabled={isActivating}
-                className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isActivating ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Plane className="w-5 h-5" />
-                    Reis naar {selectedCity.name}
-                  </>
+                {hasFeature && (
+                  <button
+                    onClick={(e) => handleToggleFavorite(e, selectedCity)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isFavorite(selectedCity.name)
+                        ? 'text-amber-500 bg-amber-50'
+                        : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'
+                    }`}
+                  >
+                    <Star className="w-5 h-5" fill={isFavorite(selectedCity.name) ? 'currentColor' : 'none'} />
+                  </button>
                 )}
-              </button>
+              </div>
+
+              {hasFeature ? (
+                <>
+                  {/* Duration selector */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-2">Hoe lang wil je reizen?</p>
+                    <div className="flex gap-2">
+                      {DURATION_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setSelectedDuration(option.value)}
+                          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            selectedDuration === option.value
+                              ? 'bg-rose-500 text-white'
+                              : 'bg-white border border-gray-200 text-gray-600 hover:border-rose-300'
+                          }`}
+                        >
+                          {option.short}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Activate button */}
+                  <button
+                    onClick={handleActivate}
+                    disabled={isActivating}
+                    className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isActivating ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Plane className="w-5 h-5" />
+                        Reis naar {selectedCity.name}
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                /* Premium gate for activation */
+                <div className="text-center">
+                  <div className="mb-3 p-3 bg-white rounded-lg border-2 border-amber-200">
+                    <Crown className="w-8 h-8 mx-auto text-amber-500 mb-2" />
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Premium vereist
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Upgrade naar Liefde Compleet om Passport te activeren
+                    </p>
+                  </div>
+                  <a
+                    href="/prijzen"
+                    className="block w-full py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow"
+                  >
+                    Upgrade naar Compleet
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
