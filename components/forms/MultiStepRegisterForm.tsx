@@ -15,7 +15,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Input, Button, Checkbox, Alert } from '@/components/ui'
+import { Input, Button, Checkbox, Alert, Turnstile, useTurnstile } from '@/components/ui'
 import { usePost } from '@/hooks'
 import {
   Check,
@@ -153,6 +153,9 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
   })
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
 
+  // Turnstile state voor bot protection
+  const { token: turnstileToken, setToken: setTurnstileToken, resetToken: resetTurnstileToken } = useTurnstile()
+
   // Debounced email for availability check
   const debouncedEmail = useDebounce(formData.email, 500)
 
@@ -163,6 +166,10 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
         onSuccess?.()
         router.push('/verify-email?email=' + encodeURIComponent(formData.email))
       }, 1500)
+    },
+    onError: () => {
+      // Reset Turnstile token zodat gebruiker opnieuw kan proberen
+      resetTurnstileToken()
     },
   })
 
@@ -253,6 +260,13 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       if (!formData.acceptedTerms) {
         newErrors.acceptedTerms = 'Je moet akkoord gaan met de voorwaarden'
       }
+
+      // Turnstile verification (alleen enforced als geconfigureerd)
+      const shouldEnforce = process.env.NODE_ENV === 'production' ||
+        process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+      if (shouldEnforce && !turnstileToken) {
+        newErrors.turnstile = 'Voltooi de beveiligingscontrole'
+      }
     }
 
     setErrors(newErrors)
@@ -282,6 +296,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       name: formData.name.trim(),
       email: formData.email.toLowerCase().trim(),
       password: formData.password,
+      turnstileToken, // Turnstile verification token
     })
   }
 
@@ -721,6 +736,22 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
                     error={errors.acceptedTerms}
                     disabled={isLoading}
                   />
+                </div>
+
+                {/* Cloudflare Turnstile - Bot Protection */}
+                <div className="pt-4">
+                  <Turnstile
+                    onSuccess={setTurnstileToken}
+                    onError={() => {
+                      setErrors((prev) => ({ ...prev, turnstile: 'Verificatie mislukt. Probeer opnieuw.' }))
+                    }}
+                    onExpire={resetTurnstileToken}
+                    theme="auto"
+                    appearance="interaction-only"
+                  />
+                  {errors.turnstile && (
+                    <p className="mt-2 text-sm text-red-600">{errors.turnstile}</p>
+                  )}
                 </div>
 
                 {/* Security Badge */}

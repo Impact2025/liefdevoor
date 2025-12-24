@@ -2,35 +2,48 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Turnstile } from '@/components/ui'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Check Turnstile token (alleen als geconfigureerd)
+    const shouldEnforce = process.env.NODE_ENV === 'production' ||
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    if (shouldEnforce && !turnstileToken) {
+      setError('Voltooi de beveiligingscontrole')
+      return
+    }
+
     setLoading(true)
 
     try {
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, turnstileToken })
       })
 
       const data = await response.json()
 
       if (!response.ok) {
         setError(data.error || 'Er is iets misgegaan')
+        setTurnstileToken(null) // Reset token zodat gebruiker opnieuw kan proberen
         return
       }
 
       setSubmitted(true)
     } catch {
       setError('Er is een fout opgetreden. Probeer het later opnieuw.')
+      setTurnstileToken(null) // Reset token zodat gebruiker opnieuw kan proberen
     } finally {
       setLoading(false)
     }
@@ -86,6 +99,18 @@ export default function ForgotPassword() {
           className="w-full p-3 mb-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
           required
         />
+
+        {/* Cloudflare Turnstile - Bot Protection */}
+        <div className="mb-4">
+          <Turnstile
+            onSuccess={setTurnstileToken}
+            onError={() => setError('Beveiligingsverificatie mislukt. Probeer opnieuw.')}
+            onExpire={() => setTurnstileToken(null)}
+            theme="auto"
+            appearance="interaction-only"
+            action="forgot-password"
+          />
+        </div>
 
         <button
           type="submit"

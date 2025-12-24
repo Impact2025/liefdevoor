@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
+import { rateLimiters, rateLimitResponse, getClientIdentifier } from '@/lib/rate-limit'
 import { auditLog, getClientInfo } from '@/lib/audit'
 import bcrypt from 'bcryptjs'
 import { Gender } from '@prisma/client'
 import { createVerificationToken } from '@/lib/email/verification'
 import { sendEmail } from '@/lib/email/send'
 import { getVerificationEmailHtml, getVerificationEmailText } from '@/lib/email/templates'
+import { verifyTurnstileToken, shouldEnforceTurnstile } from '@/lib/turnstile'
 
 // Zod schema for registration validation
 const registerSchema = z.object({

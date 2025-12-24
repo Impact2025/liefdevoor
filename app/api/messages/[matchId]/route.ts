@@ -89,6 +89,8 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
       content: message.content,
       audioUrl: message.audioUrl,
       gifUrl: message.gifUrl,
+      imageUrl: message.imageUrl,
+      videoUrl: message.videoUrl,
       read: message.read,
       createdAt: message.createdAt,
       sender: {

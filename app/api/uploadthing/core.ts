@@ -145,6 +145,46 @@ export const ourFileRouter = {
       // Return the URL - the story will be created by the stories API
       return { url: file.url };
     }),
+
+  // Chat Images - photos shared in messages
+  chatImage: f({
+    image: {
+      maxFileSize: "8MB",
+      maxFileCount: 5, // Allow multiple images at once
+    }
+  })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Chat image upload compleet voor gebruiker:", metadata.userId);
+      console.log("Image URL:", file.url);
+
+      // Return the URL - the message will be created by the messages API
+      return { url: file.url };
+    }),
+
+  // Chat Videos - videos shared in messages
+  chatVideo: f({
+    video: {
+      maxFileSize: "32MB", // Smaller than stories for chat
+      maxFileCount: 1,
+    }
+  })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Chat video upload compleet voor gebruiker:", metadata.userId);
+      console.log("Video URL:", file.url);
+
+      // Return the URL - the message will be created by the messages API
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
  
 export type OurFileRouter = typeof ourFileRouter;

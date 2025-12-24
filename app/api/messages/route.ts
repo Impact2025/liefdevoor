@@ -11,13 +11,15 @@ interface SendMessageRequest {
   content?: string | null
   audioUrl?: string | null
   gifUrl?: string | null
+  imageUrl?: string | null
+  videoUrl?: string | null
 }
 
 /**
  * Send a message in a match
  */
 async function sendMessage(userId: string, data: SendMessageRequest): Promise<Message> {
-  const { matchId, content, audioUrl, gifUrl } = data
+  const { matchId, content, audioUrl, gifUrl, imageUrl, videoUrl } = data
 
   // Verify the user is part of this match
   const match = await prisma.match.findUnique({
@@ -72,6 +74,8 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
       content: content || null,
       audioUrl: audioUrl || null,
       gifUrl: gifUrl || null,
+      imageUrl: imageUrl || null,
+      videoUrl: videoUrl || null,
     },
     include: {
       sender: {

@@ -46,7 +46,9 @@
       "Bash(npm run dev:slow:*)",
       "Bash(dir:*)",
       "Bash(git ls-files:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(cp:*)",
+      "Bash(if exist \"D:\\\\Datingsite2026\\\\prisma\\\\migrations\\\\20251223115739_change_preferences_to_json\" rmdir /s /q \"D:\\\\Datingsite2026\\\\prisma\\\\migrations\\\\20251223115739_change_preferences_to_json\")"
     ],
     "deny": [],
     "ask": []

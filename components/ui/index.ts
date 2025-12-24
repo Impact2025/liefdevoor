@@ -33,6 +33,10 @@ export type { TextareaProps } from './Textarea'
 export { Checkbox } from './Checkbox'
 export type { CheckboxProps } from './Checkbox'
 
+// Security
+export { Turnstile, useTurnstile } from './Turnstile'
+export type { TurnstileProps } from './Turnstile'
+
 // Modals
 export { Modal } from './Modal'
 export type { ModalProps } from './Modal'

@@ -295,6 +295,8 @@ model Message {
   content   String?  @db.Text
   audioUrl  String?
   gifUrl    String?
+  imageUrl  String?  // Photo shared in chat
+  videoUrl  String?  // Video shared in chat
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   senderId  String

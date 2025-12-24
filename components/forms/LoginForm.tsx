@@ -9,7 +9,7 @@
 import React, { useState } from 'react'
 import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Input, Button, Checkbox, Alert } from '@/components/ui'
+import { Input, Button, Checkbox, Alert, Turnstile, useTurnstile } from '@/components/ui'
 import type { LoginFormData } from '@/lib/types'
 
 export interface LoginFormProps {
@@ -27,6 +27,9 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Turnstile state voor bot protection
+  const { token: turnstileToken, setToken: setTurnstileToken, resetToken: resetTurnstileToken } = useTurnstile()
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof LoginFormData, string>> = {}
@@ -53,17 +56,27 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
     if (!validateForm()) return
 
+    // Check Turnstile token (alleen als geconfigureerd)
+    const shouldEnforce = process.env.NODE_ENV === 'production' ||
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    if (shouldEnforce && !turnstileToken) {
+      setError('Voltooi de beveiligingscontrole')
+      return
+    }
+
     setIsLoading(true)
 
     try {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
+        turnstileToken, // Turnstile verification token
         redirect: false,
       })
 
       if (result?.error) {
         setError('Ongeldige inloggegevens. Controleer je email en wachtwoord.')
+        resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
       } else if (result?.ok) {
         onSuccess?.()
 
@@ -86,6 +99,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       }
     } catch (err) {
       setError('Er is een fout opgetreden. Probeer het opnieuw.')
+      resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
     } finally {
       setIsLoading(false)
     }
@@ -173,6 +187,18 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         >
           Wachtwoord vergeten?
         </a>
+      </div>
+
+      {/* Cloudflare Turnstile - Bot Protection */}
+      <div className="pt-2">
+        <Turnstile
+          onSuccess={setTurnstileToken}
+          onError={() => setError('Beveiligingsverificatie mislukt. Probeer opnieuw.')}
+          onExpire={resetTurnstileToken}
+          theme="auto"
+          appearance="interaction-only"
+          action="login"
+        />
       </div>
 
       <Button
