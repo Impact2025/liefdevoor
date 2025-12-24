@@ -25,11 +25,15 @@ const store = new Map<string, { count: number; resetTime: number }>()
 // Cleanup old entries periodically
 function cleanup() {
   const now = Date.now()
-  for (const [key, value] of store.entries()) {
+  const keysToDelete: string[] = []
+
+  store.forEach((value, key) => {
     if (now > value.resetTime) {
-      store.delete(key)
+      keysToDelete.push(key)
     }
-  }
+  })
+
+  keysToDelete.forEach(key => store.delete(key))
 }
 
 // Run cleanup every minute
