@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import './types'
 import { auditLog } from './audit'
 import { trackRegistrationComplete, trackLoginEvent } from './analytics-events'
+import { verifyTurnstileToken, shouldEnforceTurnstile } from './turnstile'
 
 // Simple in-memory rate limiter for auth (use Redis in production)
 const loginAttempts = new Map<string, { count: number; resetTime: number }>()
@@ -53,11 +54,33 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        turnstileToken: { label: 'Turnstile Token', type: 'text' }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null
+        }
+
+        // Turnstile verification (bot protection)
+        if (shouldEnforceTurnstile()) {
+          if (!credentials.turnstileToken) {
+            auditLog('LOGIN_TURNSTILE_MISSING', {
+              details: { email: credentials.email.substring(0, 3) + '***' },
+              success: false
+            })
+            throw new Error('Beveiligingsverificatie vereist')
+          }
+
+          const verification = await verifyTurnstileToken(credentials.turnstileToken)
+
+          if (!verification.success) {
+            auditLog('LOGIN_TURNSTILE_FAILED', {
+              details: { email: credentials.email.substring(0, 3) + '***', error: verification.error },
+              success: false
+            })
+            throw new Error('Beveiligingsverificatie mislukt')
+          }
         }
 
         // Rate limit check

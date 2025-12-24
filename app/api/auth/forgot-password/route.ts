@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
+import { rateLimiters, rateLimitResponse, getClientIP } from '@/lib/rate-limit'
 import { auditLog, getClientInfo } from '@/lib/audit'
 import { sendEmail } from '@/lib/email/send'
 import { getPasswordResetEmailHtml, getPasswordResetEmailText } from '@/lib/email/templates'
 import crypto from 'crypto'
+import { verifyTurnstileToken, shouldEnforceTurnstile } from '@/lib/turnstile'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email } = body
+    const { email, turnstileToken } = body
+
+    // Turnstile verification (bot protection)
+    if (shouldEnforceTurnstile()) {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { error: 'Beveiligingsverificatie vereist' },
+          { status: 400 }
+        )
+      }
+
+      const clientIP = getClientIP(request)
+      const verification = await verifyTurnstileToken(turnstileToken, clientIP)
+
+      if (!verification.success) {
+        auditLog('SECURITY_VIOLATION', {
+          ip: clientIP,
+          details: `Turnstile verification failed: ${verification.error}`,
+          success: false
+        })
+
+        return NextResponse.json(
+          { error: verification.error || 'Beveiligingsverificatie mislukt' },
+          { status: 400 }
+        )
+      }
+    }
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
