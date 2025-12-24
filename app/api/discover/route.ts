@@ -3,6 +3,7 @@ import { requireAuth, successResponse, handleApiError, parsePaginationParams } f
 import { prisma } from '@/lib/prisma'
 import type { DiscoverUser, DiscoverFilters, UserPreferences } from '@/lib/types'
 import type { Prisma } from '@prisma/client'
+import { calculateCompatibility } from '@/lib/services/matching/compatibility-engine'
 
 /**
  * Calculate distance between two points using Haversine formula
@@ -181,6 +182,8 @@ export async function GET(request: NextRequest) {
         safetyScore: true,
         createdAt: true,
         updatedAt: true,
+        lastSeen: true, // For AI activity matching
+        interests: true, // For AI interest matching
         // Lifestyle fields
         occupation: true,
         education: true,
@@ -224,20 +227,99 @@ export async function GET(request: NextRequest) {
     })
     const boostedUserIds = new Set(boostedUsers.map(b => b.userId))
 
-    // Sort: boosted users first, then by createdAt
-    const sortedMatches = [...filteredMatches].sort((a, b) => {
+    // 🤖 AI MATCHING: Calculate compatibility scores for each user
+    const userProfile = {
+      id: currentUser.id,
+      interests: null, // Will be fetched
+      bio: null,
+      city: effectiveCity,
+      latitude: effectiveLatitude,
+      longitude: effectiveLongitude,
+      lastSeen: null,
+      createdAt: new Date(),
+    }
+
+    // Fetch current user's full profile for AI matching
+    const currentUserFull = await prisma.user.findUnique({
+      where: { id: currentUser.id },
+      select: {
+        interests: true,
+        bio: true,
+        lastSeen: true,
+        createdAt: true,
+      },
+    })
+
+    if (currentUserFull) {
+      userProfile.interests = currentUserFull.interests
+      userProfile.bio = currentUserFull.bio
+      userProfile.lastSeen = currentUserFull.lastSeen
+      userProfile.createdAt = currentUserFull.createdAt
+    }
+
+    // 🤖 AI MATCHING ACTIVE - Calculate compatibility scores for all matches
+    console.log(`[AI Matching] Calculating compatibility for ${filteredMatches.length} potential matches`)
+    const matchesWithScores = filteredMatches.map(match => {
+      const targetProfile = {
+        id: match.id,
+        interests: match.interests,
+        bio: match.bio,
+        city: match.city,
+        latitude: match.latitude,
+        longitude: match.longitude,
+        lastSeen: match.lastSeen,
+        createdAt: match.createdAt,
+      }
+
+      const compatibility = calculateCompatibility(userProfile, targetProfile)
+
+      return {
+        ...match,
+        compatibilityScore: compatibility.overallScore,
+        compatibilityDetails: {
+          interestScore: compatibility.interestScore,
+          bioScore: compatibility.bioScore,
+          locationScore: compatibility.locationScore,
+          activityScore: compatibility.activityScore,
+        },
+      }
+    })
+
+    // Sort: boosted users first → then by AI compatibility score → then by createdAt
+    const sortedMatches = matchesWithScores.sort((a, b) => {
       const aIsBoosted = boostedUserIds.has(a.id)
       const bIsBoosted = boostedUserIds.has(b.id)
+
+      // Boosted users always come first
       if (aIsBoosted && !bIsBoosted) return -1
       if (!aIsBoosted && bIsBoosted) return 1
+
+      // If both boosted or both not boosted, sort by AI compatibility score
+      if (a.compatibilityScore !== b.compatibilityScore) {
+        return b.compatibilityScore - a.compatibilityScore
+      }
+
+      // If scores are equal, sort by recency
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
 
     // Paginate and format
-    const users: DiscoverUser[] = sortedMatches.slice(0, limit).map(user => ({
+    const users: any[] = sortedMatches.slice(0, limit).map(user => ({
       ...user,
       birthDate: user.birthDate ? user.birthDate.toISOString().split('T')[0] : null,
       isBoosted: boostedUserIds.has(user.id),
+      // Include AI compatibility score (0-100)
+      matchScore: user.compatibilityScore,
+      matchQuality: user.compatibilityScore >= 75 ? 'excellent' :
+                    user.compatibilityScore >= 60 ? 'good' : 'fair',
+      // Detailed breakdown for premium users
+      compatibility: {
+        overall: user.compatibilityScore,
+        interests: user.compatibilityDetails.interestScore,
+        bio: user.compatibilityDetails.bioScore,
+        location: user.compatibilityDetails.locationScore,
+        activity: user.compatibilityDetails.activityScore,
+      },
     }))
 
     const totalCount = await prisma.user.count({ where })
