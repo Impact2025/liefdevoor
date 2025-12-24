@@ -227,19 +227,7 @@ export async function GET(request: NextRequest) {
     })
     const boostedUserIds = new Set(boostedUsers.map(b => b.userId))
 
-    // 🤖 AI MATCHING: Calculate compatibility scores for each user
-    const userProfile = {
-      id: currentUser.id,
-      interests: null, // Will be fetched
-      bio: null,
-      city: effectiveCity,
-      latitude: effectiveLatitude,
-      longitude: effectiveLongitude,
-      lastSeen: null,
-      createdAt: new Date(),
-    }
-
-    // Fetch current user's full profile for AI matching
+    // 🤖 AI MATCHING: Fetch current user's full profile for compatibility calculation
     const currentUserFull = await prisma.user.findUnique({
       where: { id: currentUser.id },
       select: {
@@ -250,11 +238,15 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    if (currentUserFull) {
-      userProfile.interests = currentUserFull.interests
-      userProfile.bio = currentUserFull.bio
-      userProfile.lastSeen = currentUserFull.lastSeen
-      userProfile.createdAt = currentUserFull.createdAt
+    const userProfile = {
+      id: currentUser.id,
+      interests: currentUserFull?.interests || null,
+      bio: currentUserFull?.bio || null,
+      city: effectiveCity,
+      latitude: effectiveLatitude,
+      longitude: effectiveLongitude,
+      lastSeen: currentUserFull?.lastSeen || null,
+      createdAt: currentUserFull?.createdAt || new Date(),
     }
 
     // 🤖 AI MATCHING ACTIVE - Calculate compatibility scores for all matches
