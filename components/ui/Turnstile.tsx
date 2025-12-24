@@ -128,7 +128,8 @@ export function Turnstile({
       }
     }
 
-    if (script.complete || (window as any).turnstile) {
+    // Check if script is already loaded
+    if ((window as any).turnstile) {
       handleScriptLoad()
     } else {
       script.addEventListener('load', handleScriptLoad)

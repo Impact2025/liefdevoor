@@ -65,9 +65,9 @@ export const authOptions: NextAuthOptions = {
         // Turnstile verification (bot protection)
         if (shouldEnforceTurnstile()) {
           if (!credentials.turnstileToken) {
-            auditLog('LOGIN_TURNSTILE_MISSING', {
-              details: { email: credentials.email.substring(0, 3) + '***' },
-              success: false
+            auditLog('LOGIN_FAILED', {
+              userId: undefined,
+              details: `Turnstile token missing for ${credentials.email.substring(0, 3)}***`
             })
             throw new Error('Beveiligingsverificatie vereist')
           }
@@ -75,9 +75,9 @@ export const authOptions: NextAuthOptions = {
           const verification = await verifyTurnstileToken(credentials.turnstileToken)
 
           if (!verification.success) {
-            auditLog('LOGIN_TURNSTILE_FAILED', {
-              details: { email: credentials.email.substring(0, 3) + '***', error: verification.error },
-              success: false
+            auditLog('LOGIN_FAILED', {
+              userId: undefined,
+              details: `Turnstile verification failed for ${credentials.email.substring(0, 3)}***: ${verification.error}`
             })
             throw new Error('Beveiligingsverificatie mislukt')
           }
