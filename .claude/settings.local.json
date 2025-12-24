@@ -41,7 +41,12 @@
       "Bash(find:*)",
       "Bash(start http://localhost:3001)",
       "Bash(dir \"D:\\\\datingsite2026\\\\public\")",
-      "Bash(dir \"D:\\\\datingsite2026\\\\app\")"
+      "Bash(dir \"D:\\\\datingsite2026\\\\app\")",
+      "Bash(if exist \"D:\\\\datingsite2026\\\\.next\" rmdir /s /q \"D:\\\\datingsite2026\\\\.next\")",
+      "Bash(npm run dev:slow:*)",
+      "Bash(dir:*)",
+      "Bash(git ls-files:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

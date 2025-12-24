@@ -15,8 +15,8 @@ const LOGO_PATH = path.join(__dirname, '../public/images/LiefdevoorIedereen_logo
 // Icon sizes needed for PWA
 const SIZES = [32, 72, 96, 128, 144, 152, 192, 384, 512];
 
-// Rose-500 color from brand palette
-const BRAND_COLOR = '#f43f5e';
+// Logo color from brand palette
+const BRAND_COLOR = '#C34C60';
 
 async function generateIcons() {
   console.log('Generating PWA icons from Liefde Voor Iedereen logo...\n');

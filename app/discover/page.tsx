@@ -54,11 +54,11 @@ const fireConfetti = async () => {
     })
   }
 
-  fire(0.25, { spread: 26, startVelocity: 55, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
-  fire(0.2, { spread: 60, colors: ['#F43F5E', '#FB7185', '#FDA4AF'] })
-  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#EC4899', '#F472B6', '#FCA5A5'] })
-  fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#F43F5E', '#FB7185'] })
-  fire(0.1, { spread: 120, startVelocity: 45, colors: ['#EC4899', '#F472B6'] })
+  fire(0.25, { spread: 26, startVelocity: 55, colors: ['#C34C60', '#ed7693', '#FCA5A5'] })
+  fire(0.2, { spread: 60, colors: ['#C34C60', '#ed7693', '#FDA4AF'] })
+  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ['#C34C60', '#ed7693', '#FCA5A5'] })
+  fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ['#C34C60', '#ed7693'] })
+  fire(0.1, { spread: 120, startVelocity: 45, colors: ['#C34C60', '#ed7693'] })
 }
 
 export default function DiscoverPage() {
@@ -195,7 +195,7 @@ export default function DiscoverPage() {
     id: user.id,
     name: user.name || 'Onbekend',
     age: user.birthDate ? calculateAge(user.birthDate) : 0,
-    photo: user.profileImage || user.photos?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&size=400&background=f43f5e&color=fff`,
+    photo: user.profileImage || user.photos?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&size=400&background=C34C60&color=fff`,
     photos: user.photos,
     distance: user.distance || 0,
     city: user.city || '',
@@ -260,6 +260,7 @@ export default function DiscoverPage() {
   const clearFilters = () => {
     setFilters({ minAge: 18, maxAge: 99 })
     refetch({ minAge: 18, maxAge: 99 })
+    setShowFilters(false)
   }
 
   if (status === 'loading') {
@@ -325,8 +326,9 @@ export default function DiscoverPage() {
                 </div>
               )}
               {isUnlimited && (
-                <div className="flex items-center gap-1.5 bg-amber-500/80 backdrop-blur-md px-3 py-2 rounded-xl">
-                  <Crown size={16} className="text-white" />
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg">
+                  <Flame size={16} className="text-white" fill="white" />
+                  <span className="text-sm font-bold text-white">∞</span>
                 </div>
               )}
 
@@ -514,6 +516,33 @@ export default function DiscoverPage() {
             placeholder="Bijv. Jan, Maria..."
             fullWidth
           />
+
+          <Input
+            label="Zoek in stad"
+            value={filters.city || ''}
+            onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+            placeholder="Bijv. Amsterdam, Rotterdam..."
+            fullWidth
+          />
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Maximale afstand: {filters.maxDistance || 100} km
+            </label>
+            <input
+              type="range"
+              min="5"
+              max="500"
+              step="5"
+              value={filters.maxDistance || 100}
+              onChange={(e) => setFilters({ ...filters, maxDistance: parseInt(e.target.value) })}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>5 km</span>
+              <span>500 km</span>
+            </div>
+          </div>
 
           <div className="flex gap-3 pt-4">
             <Button variant="secondary" onClick={clearFilters} fullWidth>

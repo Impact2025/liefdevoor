@@ -140,7 +140,7 @@ function SubscriptionSuccessContent() {
         angle: 60,
         spread: 55,
         origin: { x: 0, y: 0.6 },
-        colors: ['#f43f5e', '#e11d48', '#fb7185', '#fda4af', '#0f766e']
+        colors: ['#C34C60', '#a83d4f', '#ed7693', '#fda4af', '#0f766e']
       })
 
       // Right side
@@ -149,7 +149,7 @@ function SubscriptionSuccessContent() {
         angle: 120,
         spread: 55,
         origin: { x: 1, y: 0.6 },
-        colors: ['#f43f5e', '#e11d48', '#fb7185', '#fda4af', '#0f766e']
+        colors: ['#C34C60', '#a83d4f', '#ed7693', '#fda4af', '#0f766e']
       })
     }, 250)
 

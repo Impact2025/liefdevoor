@@ -51,6 +51,18 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
       data: { read: true },
     })
 
+    // Get other user info
+    const otherUserInfo = await prisma.user.findUnique({
+      where: { id: otherUserId },
+      select: {
+        id: true,
+        name: true,
+        profileImage: true,
+        isOnline: true,
+        lastSeen: true,
+      },
+    })
+
     // Get paginated messages
     const [messages, totalCount] = await Promise.all([
       prisma.message.findMany({
@@ -89,6 +101,7 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
 
     return NextResponse.json({
       messages: formattedMessages,
+      otherUser: otherUserInfo,
       pagination: {
         page,
         limit,

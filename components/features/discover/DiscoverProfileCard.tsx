@@ -194,7 +194,7 @@ export function DiscoverProfileCard({
     ? profile.photos.map((p) => p.url)
     : profile.photo
       ? [profile.photo]
-      : [`https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&size=400&background=f43f5e&color=fff`]
+      : [`https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&size=400&background=C34C60&color=fff`]
 
   const onlineStatus = getOnlineStatus(profile.lastActive)
   const lastActiveText = getLastActiveText(profile.lastActive)

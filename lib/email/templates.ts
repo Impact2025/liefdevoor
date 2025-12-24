@@ -8,8 +8,8 @@
 const BRAND = {
   name: 'Liefde Voor Iedereen',
   logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
-  primaryColor: '#f43f5e',
-  primaryDark: '#e11d48',
+  primaryColor: '#C34C60',
+  primaryDark: '#a83d4f',
   textColor: '#1f2937',
   textMuted: '#6b7280',
   bgColor: '#f9fafb',

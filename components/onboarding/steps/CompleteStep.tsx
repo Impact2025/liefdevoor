@@ -20,7 +20,7 @@ export default function CompleteStep() {
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#ec4899', '#f472b6', '#fda4af'],
+        colors: ['#C34C60', '#ed7693', '#fda4af'],
       });
     }, 500);
 
@@ -41,7 +41,7 @@ export default function CompleteStep() {
           particleCount: 150,
           spread: 100,
           origin: { y: 0.5 },
-          colors: ['#ec4899', '#f472b6', '#22c55e'],
+          colors: ['#C34C60', '#ed7693', '#22c55e'],
         });
 
         setTimeout(() => {

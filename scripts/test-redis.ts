@@ -7,15 +7,24 @@
  *   npx tsx scripts/test-redis.ts
  */
 
-import { redis } from '@/lib/redis'
+// Load environment variables from .env
+import { config } from 'dotenv'
+config()
+
+import { getRedis } from '@/lib/redis'
 
 async function testRedis() {
   console.log('\n🔍 Testing Redis connection...\n')
 
+  const redis = getRedis()
+  if (!redis) {
+    throw new Error('Redis client not initialized. Check REDIS_URL in .env')
+  }
+
   try {
     // Test 1: Write operation
     console.log('1. Testing WRITE operation...')
-    await redis.set('test-key', 'Hello from Dating App!', { ex: 30 })
+    await redis.set('test-key', 'Hello from Dating App!', 'EX', 30)
     console.log('   ✅ Write successful\n')
 
     // Test 2: Read operation
@@ -36,7 +45,7 @@ async function testRedis() {
 
     // Test 4: Expiry
     console.log('4. Testing EXPIRY...')
-    await redis.set('test-expiry', 'expires soon', { ex: 2 })
+    await redis.set('test-expiry', 'expires soon', 'EX', 2)
     const beforeExpiry = await redis.get('test-expiry')
     console.log('   ⏳ Value set with 2s expiry:', beforeExpiry)
 

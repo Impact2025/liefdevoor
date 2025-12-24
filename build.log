@@ -1,6 +1,6 @@
 
 > pro-dating-app@0.1.0 build
-> next build
+> cross-env NODE_OPTIONS=--max-old-space-size=4096 next build
 
   ▲ Next.js 14.2.33
   - Environments: .env
@@ -9,8 +9,8 @@
 
    Creating an optimized production build ...
 [@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (188kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (139kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (188kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
  ⚠ Compiled with warnings
 
 ./node_modules/ioredis/built/Redis.js
@@ -165,14 +165,15 @@ Import trace for requested module:
    Linting and checking validity of types ...
 Failed to compile.
 
-./app/api/profile/views/route.ts:57:20
-Type error: Object literal may only specify known properties, and 'createdAt' does not exist in type 'ProfileViewOrderByWithRelationInput | ProfileViewOrderByWithRelationInput[]'.
+./app/prijzen/page.tsx:320:31
+Type error: Property 'popular' does not exist on type '{ gradient: string; borderGradient: string; iconBg: string; iconColor: string; glowColor: string; icon: LucideIcon; } | { gradient: string; borderGradient: string; iconBg: string; iconColor: string; glowColor: string; icon: LucideIcon; popular: boolean; } | { ...; }'.
+  Property 'popular' does not exist on type '{ gradient: string; borderGradient: string; iconBg: string; iconColor: string; glowColor: string; icon: LucideIcon; }'.
 
-[0m [90m 55 |[39m       prisma[33m.[39mprofileView[33m.[39mfindMany({[0m
-[0m [90m 56 |[39m         where[33m:[39m { viewedId[33m:[39m user[33m.[39mid }[33m,[39m[0m
-[0m[31m[1m>[22m[39m[90m 57 |[39m         orderBy[33m:[39m { createdAt[33m:[39m [32m'desc'[39m }[33m,[39m[0m
-[0m [90m    |[39m                    [31m[1m^[22m[39m[0m
-[0m [90m 58 |[39m         skip[33m:[39m offset[33m,[39m[0m
-[0m [90m 59 |[39m         take[33m:[39m limit[33m,[39m[0m
-[0m [90m 60 |[39m         include[33m:[39m {[0m
+[0m [90m 318 |[39m                 [33m<[39m[33mmotion[39m[33m.[39mdiv[0m
+[0m [90m 319 |[39m                   whileHover[33m=[39m{{[0m
+[0m[31m[1m>[22m[39m[90m 320 |[39m                     y[33m:[39m config[33m.[39mpopular [33m||[39m config[33m.[39mrecommended [33m?[39m [33m-[39m[35m12[39m [33m:[39m [33m-[39m[35m8[39m[33m,[39m[0m
+[0m [90m     |[39m                               [31m[1m^[22m[39m[0m
+[0m [90m 321 |[39m                     transition[33m:[39m { type[33m:[39m [32m"spring"[39m[33m,[39m stiffness[33m:[39m [35m300[39m }[0m
+[0m [90m 322 |[39m                   }}[0m
+[0m [90m 323 |[39m                   className[33m=[39m{[32m`relative h-full bg-gradient-to-br ${config.gradient} rounded-3xl overflow-hidden ${[39m[0m
 Next.js build worker exited with code: 1 and signal: null

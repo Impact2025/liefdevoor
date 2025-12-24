@@ -22,7 +22,7 @@ const BRAND = {
   name: 'Liefde Voor Iedereen',
   logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
   primaryColor: '#9333ea',
-  valentineColor: '#ec4899', // Pink for Valentine's
+  valentineColor: '#C34C60', // Logo color for Valentine's
   textColor: '#1f2937',
   textMuted: '#4b5563',
   bgColor: '#f9fafb',

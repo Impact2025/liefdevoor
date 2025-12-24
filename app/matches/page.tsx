@@ -166,8 +166,8 @@ export default function SelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 pt-4 pb-24 lg:ml-64 lg:pt-20">
-      <div className="max-w-lg mx-auto px-4 lg:max-w-4xl">
+    <div className="min-h-screen bg-stone-50 pt-4 pb-24 lg:ml-64 lg:pt-6">
+      <div className="max-w-lg mx-auto px-4 lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1600px]">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
@@ -252,7 +252,7 @@ export default function SelectionPage() {
                 </Button>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4">
                 <AnimatePresence mode="popLayout">
                   {topPicks.map((pick, index) => (
                     <motion.button

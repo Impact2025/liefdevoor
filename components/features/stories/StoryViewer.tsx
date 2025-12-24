@@ -197,7 +197,7 @@ export function StoryViewer({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
             <Image
-              src={currentUser.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.user.name || 'U')}&size=40&background=f43f5e&color=fff`}
+              src={currentUser.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.user.name || 'U')}&size=40&background=C34C60&color=fff`}
               alt={currentUser.user.name || 'User'}
               width={40}
               height={40}

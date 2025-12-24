@@ -170,7 +170,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 pb-24 md:pb-8 lg:ml-64 lg:pt-16">
+    <div className="min-h-screen bg-stone-50 pb-24 md:pb-8 lg:ml-64 lg:pt-6">
       <AppHeader
         title="Instellingen"
         subtitle="Beheer je voorkeuren"

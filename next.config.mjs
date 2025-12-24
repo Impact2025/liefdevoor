@@ -81,9 +81,9 @@ const nextConfig = {
   }),
 
   // Webpack configuration to exclude server-only modules from client bundle
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
-      // Exclude server-only packages from client bundle
+      // Add fallback for Node.js built-ins
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -98,13 +98,16 @@ const nextConfig = {
         assert: false,
         os: false,
         path: false,
+        buffer: false,
+        util: false,
       };
 
-      // Alias ioredis to false to prevent it from being bundled on client
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        ioredis: false,
-      };
+      // Ignore ioredis and other server-only packages on client
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^(ioredis|redis)$/,
+        })
+      );
     }
 
     return config;

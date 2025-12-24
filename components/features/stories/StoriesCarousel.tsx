@@ -172,7 +172,7 @@ export function StoriesCarousel({ onAddStory }: StoriesCarouselProps) {
               <div className="w-full h-full rounded-full overflow-hidden bg-white p-0.5">
                 <div className="w-full h-full rounded-full overflow-hidden relative">
                   <Image
-                    src={storyUser.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(storyUser.user.name || 'U')}&size=64&background=f43f5e&color=fff`}
+                    src={storyUser.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(storyUser.user.name || 'U')}&size=64&background=C34C60&color=fff`}
                     alt={storyUser.user.name || 'Story'}
                     fill
                     className="object-cover"

@@ -15,20 +15,20 @@ module.exports = withUt({
       // COLORS - Dating App Brand Palette
       // ========================================================================
       colors: {
-        // Primary brand colors - Coral Heart (Rose-500)
+        // Primary brand colors - Logo Color #C34C60
         primary: {
-          DEFAULT: '#f43f5e',
-          hover: '#e11d48',
-          50: '#fff1f2',
-          100: '#ffe4e6',
-          200: '#fecdd3',
-          300: '#fda4af',
-          400: '#fb7185',
-          500: '#f43f5e',
-          600: '#e11d48',
-          700: '#be123c',
-          800: '#9f1239',
-          900: '#881337',
+          DEFAULT: '#C34C60',
+          hover: '#a83d4f',
+          50: '#fdf2f4',
+          100: '#fce7eb',
+          200: '#f9d0d9',
+          300: '#f4a8b9',
+          400: '#ed7693',
+          500: '#C34C60',
+          600: '#a83d4f',
+          700: '#8d2f3f',
+          800: '#762838',
+          900: '#652534',
         },
         // Trust colors - Teal for supporting elements
         trust: {
@@ -192,10 +192,10 @@ module.exports = withUt({
         'strong': '0 8px 24px rgba(0, 0, 0, 0.12)',
         'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 8px 30px rgba(0, 0, 0, 0.12)',
-        'button': '0 2px 8px rgba(244, 63, 94, 0.3)',
-        'button-hover': '0 4px 12px rgba(244, 63, 94, 0.4)',
+        'button': '0 2px 8px rgba(195, 76, 96, 0.3)',
+        'button-hover': '0 4px 12px rgba(195, 76, 96, 0.4)',
         // Focus ring shadows
-        'focus-ring': '0 0 0 3px rgba(244, 63, 94, 0.4)',
+        'focus-ring': '0 0 0 3px rgba(195, 76, 96, 0.4)',
         'focus-ring-success': '0 0 0 3px rgba(34, 197, 94, 0.4)',
         'focus-ring-danger': '0 0 0 3px rgba(239, 68, 68, 0.4)',
       },
@@ -350,11 +350,11 @@ module.exports = withUt({
         '.focus-ring': {
           '&:focus': {
             'outline': 'none',
-            'box-shadow': '0 0 0 3px rgba(244, 63, 94, 0.4)',
+            'box-shadow': '0 0 0 3px rgba(195, 76, 96, 0.4)',
           },
           '&:focus-visible': {
             'outline': 'none',
-            'box-shadow': '0 0 0 3px rgba(244, 63, 94, 0.4)',
+            'box-shadow': '0 0 0 3px rgba(195, 76, 96, 0.4)',
           },
         },
         // Screen reader only (but focusable)
@@ -411,14 +411,14 @@ module.exports = withUt({
           'justify-content': 'center',
           'min-height': '44px',
           'padding': '0.75rem 1.5rem',
-          'background': 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+          'background': 'linear-gradient(135deg, #C34C60 0%, #a83d4f 100%)',
           'color': 'white',
           'font-weight': '600',
           'border-radius': theme('borderRadius.lg'),
           'box-shadow': theme('boxShadow.button'),
           'transition': 'all 200ms ease',
           '&:hover': {
-            'background': 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
+            'background': 'linear-gradient(135deg, #a83d4f 0%, #8d2f3f 100%)',
             'box-shadow': theme('boxShadow.button-hover'),
             'transform': 'translateY(-1px)',
           },

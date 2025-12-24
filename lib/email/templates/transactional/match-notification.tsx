@@ -20,7 +20,7 @@ import {
 const BRAND = {
   name: 'Liefde Voor Iedereen',
   logoUrl: 'https://liefdevooriedereen.nl/images/LiefdevoorIedereen_logo.png',
-  primaryColor: '#f43f5e',
+  primaryColor: '#C34C60',
   textColor: '#1f2937',
   textMuted: '#6b7280',
   bgColor: '#f9fafb',

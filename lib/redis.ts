@@ -10,7 +10,7 @@
 import Redis from 'ioredis'
 
 // Singleton Redis clients
-let redis: Redis | null = null
+let redisClient: Redis | null = null
 let subscriber: Redis | null = null
 let publisher: Redis | null = null
 
@@ -28,7 +28,7 @@ export const CACHE_TTL = {
  * Get Redis client instance
  */
 export function getRedis(): Redis | null {
-  if (redis) return redis
+  if (redisClient) return redisClient
 
   const url = process.env.REDIS_URL
   if (!url) {
@@ -39,27 +39,30 @@ export function getRedis(): Redis | null {
   }
 
   try {
-    redis = new Redis(url, {
+    redisClient = new Redis(url, {
       maxRetriesPerRequest: 3,
-      lazyConnect: true,
+      lazyConnect: false,
       enableReadyCheck: true,
       retryStrategy: (times) => Math.min(times * 100, 3000),
     })
 
-    redis.on('error', (err) => {
+    redisClient.on('error', (err) => {
       console.error('[Redis] Connection error:', err.message)
     })
 
-    redis.on('connect', () => {
+    redisClient.on('connect', () => {
       console.log('[Redis] Connected successfully')
     })
 
-    return redis
+    return redisClient
   } catch (error) {
     console.error('[Redis] Failed to create client:', error)
     return null
   }
 }
+
+// Export default Redis instance for easy access
+export const redis = getRedis()
 
 /**
  * Get Redis Pub/Sub clients

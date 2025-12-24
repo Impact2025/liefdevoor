@@ -179,7 +179,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 lg:ml-64 lg:pt-16">
+    <div className="min-h-screen bg-stone-50 lg:ml-64 lg:pt-6">
       <AppHeader
         title="Mijn Profiel"
         subtitle="Beheer je profiel en voorkeuren"

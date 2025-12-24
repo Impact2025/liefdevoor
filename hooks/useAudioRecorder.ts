@@ -88,24 +88,39 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}): UseAudi
       setError(null)
       resetRecording()
 
-      // Request microphone permission
+      // Request microphone permission with optimized settings
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          // Optimize for speech (voice messages)
+          channelCount: 1, // Mono instead of stereo (50% size reduction)
+          sampleRate: 16000, // Lower sample rate for speech (vs 48000)
         }
       })
       streamRef.current = stream
 
-      // Create MediaRecorder
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : MediaRecorder.isTypeSupported('audio/mp4')
-        ? 'audio/mp4'
-        : 'audio/ogg'
+      // Create MediaRecorder with OPUS codec for maximum compression
+      // Opus @ 24kbps is optimal for speech quality vs size
+      let mimeType = 'audio/webm;codecs=opus'
+      let audioBitsPerSecond = 24000 // 24 kbps - optimal for speech
 
-      const mediaRecorder = new MediaRecorder(stream, { mimeType })
+      // Fallback to supported formats
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm'
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4'
+        } else {
+          mimeType = 'audio/ogg'
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType,
+        audioBitsPerSecond, // Force low bitrate for compression
+      })
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
 

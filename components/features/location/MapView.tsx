@@ -55,8 +55,8 @@ export default function MapView({
             center={position}
             radius={circleRadius}
             pathOptions={{
-              color: '#f43f5e',
-              fillColor: '#f43f5e',
+              color: '#C34C60',
+              fillColor: '#C34C60',
               fillOpacity: 0.2,
               weight: 2,
             }}

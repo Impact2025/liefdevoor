@@ -28,7 +28,7 @@ export default function FinishStep({ onComplete }: FinishStepProps) {
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#9333ea', '#a855f7', '#c084fc', '#ec4899', '#f472b6'],
+          colors: ['#9333ea', '#a855f7', '#c084fc', '#C34C60', '#ed7693'],
         });
       }, 300);
 
@@ -46,7 +46,7 @@ export default function FinishStep({ onComplete }: FinishStepProps) {
           angle: 120,
           spread: 55,
           origin: { x: 1, y: 0.6 },
-          colors: ['#ec4899', '#f472b6', '#fda4af'],
+          colors: ['#C34C60', '#ed7693', '#fda4af'],
         });
       }, 600);
 
@@ -79,7 +79,7 @@ export default function FinishStep({ onComplete }: FinishStepProps) {
         particleCount: 200,
         spread: 120,
         origin: { y: 0.5 },
-        colors: ['#22c55e', '#9333ea', '#ec4899'],
+        colors: ['#22c55e', '#9333ea', '#C34C60'],
       });
 
       onComplete?.();
