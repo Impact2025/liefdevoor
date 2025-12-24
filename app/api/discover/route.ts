@@ -137,6 +137,7 @@ export async function GET(request: NextRequest) {
       maxAge: searchParams.get('maxAge') ? parseInt(searchParams.get('maxAge')!) : undefined,
       city: searchParams.get('city') || undefined,
       gender: searchParams.get('gender') as any,
+      maxDistance: searchParams.get('maxDistance') ? parseInt(searchParams.get('maxDistance')!) : undefined,
     }
 
     const { page, limit, offset } = parsePaginationParams(searchParams)
@@ -202,8 +203,10 @@ export async function GET(request: NextRequest) {
     })
 
     // Apply distance filtering if needed (use effective location from passport if active)
+    // Filter maxDistance overrides preferences maxDistance
+    const effectiveMaxDistance = filters.maxDistance ?? prefs.maxDistance
     let filteredMatches = potentialMatches
-    if (effectiveLatitude && effectiveLongitude && prefs.maxDistance) {
+    if (effectiveLatitude && effectiveLongitude && effectiveMaxDistance) {
       filteredMatches = potentialMatches.filter(user => {
         if (!user.latitude || !user.longitude) return false
         const distance = calculateDistance(
@@ -212,7 +215,7 @@ export async function GET(request: NextRequest) {
           user.latitude,
           user.longitude
         )
-        return distance <= prefs.maxDistance!
+        return distance <= effectiveMaxDistance
       })
     }
 
