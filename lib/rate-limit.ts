@@ -15,6 +15,7 @@ export {
   rateLimit,
   rateLimiters,
   rateLimitResponse,
+  getClientIdentifier,
   getClientIdentifier as getClientIP,
   type RateLimitConfig,
   type RateLimitResult,
