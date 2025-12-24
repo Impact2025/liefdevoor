@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { rateLimiters, rateLimitResponse, getClientIdentifier } from '@/lib/rate-limit'
+import { rateLimiters, rateLimitResponse, getClientIP } from '@/lib/rate-limit'
 import { auditLog, getClientInfo } from '@/lib/audit'
 import bcrypt from 'bcryptjs'
 import { Gender } from '@prisma/client'
@@ -32,6 +32,7 @@ const registerSchema = z.object({
   gender: z.nativeEnum(Gender).optional(),
   city: z.string().max(100).optional(),
   bio: z.string().max(500).optional(),
+  turnstileToken: z.string().optional(), // Cloudflare Turnstile verification token
 })
 
 export async function POST(request: NextRequest) {
@@ -43,6 +44,34 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+
+    // Turnstile verification (bot protection)
+    if (shouldEnforceTurnstile()) {
+      const { turnstileToken } = body
+
+      if (!turnstileToken) {
+        return NextResponse.json({
+          success: false,
+          error: { message: 'Beveiligingsverificatie vereist' }
+        }, { status: 400 })
+      }
+
+      const clientIP = getClientIP(request)
+      const verification = await verifyTurnstileToken(turnstileToken, clientIP)
+
+      if (!verification.success) {
+        auditLog('REGISTER_TURNSTILE_FAILED', {
+          ip: clientIP,
+          details: verification.error,
+          success: false
+        })
+
+        return NextResponse.json({
+          success: false,
+          error: { message: verification.error || 'Beveiligingsverificatie mislukt' }
+        }, { status: 400 })
+      }
+    }
 
     // Validate input with Zod
     const validationResult = registerSchema.safeParse(body)
