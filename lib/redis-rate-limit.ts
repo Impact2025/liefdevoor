@@ -35,18 +35,28 @@ let redisAvailable: boolean | null = null
 
 /**
  * Initialize Redis client if REDIS_URL is set
+ * SECURITY: In production, Redis is REQUIRED - no fallback to memory store
  */
 async function getRedisClient(): Promise<any> {
-  if (redisAvailable === false) return null
+  if (redisAvailable === false) {
+    // In production, throw error instead of silently falling back
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('[RateLimit] Redis is required in production but not available')
+    }
+    return null
+  }
   if (redisClient) return redisClient
 
   const redisUrl = process.env.REDIS_URL
 
   if (!redisUrl) {
-    redisAvailable = false
+    // SECURITY: Production REQUIRES Redis - no silent fallback
     if (process.env.NODE_ENV === 'production') {
-      console.warn('[RateLimit] REDIS_URL not set, using in-memory store (not recommended for production)')
+      redisAvailable = false
+      throw new Error('[RateLimit] REDIS_URL must be set in production - in-memory rate limiting is NOT secure for distributed systems')
     }
+    redisAvailable = false
+    console.warn('[RateLimit] Development mode: using in-memory store (NOT for production)')
     return null
   }
 
@@ -58,15 +68,29 @@ async function getRedisClient(): Promise<any> {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
       enableReadyCheck: true,
+      retryStrategy: (times: number) => {
+        if (times > 3) {
+          // After 3 retries, throw error in production
+          if (process.env.NODE_ENV === 'production') {
+            throw new Error('[RateLimit] Redis connection failed after 3 retries')
+          }
+          return null // Stop retrying in dev
+        }
+        return Math.min(times * 200, 2000) // Exponential backoff
+      },
     })
 
     await redisClient.ping()
     redisAvailable = true
-    console.log('[RateLimit] Connected to Redis')
+    console.log('[RateLimit] Connected to Redis successfully')
     return redisClient
   } catch (error) {
-    console.warn('[RateLimit] Redis not available, using in-memory store:', (error as Error).message)
     redisAvailable = false
+    // SECURITY: In production, fail hard - don't allow unprotected requests
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`[RateLimit] Redis connection failed in production: ${(error as Error).message}`)
+    }
+    console.warn('[RateLimit] Development mode: Redis not available, using in-memory store:', (error as Error).message)
     return null
   }
 }

@@ -177,6 +177,15 @@ model User {
   passportHistory          PassportHistory[]
   favoriteCities           FavoriteCity[]
 
+  // 🎫 Helpdesk relaties
+  helpDeskTickets      HelpDeskTicket[]
+  assignedTickets      HelpDeskTicket[]      @relation("AssignedTickets")
+  helpDeskMessages     HelpDeskMessage[]
+  helpDeskAttachments  HelpDeskAttachment[]
+  faqArticles          FAQArticle[]
+  faqFeedbacks         FAQFeedback[]
+  chatbotConversations ChatbotConversation[]
+
   @@index([gender])
   @@index([birthDate])
   @@index([city])
@@ -1233,5 +1242,268 @@ model FavoriteCity {
 
   @@unique([userId, city])
   @@index([userId])
+}
+
+// ============================================
+// 📋 AUDIT LOG - Security Event Tracking
+// Compliant with GDPR Article 30
+// ============================================
+
+model AuditLog {
+  id           String   @id @default(cuid())
+
+  // Action details
+  action       String   // LOGIN_SUCCESS, LOGIN_FAILED, ADMIN_ACTION, etc.
+  success      Boolean  @default(true)
+
+  // User context
+  userId       String?  // The user performing the action
+  targetUserId String?  // The user being acted upon (for admin actions)
+
+  // Request context
+  ipAddress    String?
+  userAgent    String?  @db.Text
+
+  // Additional details (JSON)
+  details      String?  @db.Text // JSON string with extra context
+
+  createdAt    DateTime @default(now())
+
+  @@index([action])
+  @@index([userId])
+  @@index([targetUserId])
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+}
+
+// ============================================
+// 🎫 HELPDESK & SUPPORT SYSTEM
+// ============================================
+
+enum TicketStatus {
+  OPEN          // Nieuw ticket
+  IN_PROGRESS   // In behandeling
+  WAITING       // Wacht op gebruiker
+  RESOLVED      // Opgelost
+  CLOSED        // Gesloten
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  ACCOUNT         // Account problemen
+  MATCHING        // Match algoritme
+  MESSAGES        // Chat/berichten
+  PAYMENTS        // Betaling/abonnement
+  VERIFICATION    // Verificatie
+  SAFETY          // Veiligheid
+  TECHNICAL       // Technische bugs
+  FEATURE         // Feature requests
+  OTHER           // Overig
+}
+
+model HelpDeskTicket {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedToId  String?
+  assignedTo    User?           @relation("AssignedTickets", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  subject       String          @db.VarChar(200)
+  description   String          @db.Text
+  category      TicketCategory  @default(OTHER)
+  status        TicketStatus    @default(OPEN)
+  priority      TicketPriority  @default(MEDIUM)
+
+  isEscalated   Boolean         @default(false)
+  chatbotConversationId String?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  resolvedAt    DateTime?
+  closedAt      DateTime?
+
+  messages      HelpDeskMessage[]
+  attachments   HelpDeskAttachment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+  @@index([assignedToId])
+  @@index([status, createdAt])
+  @@index([userId, status])
+}
+
+model HelpDeskMessage {
+  id          String         @id @default(cuid())
+  ticketId    String
+  ticket      HelpDeskTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  message     String         @db.Text
+  isStaffReply Boolean       @default(false)
+  isInternal  Boolean        @default(false)
+
+  createdAt   DateTime       @default(now())
+  attachments HelpDeskAttachment[]
+
+  @@index([ticketId])
+  @@index([ticketId, createdAt])
+  @@index([authorId])
+}
+
+model HelpDeskAttachment {
+  id        String           @id @default(cuid())
+  ticketId  String?
+  ticket    HelpDeskTicket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  messageId String?
+  message   HelpDeskMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  fileName  String
+  fileUrl   String           @db.Text
+  fileType  String
+  fileSize  Int
+  uploadedBy String
+  uploader   User            @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@index([ticketId])
+  @@index([messageId])
+  @@index([uploadedBy])
+}
+
+model FAQCategory {
+  id          String       @id @default(cuid())
+  name        String       @db.VarChar(100)
+  nameNl      String       @db.VarChar(100)
+  description String?      @db.Text
+  icon        String?
+  slug        String       @unique
+  order       Int          @default(0)
+  isVisible   Boolean      @default(true)
+
+  parentId    String?
+  parent      FAQCategory? @relation("FAQSubcategories", fields: [parentId], references: [id], onDelete: SetNull)
+  subcategories FAQCategory[] @relation("FAQSubcategories")
+  articles    FAQArticle[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([slug])
+  @@index([order])
+  @@index([parentId])
+  @@index([isVisible])
+}
+
+model FAQArticle {
+  id          String       @id @default(cuid())
+  categoryId  String
+  category    FAQCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  title       String       @db.VarChar(200)
+  titleNl     String       @db.VarChar(200)
+  content     String       @db.Text
+  contentNl   String       @db.Text
+  slug        String       @unique
+  excerpt     String?      @db.VarChar(500)
+  keywords    String[]
+
+  order       Int          @default(0)
+  isPublished Boolean      @default(true)
+  isFeatured  Boolean      @default(false)
+
+  viewCount   Int          @default(0)
+  helpfulCount Int         @default(0)
+  notHelpfulCount Int      @default(0)
+
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  feedbacks   FAQFeedback[]
+  chatbotUsages ChatbotFAQUsage[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isPublished])
+  @@index([isFeatured])
+  @@index([viewCount])
+  @@index([authorId])
+}
+
+model FAQFeedback {
+  id        String      @id @default(cuid())
+  articleId String
+  article   FAQArticle  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  isHelpful Boolean
+  comment   String?     @db.Text
+  createdAt DateTime    @default(now())
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([isHelpful])
+}
+
+model ChatbotConversation {
+  id              String             @id @default(cuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status          String             @default("active")
+  wasHelpful      Boolean?
+  escalatedToTicket Boolean          @default(false)
+  ticketId        String?            @unique
+
+  startedAt       DateTime           @default(now())
+  endedAt         DateTime?
+
+  messages        ChatbotMessage[]
+  faqUsages       ChatbotFAQUsage[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model ChatbotMessage {
+  id              String             @id @default(cuid())
+  conversationId  String
+  conversation    ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role            String
+  content         String             @db.Text
+  wasAIGenerated  Boolean            @default(false)
+  suggestedArticles String[]
+
+  createdAt       DateTime           @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model ChatbotFAQUsage {
+  id              String             @id @default(cuid())
+  conversationId  String
+  conversation    ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  articleId       String
+  article         FAQArticle         @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  wasHelpful      Boolean?
+  createdAt       DateTime           @default(now())
+
+  @@index([conversationId])
+  @@index([articleId])
 }
 

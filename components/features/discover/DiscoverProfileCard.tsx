@@ -8,11 +8,12 @@
  * - Online status indicator
  * - Swipe gesture support
  * - Premium visual design
+ * - React.memo for optimal performance
  */
 
 'use client'
 
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useState, useRef, useCallback, useEffect, memo } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import Image from 'next/image'
 import { logSwipeBehavior } from '@/app/actions/tracking'
@@ -123,7 +124,9 @@ const SWIPE_VELOCITY_THRESHOLD = 500
 // MAIN COMPONENT
 // ============================================================================
 
-export function DiscoverProfileCard({
+// Memoized component to prevent unnecessary re-renders
+// Only re-renders when profile.id, callbacks, or isLoading changes
+const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
   profile,
   onLike,
   onPass,
@@ -738,6 +741,19 @@ export function DiscoverProfileCard({
       </div>
     </motion.div>
   )
+})
+
+// Custom comparison function for memo - only re-render on meaningful changes
+function arePropsEqual(prevProps: DiscoverProfileCardProps, nextProps: DiscoverProfileCardProps): boolean {
+  // Only re-render if profile ID changes or loading state changes
+  // Callbacks are assumed stable (wrapped in useCallback by parent)
+  return (
+    prevProps.profile.id === nextProps.profile.id &&
+    prevProps.isLoading === nextProps.isLoading
+  )
 }
+
+// Export memoized component with custom comparison
+export const DiscoverProfileCard = memo(DiscoverProfileCardInner, arePropsEqual)
 
 export default DiscoverProfileCard

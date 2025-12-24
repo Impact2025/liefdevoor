@@ -50,7 +50,9 @@
       "Bash(cp:*)",
       "Bash(if exist \"D:\\\\Datingsite2026\\\\prisma\\\\migrations\\\\20251223115739_change_preferences_to_json\" rmdir /s /q \"D:\\\\Datingsite2026\\\\prisma\\\\migrations\\\\20251223115739_change_preferences_to_json\")",
       "Bash(git check-ignore:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(npm run test:run:*)",
+      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\helpdesk\\\\tickets\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\helpdesk\\\\tickets\")"
     ],
     "deny": [],
     "ask": []

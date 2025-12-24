@@ -37,24 +37,32 @@ const googleAnalyticsDomains = [
 // Production: stricter CSP with hash-based inline scripts
 const isDev = process.env.NODE_ENV === 'development'
 
-// For maximum security, consider implementing nonce-based CSP (see lib/csp.ts)
+// CSP Configuration - Production uses strict-dynamic for better security
+// Note: 'strict-dynamic' allows scripts loaded by trusted scripts, reducing need for unsafe-inline
+// The hash below is for the JSON-LD script in layout.tsx - update if script content changes
+const jsonLdScriptHash = "'sha256-PLACEHOLDER'" // Will be computed at build time
+
 const scriptSrc = isDev
   ? `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
-  : `'self' 'unsafe-inline' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+  : `'self' 'strict-dynamic' 'unsafe-inline' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+
+// Style-src needs unsafe-inline for Tailwind's runtime styles and Framer Motion
+// This is acceptable as XSS via CSS is much harder to exploit
+const styleSrc = "'self' 'unsafe-inline'"
 
 const cspHeader = `
   default-src 'self';
   script-src ${scriptSrc};
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')};
+  style-src ${styleSrc};
+  img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://liefdevooriederen.nl;
   font-src 'self' data:;
-  connect-src ${allowedConnectDomains.join(' ')};
+  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriederen.nl;
   frame-ancestors 'self';
-  frame-src 'self' https://challenges.cloudflare.com;
+  frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com;
   form-action 'self';
   base-uri 'self';
   object-src 'none';
-  media-src 'self';
+  media-src 'self' blob: https://utfs.io;
   worker-src 'self' blob:;
   manifest-src 'self';
   ${isDev ? '' : 'upgrade-insecure-requests;'}
@@ -65,6 +73,7 @@ const nextConfig = {
   compress: true,
   swcMinify: true,
   productionBrowserSourceMaps: false,
+
 
   // Development optimizations
   ...(isDev && {
@@ -100,14 +109,17 @@ const nextConfig = {
         path: false,
         buffer: false,
         util: false,
+        dns: false,
+        child_process: false,
+        events: false,
       };
 
-      // Ignore ioredis and other server-only packages on client
-      config.plugins.push(
-        new webpack.IgnorePlugin({
-          resourceRegExp: /^(ioredis|redis)$/,
-        })
-      );
+      // Replace ioredis with empty module on client side
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        ioredis: false,
+        redis: false,
+      };
     }
 
     return config;
@@ -115,6 +127,8 @@ const nextConfig = {
 
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', '@radix-ui/react-icons'],
+    // Server-only packages (not bundled for client)
+    serverComponentsExternalPackages: ['ioredis', 'redis'],
 
     // Turbopack configuration for even faster dev mode
     ...(isDev && {

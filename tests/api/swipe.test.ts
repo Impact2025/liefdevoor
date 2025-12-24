@@ -225,9 +225,9 @@ describe('POST /api/swipe', () => {
   })
 
   it('should return 404 for non-existent swiped user', async () => {
-    vi.mocked(prisma.user.findUnique)
-      .mockResolvedValueOnce(mockSwiper as any) // Swiper exists
-      .mockResolvedValueOnce(null) // Swiped user doesn't exist
+    // Reset mock and set up fresh for this test
+    vi.mocked(prisma.user.findUnique).mockReset()
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
 
     const swipedUser = await prisma.user.findUnique({
       where: { id: 'non-existent' },

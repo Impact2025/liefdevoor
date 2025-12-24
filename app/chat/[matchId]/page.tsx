@@ -5,9 +5,10 @@ import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Flag, Mic, Square, Send, X, Play, Pause, Smile, Sparkles, ImageIcon, Camera } from 'lucide-react'
+import { Flag, Mic, Square, Send, X, Play, Pause, Smile, Sparkles, ImageIcon, Camera, Wifi, WifiOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAudioRecorder, formatDuration, useTypingIndicator } from '@/hooks'
+import { useChatStream, type ChatMessage } from '@/hooks/useChatStream'
 import { TypingBubble } from '@/components/ui'
 import { useUploadThing } from '@/utils/uploadthing'
 
@@ -22,29 +23,14 @@ const GifPicker = dynamic(() => import('@/components/chat/GifPicker').then(mod =
   loading: () => null
 })
 
-interface Message {
-  id: string
-  content?: string
-  audioUrl?: string
-  gifUrl?: string
-  imageUrl?: string
-  videoUrl?: string
-  read: boolean
-  createdAt: string
-  sender: {
-    id: string
-    name: string
-    profileImage?: string
-  }
-  isFromMe: boolean
-}
+// Message type is now imported from useChatStream as ChatMessage
 
 export default function ChatPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const params = useParams()
   const matchId = params.matchId as string
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [newMessage, setNewMessage] = useState('')
@@ -168,15 +154,32 @@ export default function ChatPage() {
     scrollToBottom()
   }, [messages])
 
-  useEffect(() => {
-    if (!session || !matchId) return
+  // Real-time messages via Server-Sent Events (replaces polling)
+  const handleNewMessages = useCallback((newMessages: ChatMessage[]) => {
+    setMessages(prev => {
+      // Merge new messages, avoiding duplicates
+      const existingIds = new Set(prev.map(m => m.id))
+      const uniqueNew = newMessages.filter(m => !existingIds.has(m.id))
+      if (uniqueNew.length === 0) return prev
+      return [...prev, ...uniqueNew]
+    })
+  }, [])
 
-    const interval = setInterval(() => {
-      fetchMessages()
-    }, 3000) // Poll every 3 seconds
+  const handleReadReceipts = useCallback((messageIds: string[]) => {
+    setMessages(prev =>
+      prev.map(msg =>
+        messageIds.includes(msg.id) ? { ...msg, read: true } : msg
+      )
+    )
+  }, [])
 
-    return () => clearInterval(interval)
-  }, [session, matchId])
+  const { isConnected, connectionStatus, reconnect } = useChatStream({
+    matchId,
+    enabled: !!session && !loading,
+    onMessage: handleNewMessages,
+    onReadReceipt: handleReadReceipts,
+    onError: (error) => console.error('[Chat] SSE error:', error),
+  })
 
   const fetchMessages = async () => {
     try {
@@ -184,7 +187,7 @@ export default function ChatPage() {
       if (res.ok) {
         const data = await res.json()
         // Filter out any undefined/null messages
-        const validMessages = (data.messages || []).filter((msg: Message) => msg && msg.id)
+        const validMessages = (data.messages || []).filter((msg: ChatMessage) => msg && msg.id)
         setMessages(validMessages)
 
         // Get the other user from API response
@@ -482,13 +485,31 @@ export default function ChatPage() {
                   <h1 className="text-base font-bold text-gray-900 truncate">
                     {otherUser.name}
                   </h1>
-                  <p className="text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
                     {otherUser.isOnline ? (
                       <span className="text-green-600 font-medium">● Online</span>
                     ) : (
                       <span>Offline</span>
                     )}
-                  </p>
+                    {/* Real-time connection status */}
+                    {connectionStatus === 'connected' ? (
+                      <span className="flex items-center gap-1 text-green-600" title="Real-time verbinding actief">
+                        <Wifi size={12} />
+                      </span>
+                    ) : connectionStatus === 'connecting' ? (
+                      <span className="flex items-center gap-1 text-yellow-600 animate-pulse" title="Verbinden...">
+                        <Wifi size={12} />
+                      </span>
+                    ) : (
+                      <button
+                        onClick={reconnect}
+                        className="flex items-center gap-1 text-red-500 hover:text-red-600"
+                        title="Verbinding verbroken - klik om opnieuw te verbinden"
+                      >
+                        <WifiOff size={12} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
