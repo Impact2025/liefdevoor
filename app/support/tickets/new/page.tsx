@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
@@ -22,7 +22,7 @@ const CATEGORIES = [
   { value: 'OTHER', label: 'Overig', icon: '📝', description: 'Andere vragen' }
 ]
 
-export default function NewTicketPage() {
+function NewTicketForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const conversationId = searchParams?.get('conversationId')
@@ -273,5 +273,27 @@ export default function NewTicketPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function NewTicketPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-8"></div>
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <NewTicketForm />
+    </Suspense>
   )
 }
