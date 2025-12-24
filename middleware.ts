@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { withAuth } from 'next-auth/middleware'
-import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit'
+import { rateLimiters, rateLimitResponse } from '@/lib/rate-limit-edge'
 import { getToken } from 'next-auth/jwt'
 
 // Routes that require onboarding to be complete

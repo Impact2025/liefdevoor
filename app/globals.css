@@ -1,9 +1,9 @@
+/* Leaflet Maps CSS - must be before @tailwind for Turbopack */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Leaflet Maps CSS */
-@import 'leaflet/dist/leaflet.css';
 
 /* ADAPTIVE UI SYSTEM */
 @layer base {
