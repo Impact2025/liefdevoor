@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Navigation } from '@/components/layout/Navigation'
 import { CookieBanner } from '@/components/legal/CookieBanner'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
+import { Chatbot } from '@/components/helpdesk/Chatbot'
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
@@ -44,6 +45,9 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
 
       <CookieBanner />
       <InstallPrompt />
+
+      {/* Support Chatbot - Show for logged-in users */}
+      {session && <Chatbot />}
     </>
   )
 }

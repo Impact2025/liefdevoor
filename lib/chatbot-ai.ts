@@ -175,51 +175,98 @@ export function getGreetingResponse(): string {
 }
 
 /**
- * Enhanced version using OpenAI API (for future implementation)
- *
- * @example
- * const response = await generateAIChatbotResponse({ ... })
+ * Enhanced version using OpenRouter API
+ * Uses Claude or GPT models for intelligent responses
  */
 export async function generateAIChatbotResponse(params: {
   userMessage: string
   conversationHistory: Message[]
   relevantArticles: any[]
 }): Promise<ChatbotResponse> {
-  // TODO: Implement OpenAI/Claude API integration
-  //
-  // const systemPrompt = `
-  // Je bent een behulpzame support chatbot voor Liefde Voor Iedereen,
-  // een Nederlandse dating app. Je helpt gebruikers met hun vragen over
-  // de app, accounts, matching, berichten, betalingen en verificatie.
-  //
-  // Gebruik de FAQ artikelen hieronder om vragen te beantwoorden.
-  // Als je geen passend antwoord hebt, stel dan voor om de vraag door
-  // te sturen naar het support team.
-  //
-  // Wees vriendelijk, behulpzaam en professioneel. Antwoord altijd in het Nederlands.
-  // `
-  //
-  // const faqContext = params.relevantArticles
-  //   .map(a => `**${a.titleNl}**: ${a.excerpt || a.contentNl.substring(0, 200)}`)
-  //   .join('\n\n')
-  //
-  // const response = await openai.chat.completions.create({
-  //   model: 'gpt-4',
-  //   messages: [
-  //     { role: 'system', content: systemPrompt + '\n\nFAQ:\n' + faqContext },
-  //     ...params.conversationHistory,
-  //     { role: 'user', content: params.userMessage }
-  //   ],
-  //   temperature: 0.7,
-  //   max_tokens: 500
-  // })
-  //
-  // return {
-  //   message: response.choices[0].message.content || '',
-  //   suggestedArticleIds: params.relevantArticles.map(a => a.id),
-  //   suggestEscalation: response.choices[0].message.content?.toLowerCase().includes('support team') || false
-  // }
+  const { userMessage, conversationHistory, relevantArticles } = params
 
-  // Fallback to rule-based for now
-  return generateChatbotResponse(params)
+  // Only use AI if OpenRouter API key is configured
+  if (!process.env.OPENROUTER_API_KEY) {
+    console.log('OpenRouter API key not configured, using rule-based responses')
+    return generateChatbotResponse(params)
+  }
+
+  try {
+    // Build system prompt with FAQ context
+    const faqContext = relevantArticles
+      .map(a => `**${a.titleNl}**\n${a.excerpt || a.contentNl.substring(0, 300)}`)
+      .join('\n\n')
+
+    const systemPrompt = `Je bent een behulpzame en vriendelijke support chatbot voor Liefde Voor Iedereen, een Nederlandse dating app.
+
+**Je taak:**
+- Help gebruikers met vragen over de app, accounts, matching, berichten, betalingen en verificatie
+- Geef duidelijke, concrete antwoorden in het Nederlands
+- Wees vriendelijk, professioneel en empathisch
+- Gebruik de FAQ artikelen hieronder als kennisbron
+- Als je het antwoord niet weet, bied aan om door te sturen naar het support team
+
+**Richtlijnen:**
+- Antwoord altijd in het Nederlands
+- Gebruik informele "je/jij" vorm (niet u)
+- Houd antwoorden kort en to-the-point (max 200 woorden)
+- Gebruik emoji's spaarzaam voor vriendelijkheid (✅ ❌ 💡)
+- Als iemand gefrustreerd is, toon empathie
+- Eindig met een vraag of call-to-action
+
+${faqContext ? `**Beschikbare FAQ Kennisbank:**\n${faqContext}` : '**Geen relevante FAQ artikelen gevonden voor deze vraag.**'}`
+
+    // Prepare messages for OpenRouter
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory.slice(-6), // Last 6 messages for context
+      { role: 'user', content: userMessage }
+    ]
+
+    // Call OpenRouter API
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://liefdevooriedereen.nl',
+        'X-Title': 'Liefde Voor Iedereen Support',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-3.5-sonnet', // or 'openai/gpt-4-turbo'
+        messages,
+        temperature: 0.7,
+        max_tokens: 400
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('OpenRouter API error:', error)
+      throw new Error('OpenRouter API request failed')
+    }
+
+    const data = await response.json()
+    const aiMessage = data.choices?.[0]?.message?.content
+
+    if (!aiMessage) {
+      throw new Error('No response from AI')
+    }
+
+    // Detect if AI suggests escalation
+    const suggestEscalation =
+      aiMessage.toLowerCase().includes('support team') ||
+      aiMessage.toLowerCase().includes('doorsturen') ||
+      aiMessage.toLowerCase().includes('ticket')
+
+    return {
+      message: aiMessage,
+      suggestedArticleIds: relevantArticles.map(a => a.id),
+      suggestEscalation
+    }
+  } catch (error) {
+    console.error('Error calling OpenRouter AI:', error)
+    // Fallback to rule-based
+    return generateChatbotResponse(params)
+  }
 }

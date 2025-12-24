@@ -22,7 +22,7 @@ export async function POST(
     // Validate input
     const validation = createMessageSchema.safeParse(body)
     if (!validation.success) {
-      const firstError = validation.error.errors[0]
+      const firstError = validation.error.issues[0]
       return NextResponse.json(
         { success: false, error: firstError.message, field: firstError.path[0] },
         { status: 400 }

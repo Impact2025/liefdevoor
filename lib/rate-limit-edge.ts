@@ -1,12 +1,14 @@
 /**
  * Edge-Compatible Rate Limiting for Middleware
  *
- * Uses @upstash/ratelimit which works on Edge runtime (REST API, no Node.js deps)
- * For middleware only - API routes can use the regular redis-rate-limit.ts
+ * Pure in-memory rate limiting that works on Edge runtime.
+ * For production with distributed rate limiting, use API routes with redis-rate-limit.ts
+ *
+ * Note: In-memory rate limiting is per-instance, so it won't work perfectly
+ * in a distributed environment. For critical rate limiting (auth, payments),
+ * use API routes with Redis-based rate limiting instead.
  */
 
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Rate limit result type
@@ -17,34 +19,48 @@ export interface RateLimitResult {
   resetIn: number
 }
 
-// Create Upstash Redis client (Edge-compatible REST API)
-function getUpstashRedis(): Redis | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+// In-memory store for rate limiting (per Edge function instance)
+const store = new Map<string, { count: number; resetTime: number }>()
 
-  if (!url || !token) {
-    return null
+// Cleanup old entries periodically
+function cleanup() {
+  const now = Date.now()
+  for (const [key, value] of store.entries()) {
+    if (now > value.resetTime) {
+      store.delete(key)
+    }
   }
-
-  return new Redis({ url, token })
 }
 
-// In-memory fallback for development (no Redis)
-const inMemoryStore = new Map<string, { count: number; resetTime: number }>()
+// Run cleanup every minute
+if (typeof setInterval !== 'undefined') {
+  setInterval(cleanup, 60 * 1000)
+}
 
-function inMemoryRateLimit(
-  key: string,
+/**
+ * Simple sliding window rate limiter
+ */
+function rateLimit(
+  identifier: string,
   limit: number,
   windowMs: number
 ): RateLimitResult {
   const now = Date.now()
-  const entry = inMemoryStore.get(key)
+  const key = identifier
+  const entry = store.get(key)
 
+  // New window or expired
   if (!entry || now > entry.resetTime) {
-    inMemoryStore.set(key, { count: 1, resetTime: now + windowMs })
-    return { success: true, limit, remaining: limit - 1, resetIn: windowMs }
+    store.set(key, { count: 1, resetTime: now + windowMs })
+    return {
+      success: true,
+      limit,
+      remaining: limit - 1,
+      resetIn: windowMs,
+    }
   }
 
+  // Within window, check limit
   if (entry.count >= limit) {
     return {
       success: false,
@@ -54,6 +70,7 @@ function inMemoryRateLimit(
     }
   }
 
+  // Increment count
   entry.count++
   return {
     success: true,
@@ -62,44 +79,6 @@ function inMemoryRateLimit(
     resetIn: entry.resetTime - now,
   }
 }
-
-// Create rate limiters using Upstash (or in-memory fallback)
-const redis = getUpstashRedis()
-
-// Different rate limiters for different purposes
-const createLimiter = (requests: number, window: string) => {
-  if (!redis) {
-    // Return in-memory rate limiter function
-    const windowMs =
-      window === '1m'
-        ? 60 * 1000
-        : window === '10s'
-        ? 10 * 1000
-        : window === '1h'
-        ? 60 * 60 * 1000
-        : 60 * 1000
-
-    return {
-      limit: async (key: string): Promise<RateLimitResult> => {
-        return inMemoryRateLimit(key, requests, windowMs)
-      },
-    }
-  }
-
-  return new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(requests, window),
-    analytics: true,
-    prefix: 'ratelimit:edge',
-  })
-}
-
-// Pre-configured rate limiters
-const apiLimiter = createLimiter(100, '1m') // 100 req/min for general API
-const authLimiter = createLimiter(5, '1m') // 5 req/min for auth
-const aiLimiter = createLimiter(10, '1m') // 10 req/min for AI endpoints
-const sensitiveLimiter = createLimiter(30, '1m') // 30 req/min for swipes etc
-const reportLimiter = createLimiter(3, '1h') // 3 reports/hour
 
 // Get client identifier for rate limiting
 export function getClientIdentifier(request: NextRequest): string {
@@ -112,36 +91,37 @@ export function getClientIdentifier(request: NextRequest): string {
   return ip
 }
 
-// Main rate limit function
-async function rateLimit(
-  request: NextRequest,
-  limiter: typeof apiLimiter
-): Promise<RateLimitResult> {
-  const identifier = getClientIdentifier(request)
-
-  try {
-    const result = await limiter.limit(identifier)
-
-    return {
-      success: result.success,
-      limit: result.limit,
-      remaining: result.remaining,
-      resetIn: result.reset - Date.now(),
-    }
-  } catch (error) {
-    console.error('[EdgeRateLimit] Error:', error)
-    // Allow request on error (fail open)
-    return { success: true, limit: 100, remaining: 99, resetIn: 60000 }
-  }
+// Rate limit configurations (requests per minute unless specified)
+const LIMITS = {
+  api: { requests: 100, windowMs: 60 * 1000 },      // 100 req/min
+  auth: { requests: 5, windowMs: 60 * 1000 },       // 5 req/min
+  ai: { requests: 10, windowMs: 60 * 1000 },        // 10 req/min
+  sensitive: { requests: 30, windowMs: 60 * 1000 }, // 30 req/min
+  report: { requests: 3, windowMs: 60 * 60 * 1000 }, // 3 req/hour
 }
 
 // Exported rate limiters for middleware
 export const rateLimiters = {
-  api: (req: NextRequest) => rateLimit(req, apiLimiter),
-  auth: (req: NextRequest) => rateLimit(req, authLimiter),
-  ai: (req: NextRequest) => rateLimit(req, aiLimiter),
-  sensitive: (req: NextRequest) => rateLimit(req, sensitiveLimiter),
-  report: (req: NextRequest) => rateLimit(req, reportLimiter),
+  api: (req: NextRequest) => {
+    const id = `api:${getClientIdentifier(req)}`
+    return Promise.resolve(rateLimit(id, LIMITS.api.requests, LIMITS.api.windowMs))
+  },
+  auth: (req: NextRequest) => {
+    const id = `auth:${getClientIdentifier(req)}`
+    return Promise.resolve(rateLimit(id, LIMITS.auth.requests, LIMITS.auth.windowMs))
+  },
+  ai: (req: NextRequest) => {
+    const id = `ai:${getClientIdentifier(req)}`
+    return Promise.resolve(rateLimit(id, LIMITS.ai.requests, LIMITS.ai.windowMs))
+  },
+  sensitive: (req: NextRequest) => {
+    const id = `sensitive:${getClientIdentifier(req)}`
+    return Promise.resolve(rateLimit(id, LIMITS.sensitive.requests, LIMITS.sensitive.windowMs))
+  },
+  report: (req: NextRequest) => {
+    const id = `report:${getClientIdentifier(req)}`
+    return Promise.resolve(rateLimit(id, LIMITS.report.requests, LIMITS.report.windowMs))
+  },
 }
 
 // Response for rate limit exceeded
