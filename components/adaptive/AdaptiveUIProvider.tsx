@@ -402,10 +402,8 @@ export function AdaptiveUIProvider({
           className="sr-only"
         />
 
-        {/* Hydration wrapper to prevent flash */}
-        <div className={isHydrated ? 'opacity-100' : 'opacity-0'} style={{ transition: 'opacity 100ms' }}>
-          {children}
-        </div>
+        {/* Content wrapper - always visible, CSS handles smooth transitions */}
+        {children}
       </div>
     </AdaptiveUIContext.Provider>
   )

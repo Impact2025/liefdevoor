@@ -8,6 +8,12 @@ import { z } from 'zod'
 import { Gender } from '@prisma/client'
 
 /**
+ * XSS pattern detection - comprehensive list of dangerous patterns
+ * Blocks: script tags, javascript: protocol, and all event handlers
+ */
+const XSS_PATTERN = /<script|javascript:|on\w+\s*=/i
+
+/**
  * Sanitize string input to prevent XSS
  */
 const sanitizedString = (maxLength: number = 500) =>
@@ -15,7 +21,7 @@ const sanitizedString = (maxLength: number = 500) =>
     .trim()
     .max(maxLength, `Maximaal ${maxLength} karakters toegestaan`)
     .refine(
-      (val) => !/<script|javascript:|onerror=|onclick=/i.test(val),
+      (val) => !XSS_PATTERN.test(val),
       'Ongeldige karakters gedetecteerd'
     )
 

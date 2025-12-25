@@ -5,6 +5,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Framer Motion fallback - ensure content is visible if JS fails */
+/* This overrides inline opacity:0 styles added by framer-motion SSR */
+@layer base {
+  /* After a short delay, make all content visible as a fallback */
+  @keyframes ensure-visible {
+    to { opacity: 1 !important; }
+  }
+
+  /* Apply to elements that might have inline opacity:0 from framer-motion */
+  [style*="opacity: 0"], [style*="opacity:0"] {
+    animation: ensure-visible 0s 0.5s forwards;
+  }
+}
+
 /* ADAPTIVE UI SYSTEM */
 @layer base {
   :root {
