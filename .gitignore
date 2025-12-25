@@ -17,6 +17,7 @@ dist/
 # Environment files - NEVER COMMIT THESE
 .env
 .env.local
+.env.mysql
 .env.development.local
 .env.test.local
 .env.production.local
