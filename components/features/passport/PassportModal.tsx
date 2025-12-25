@@ -96,10 +96,12 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
     }
   }, [isOpen, recentCities.length, setSearchQuery])
 
-  // Switch to search tab when typing
+  // Switch to search tab when typing, back to popular when cleared
   useEffect(() => {
     if (searchQuery.length >= 2) {
       setActiveTab('search')
+    } else if (searchQuery.length === 0) {
+      setActiveTab('popular')
     }
   }, [searchQuery])
 
@@ -371,6 +373,31 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
 
             {/* Category tabs */}
             <div className="flex gap-1 mt-3 overflow-x-auto pb-1">
+              {/* Populair tab ALTIJD zichtbaar en als eerste */}
+              <button
+                onClick={() => setActiveTab('popular')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeTab === 'popular'
+                    ? 'bg-rose-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Globe size={14} />
+                Populair
+              </button>
+              {trendingCities.length > 0 && (
+                <button
+                  onClick={() => setActiveTab('trending')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    activeTab === 'trending'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Flame size={14} />
+                  Trending
+                </button>
+              )}
               {recentCities.length > 0 && (
                 <button
                   onClick={() => setActiveTab('recent')}
@@ -397,30 +424,6 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                   Favorieten
                 </button>
               )}
-              {trendingCities.length > 0 && (
-                <button
-                  onClick={() => setActiveTab('trending')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'trending'
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <Flame size={14} />
-                  Trending
-                </button>
-              )}
-              <button
-                onClick={() => setActiveTab('popular')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeTab === 'popular'
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <TrendingUp size={14} />
-                Populair
-              </button>
             </div>
           </div>
 
@@ -533,7 +536,16 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
 
                 {/* Popular cities */}
                 {activeTab === 'popular' && (
-                  popularCities.map((city) => renderCityItem(city))
+                  <>
+                    {/* Quick picks header */}
+                    <div className="mb-3 p-3 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl border border-rose-200">
+                      <div className="flex items-center gap-2 text-sm text-rose-700">
+                        <Globe className="w-4 h-4" />
+                        <span className="font-medium">Populaire Nederlandse steden</span>
+                      </div>
+                    </div>
+                    {popularCities.map((city) => renderCityItem(city))}
+                  </>
                 )}
                 </motion.div>
               </AnimatePresence>
