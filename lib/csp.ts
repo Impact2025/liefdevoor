@@ -47,11 +47,12 @@ export function buildCSP(nonce: string, isDev: boolean): string {
     'https://ssl.google-analytics.com',
   ]
 
-  // Development: Allow unsafe-eval for HMR
-  // Production: Use nonce and strict-dynamic for better security
-  const scriptSrc = isDev
-    ? `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
-    : `'nonce-${nonce}' 'strict-dynamic' 'self' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+  // CSP Configuration
+  // Note: We need 'unsafe-inline' and 'unsafe-eval' for:
+  // - Framer Motion animations (inline styles)
+  // - Next.js hydration
+  // - Dynamic script loading
+  const scriptSrc = `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
 
   // Style: unsafe-inline is acceptable for styles (less risky than scripts)
   // Alternative: Use nonces for styles too if you want maximum security
@@ -121,9 +122,7 @@ export function getSecurityHeaders(): Record<string, string> {
     'Permissions-Policy':
       'camera=(), microphone=(self), geolocation=(self), interest-cohort=(), payment=()',
 
-    // Cross-Origin policies for better isolation
-    'Cross-Origin-Embedder-Policy': 'credentialless',
-    'Cross-Origin-Opener-Policy': 'same-origin',
-    'Cross-Origin-Resource-Policy': 'same-origin',
+    // Note: Cross-Origin policies (COEP/COOP/CORP) disabled to allow external resources
+    // These headers can block Cloudflare Turnstile, Google Analytics, etc.
   }
 }

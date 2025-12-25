@@ -39,14 +39,14 @@ const googleAnalyticsDomains = [
 // Production: stricter CSP with hash-based inline scripts
 const isDev = process.env.NODE_ENV === 'development'
 
-// CSP Configuration - Production uses strict-dynamic for better security
-// Note: 'strict-dynamic' allows scripts loaded by trusted scripts, reducing need for unsafe-inline
-// The hash below is for the JSON-LD script in layout.tsx - update if script content changes
-const jsonLdScriptHash = "'sha256-PLACEHOLDER'" // Will be computed at build time
+// CSP Configuration
+// Note: We need 'unsafe-inline' and 'unsafe-eval' for:
+// - Framer Motion animations (inline styles)
+// - Next.js hydration
+// - Dynamic script loading
+// Host-based allowlists for external services (Google Analytics, Cloudflare Turnstile)
 
-const scriptSrc = isDev
-  ? `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
-  : `'self' 'strict-dynamic' 'unsafe-inline' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+const scriptSrc = `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
 
 // Style-src needs unsafe-inline for Tailwind's runtime styles and Framer Motion
 // This is acceptable as XSS via CSS is much harder to exploit
@@ -195,18 +195,20 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: cspHeader
           },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless'
-          },
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin'
-          },
-          {
-            key: 'Cross-Origin-Resource-Policy',
-            value: 'same-origin'
-          }
+          // Note: COEP/COOP disabled to allow external resources (Cloudflare, Google)
+          // These headers can block cross-origin iframes and resources
+          // {
+          //   key: 'Cross-Origin-Embedder-Policy',
+          //   value: 'credentialless'
+          // },
+          // {
+          //   key: 'Cross-Origin-Opener-Policy',
+          //   value: 'same-origin'
+          // },
+          // {
+          //   key: 'Cross-Origin-Resource-Policy',
+          //   value: 'same-origin'
+          // }
         ]
       },
       // CORS headers for API routes
