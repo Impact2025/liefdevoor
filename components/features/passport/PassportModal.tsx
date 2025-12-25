@@ -30,6 +30,8 @@ import {
   Loader2,
   Heart,
   Flame,
+  Navigation,
+  Users,
 } from 'lucide-react'
 import { usePassport } from '@/hooks/usePassport'
 import { LocationMap } from '@/components/features/location/LocationMap'
@@ -83,6 +85,7 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
     distanceFromHome?: number | null
   } | null>(null)
   const [selectedDuration, setSelectedDuration] = useState(24)
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
 
   // Reset state when modal opens
   useEffect(() => {
@@ -156,6 +159,60 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
     } else {
       await addFavorite(city.name, lat, lng)
     }
+  }
+
+  const handleUseCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation wordt niet ondersteund door je browser')
+      return
+    }
+
+    setIsGettingLocation(true)
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+
+        // Reverse geocode to get city name
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?` +
+            `lat=${latitude}&lon=${longitude}&format=json`,
+            {
+              headers: {
+                'User-Agent': 'LiefdeVoorIedereen/1.0',
+              },
+            }
+          )
+          const data = await response.json()
+
+          const cityName = data.address.city || data.address.town || data.address.village || 'Huidige locatie'
+
+          setSelectedCity({
+            name: cityName,
+            lat: latitude,
+            lng: longitude,
+            distanceFromHome: 0,
+          })
+          setSearchQuery(cityName)
+        } catch (error) {
+          console.error('Reverse geocoding error:', error)
+          setSelectedCity({
+            name: 'Huidige locatie',
+            lat: latitude,
+            lng: longitude,
+            distanceFromHome: 0,
+          })
+        } finally {
+          setIsGettingLocation(false)
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error)
+        alert('Kon je locatie niet ophalen. Controleer je browser permissies.')
+        setIsGettingLocation(false)
+      }
+    )
   }
 
   if (!isOpen) return null
@@ -277,18 +334,39 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
             )}
 
             {/* Search input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Zoek stad of postcode..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-              />
-              {isSearching && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-rose-500 animate-spin" />
-              )}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Zoek stad of postcode..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                />
+                {isSearching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-rose-500 animate-spin" />
+                )}
+              </div>
+
+              {/* Geolocation button */}
+              <button
+                onClick={handleUseCurrentLocation}
+                disabled={isGettingLocation}
+                className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-700 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-colors disabled:opacity-50"
+              >
+                {isGettingLocation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm font-medium">Locatie ophalen...</span>
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-4 h-4" />
+                    <span className="text-sm font-medium">Gebruik mijn huidige locatie</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Category tabs */}
@@ -359,7 +437,15 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
 
             {/* City lists - Show for everyone, gate activation instead */}
             {!isLoading && (
-              <div className="p-4 space-y-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4 space-y-2"
+                >
                 {/* Premium gate banner (collapsed, above results) */}
                 {!hasFeature && (
                   <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl">
@@ -449,7 +535,8 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                 {activeTab === 'popular' && (
                   popularCities.map((city) => renderCityItem(city))
                 )}
-              </div>
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
 

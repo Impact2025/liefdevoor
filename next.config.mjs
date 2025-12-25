@@ -10,6 +10,11 @@ const allowedImageDomains = [
   'uploadthing.com',
   'i.pravatar.cc',
   'ui-avatars.com',
+  // OpenStreetMap tiles for Passport feature
+  'tile.openstreetmap.org',
+  'a.tile.openstreetmap.org',
+  'b.tile.openstreetmap.org',
+  'c.tile.openstreetmap.org',
 ];
 
 const allowedConnectDomains = [
