@@ -56,10 +56,9 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
     if (!validateForm()) return
 
-    // Check Turnstile token (alleen als geconfigureerd)
-    const shouldEnforce = process.env.NODE_ENV === 'production' ||
-      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-    if (shouldEnforce && !turnstileToken) {
+    // Check Turnstile token (alleen in production - development heeft auto-bypass)
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    if (!isDevelopment && !turnstileToken) {
       setError('Voltooi de beveiligingscontrole')
       return
     }
@@ -189,17 +188,15 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         </a>
       </div>
 
-      {/* Cloudflare Turnstile - Bot Protection */}
-      <div className="pt-2">
-        <Turnstile
-          onSuccess={setTurnstileToken}
-          onError={() => setError('Beveiligingsverificatie mislukt. Probeer opnieuw.')}
-          onExpire={resetTurnstileToken}
-          theme="auto"
-          appearance="interaction-only"
-          action="login"
-        />
-      </div>
+      {/* Cloudflare Turnstile - Bot Protection (Invisible) */}
+      <Turnstile
+        onSuccess={setTurnstileToken}
+        onError={() => setError('Beveiligingsverificatie mislukt. Probeer opnieuw.')}
+        onExpire={resetTurnstileToken}
+        theme="auto"
+        appearance="interaction-only"
+        action="login"
+      />
 
       <Button
         type="submit"

@@ -738,21 +738,19 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
                   />
                 </div>
 
-                {/* Cloudflare Turnstile - Bot Protection */}
-                <div className="pt-4">
-                  <Turnstile
-                    onSuccess={setTurnstileToken}
-                    onError={() => {
-                      setErrors((prev) => ({ ...prev, turnstile: 'Verificatie mislukt. Probeer opnieuw.' }))
-                    }}
-                    onExpire={resetTurnstileToken}
-                    theme="auto"
-                    appearance="interaction-only"
-                  />
-                  {errors.turnstile && (
-                    <p className="mt-2 text-sm text-red-600">{errors.turnstile}</p>
-                  )}
-                </div>
+                {/* Cloudflare Turnstile - Bot Protection (Invisible) */}
+                <Turnstile
+                  onSuccess={setTurnstileToken}
+                  onError={() => {
+                    setErrors((prev) => ({ ...prev, turnstile: 'Verificatie mislukt. Probeer opnieuw.' }))
+                  }}
+                  onExpire={resetTurnstileToken}
+                  theme="auto"
+                  appearance="interaction-only"
+                />
+                {errors.turnstile && (
+                  <p className="mt-2 text-sm text-red-600">{errors.turnstile}</p>
+                )}
 
                 {/* Security Badge */}
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-2">
