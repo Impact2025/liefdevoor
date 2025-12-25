@@ -73,8 +73,10 @@ function buildDiscoverWhere(
     where.gender = prefs.genderPreference
   }
 
-  // City filtering
-  if (filters.city) {
+  // Location filtering (postcode has priority over city)
+  if (filters.postcode) {
+    where.postcode = { startsWith: filters.postcode.replace(/\s/g, '').toUpperCase() }
+  } else if (filters.city) {
     where.city = { contains: filters.city, mode: 'insensitive' }
   } else if (currentUserCity && prefs.maxDistance && prefs.maxDistance < 50) {
     where.city = currentUserCity
@@ -136,6 +138,7 @@ export async function GET(request: NextRequest) {
       minAge: searchParams.get('minAge') ? parseInt(searchParams.get('minAge')!) : undefined,
       maxAge: searchParams.get('maxAge') ? parseInt(searchParams.get('maxAge')!) : undefined,
       city: searchParams.get('city') || undefined,
+      postcode: searchParams.get('postcode') || undefined,
       gender: searchParams.get('gender') as any,
       maxDistance: searchParams.get('maxDistance') ? parseInt(searchParams.get('maxDistance')!) : undefined,
     }

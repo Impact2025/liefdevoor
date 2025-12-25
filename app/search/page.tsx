@@ -51,9 +51,12 @@ interface SearchFilters {
   maxAge: number
   gender?: Gender
   city?: string
+  postcode?: string
   maxDistance?: number
   onlineOnly?: boolean
 }
+
+type LocationMode = 'postcode' | 'city'
 
 export default function SearchPage() {
   const { data: session, status } = useSession()
@@ -67,6 +70,7 @@ export default function SearchPage() {
     minAge: 18,
     maxAge: 99,
   })
+  const [locationMode, setLocationMode] = useState<LocationMode>('postcode')
 
   const { post: swipePost, isLoading: isSwipeLoading } = usePost('/api/swipe')
 
@@ -92,6 +96,7 @@ export default function SearchPage() {
       if (filters.minAge) params.append('minAge', filters.minAge.toString())
       if (filters.maxAge) params.append('maxAge', filters.maxAge.toString())
       if (filters.gender) params.append('gender', filters.gender)
+      if (filters.postcode) params.append('postcode', filters.postcode)
       if (filters.city) params.append('city', filters.city)
       if (filters.maxDistance) params.append('maxDistance', filters.maxDistance.toString())
       params.append('limit', '50')
@@ -259,14 +264,54 @@ export default function SearchPage() {
                   ]}
                 />
 
-                {/* City */}
-                <Input
-                  label="Plaats"
-                  value={filters.city || ''}
-                  onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                  placeholder="Bijv. Amsterdam, Rotterdam..."
-                  fullWidth
-                />
+                {/* Location - Two tab interface (Postcode / Stad) */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="w-5 h-5 text-rose-500" />
+                    <h3 className="font-semibold text-gray-900">Locatie</h3>
+                  </div>
+
+                  {/* Tabs */}
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      onClick={() => setLocationMode('postcode')}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                        locationMode === 'postcode'
+                          ? 'bg-rose-100 text-rose-700 border-2 border-rose-300'
+                          : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                      }`}
+                    >
+                      Postcode
+                    </button>
+                    <button
+                      onClick={() => setLocationMode('city')}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                        locationMode === 'city'
+                          ? 'bg-rose-100 text-rose-700 border-2 border-rose-300'
+                          : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                      }`}
+                    >
+                      Stad
+                    </button>
+                  </div>
+
+                  {/* Input based on selected tab */}
+                  {locationMode === 'postcode' ? (
+                    <Input
+                      value={filters.postcode || ''}
+                      onChange={(e) => setFilters({ ...filters, postcode: e.target.value, city: undefined })}
+                      placeholder="Bijv. 2153 BK"
+                      fullWidth
+                    />
+                  ) : (
+                    <Input
+                      value={filters.city || ''}
+                      onChange={(e) => setFilters({ ...filters, city: e.target.value, postcode: undefined })}
+                      placeholder="Bijv. Amsterdam, Rotterdam..."
+                      fullWidth
+                    />
+                  )}
+                </div>
 
                 {/* Max Distance */}
                 <div>

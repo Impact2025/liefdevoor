@@ -444,6 +444,7 @@ export interface DiscoverFilters {
   maxAge?: number
   gender?: Gender
   city?: string
+  postcode?: string
   maxDistance?: number
   page?: number
   limit?: number
