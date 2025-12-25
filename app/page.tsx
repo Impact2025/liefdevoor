@@ -64,10 +64,16 @@ export default function Home() {
   if (session) {
     return (
       <main className="min-h-screen bg-stone-50">
-        <div className="max-w-5xl mx-auto px-4 py-12">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-rose-100 rounded-full mb-6">
-              <Heart className="w-10 h-10 text-rose-500" />
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center mb-4">
+              <Image
+                src="/images/LiefdevoorIedereen_logo.png"
+                alt="Liefde Voor Iedereen"
+                width={80}
+                height={80}
+                className="object-contain"
+              />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
               Welkom terug, <span className="text-rose-500">{session.user?.name || 'Gebruiker'}</span>
@@ -187,11 +193,8 @@ export default function Home() {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-2xl text-white"
+          <div
+            className="max-w-2xl text-white animate-fade-in-up"
           >
             {/* Trust Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
@@ -252,7 +255,7 @@ export default function Home() {
               </div>
               <p>Al <strong className="text-white">10.000+</strong> matches gemaakt</p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -373,13 +376,11 @@ export default function Home() {
                 image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&h=400&fit=crop"
               }
             ].map((testimonial, i) => (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-stone-50 rounded-3xl overflow-hidden"
+                className={`bg-stone-50 rounded-3xl overflow-hidden hover:-translate-y-1 transition-transform ${
+                  i === 0 ? 'animate-fade-in-up-delay-1' : i === 1 ? 'animate-fade-in-up-delay-2' : 'animate-fade-in-up-delay-3'
+                }`}
               >
                 <div className="aspect-square relative">
                   <Image
@@ -403,7 +404,7 @@ export default function Home() {
                     <div className="text-sm text-slate-500">{testimonial.location}</div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -412,11 +413,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24 bg-rose-500">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-          >
+          <div className="animate-fade-in-up">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Klaar om de liefde te vinden?
             </h2>
@@ -430,7 +427,7 @@ export default function Home() {
               Start nu gratis
               <ArrowRight className="w-5 h-5" />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
 
