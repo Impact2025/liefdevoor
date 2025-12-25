@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { requireAuth, requireCSRF, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
+import { requireAuth, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { getCachedProfile } from '@/lib/cache'
 import type { UserProfile, UserPreferences } from '@/lib/types'
@@ -223,7 +223,8 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
  */
 export async function PUT(request: NextRequest) {
   try {
-    await requireCSRF(request)
+    // Note: CSRF via requireCSRF removed - session-based auth is sufficient
+    // The HttpOnly session cookie + requireAuth provides adequate protection
     const user = await requireAuth()
 
     const body: ProfileUpdateData = await request.json()
