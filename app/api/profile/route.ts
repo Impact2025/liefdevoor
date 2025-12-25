@@ -161,7 +161,8 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
   if (city !== undefined) updateData.city = city ? city.trim() : null
   if (postcode !== undefined) updateData.postcode = postcode ? postcode.trim().toUpperCase() : null
   if (interests !== undefined) updateData.interests = interests ? interests.trim() : null
-  if (preferences !== undefined) updateData.preferences = preferences ? JSON.stringify(preferences) : null
+  // Prisma handles JSON serialization automatically for Json fields - don't use JSON.stringify()
+  if (preferences !== undefined) updateData.preferences = preferences || null
   // Lifestyle fields
   if (occupation !== undefined) updateData.occupation = occupation ? occupation.trim() : null
   if (education !== undefined) updateData.education = education ? education.trim() : null
