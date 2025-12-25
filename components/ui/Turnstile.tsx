@@ -111,9 +111,9 @@ export function Turnstile({
         theme,
         size,
         action,
-        // Gebruik 'always' voor zichtbare widget die altijd token genereert
-        // Dit is de meest betrouwbare optie
-        appearance: 'always',
+        // Gebruik 'interaction-only' voor betere UX - widget alleen bij verdachte activiteit
+        // Token wordt automatisch gegenereerd op achtergrond
+        appearance: 'interaction-only',
         retry: 'auto',
         'retry-interval': 5000,
         'refresh-expired': 'auto',
