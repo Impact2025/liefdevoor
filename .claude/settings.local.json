@@ -55,7 +55,14 @@
       "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\helpdesk\\\\tickets\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\helpdesk\\\\tickets\")",
       "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api-docs\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api-docs\")",
       "Bash(npm run test:e2e:*)",
-      "WebFetch(domain:liefdevoor.vercel.app)"
+      "WebFetch(domain:liefdevoor.vercel.app)",
+      "Bash(git rm:*)",
+      "Bash(vercel --version:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel link:*)",
+      "Bash(printf:*)",
+      "Bash(vercel:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

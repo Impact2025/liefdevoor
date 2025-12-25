@@ -395,7 +395,7 @@ Ja, abonnementen verlengen automatisch. Je kunt op elk moment opzeggen.
 
 **Opzeggen?**
 Ga naar Instellingen → Abonnement → Opzeggen`,
-      keywords: ['abonnement', 'prijzen', 'subscription', 'plus', 'compleet', 'gratis'],
+      keywords: ['abonnement', 'prijzen', 'prijs', 'kosten', 'kost', 'betalen', 'subscription', 'plus', 'compleet', 'gratis', 'euro', 'maand', 'geld'],
       isFeatured: true,
       order: 1
     },

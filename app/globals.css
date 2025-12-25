@@ -5,17 +5,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Framer Motion fallback - ensure content is visible if JS fails */
-/* This overrides inline opacity:0 styles added by framer-motion SSR */
-@layer base {
-  /* After a short delay, make all content visible as a fallback */
-  @keyframes ensure-visible {
-    to { opacity: 1 !important; }
+/* CSS Animations for landing page - replaces framer-motion SSR issues */
+@layer utilities {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  /* Apply to elements that might have inline opacity:0 from framer-motion */
-  [style*="opacity: 0"], [style*="opacity:0"] {
-    animation: ensure-visible 0s 0.5s forwards;
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in-up-delay-1 {
+    animation: fade-in-up 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-2 {
+    animation: fade-in-up 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-3 {
+    animation: fade-in-up 0.6s ease-out 0.3s forwards;
+    opacity: 0;
   }
 }
 

@@ -23,15 +23,16 @@ export async function verifyTurnstileToken(
   token: string,
   remoteIp?: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Always bypass in development mode
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[Turnstile] Bypassing verification in development mode')
+    return { success: true }
+  }
+
   const secretKey = process.env.TURNSTILE_SECRET_KEY
 
   if (!secretKey) {
     console.error('[Turnstile] TURNSTILE_SECRET_KEY niet geconfigureerd')
-    // In development, allow bypass als niet geconfigureerd
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Turnstile] Bypassing verification in development (SECRET_KEY not set)')
-      return { success: true }
-    }
     return { success: false, error: 'Turnstile niet geconfigureerd' }
   }
 

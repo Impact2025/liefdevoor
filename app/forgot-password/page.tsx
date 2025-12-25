@@ -100,13 +100,11 @@ export default function ForgotPassword() {
           required
         />
 
-        {/* Cloudflare Turnstile - Bot Protection (Invisible) */}
+        {/* Cloudflare Turnstile - Bot Protection */}
         <Turnstile
           onSuccess={setTurnstileToken}
-          onError={() => setError('Beveiligingsverificatie mislukt. Probeer opnieuw.')}
+          onError={() => setError('Beveiligingsverificatie mislukt. Herlaad de pagina.')}
           onExpire={() => setTurnstileToken(null)}
-          theme="auto"
-          appearance="interaction-only"
           action="forgot-password"
         />
 

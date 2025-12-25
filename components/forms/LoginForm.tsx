@@ -188,13 +188,11 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         </a>
       </div>
 
-      {/* Cloudflare Turnstile - Bot Protection (Invisible) */}
+      {/* Cloudflare Turnstile - Bot Protection */}
       <Turnstile
         onSuccess={setTurnstileToken}
-        onError={() => setError('Beveiligingsverificatie mislukt. Probeer opnieuw.')}
+        onError={() => setError('Beveiligingsverificatie mislukt. Herlaad de pagina.')}
         onExpire={resetTurnstileToken}
-        theme="auto"
-        appearance="interaction-only"
         action="login"
       />
 

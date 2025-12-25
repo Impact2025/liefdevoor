@@ -58,8 +58,8 @@ function FAQContent() {
     try {
       const response = await fetch('/api/faq/categories')
       const data = await response.json()
-      if (data.success) {
-        setCategories(data.data)
+      if (data.success && data.data?.categories) {
+        setCategories(data.data.categories)
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -70,8 +70,8 @@ function FAQContent() {
     try {
       const response = await fetch('/api/faq/articles?featured=true&limit=3')
       const data = await response.json()
-      if (data.success) {
-        setFeaturedArticles(data.data)
+      if (data.success && data.data?.articles) {
+        setFeaturedArticles(data.data.articles)
       }
     } catch (error) {
       console.error('Error fetching featured articles:', error)
@@ -83,16 +83,16 @@ function FAQContent() {
     try {
       const params = new URLSearchParams()
       if (selectedCategory && selectedCategory !== 'all') {
-        params.append('category', selectedCategory)
+        params.append('categoryId', selectedCategory)
       }
       if (searchQuery) {
-        params.append('q', searchQuery)
+        params.append('search', searchQuery)
       }
 
       const response = await fetch(`/api/faq/articles?${params.toString()}`)
       const data = await response.json()
-      if (data.success) {
-        setArticles(data.data)
+      if (data.success && data.data?.articles) {
+        setArticles(data.data.articles)
       }
     } catch (error) {
       console.error('Error fetching articles:', error)

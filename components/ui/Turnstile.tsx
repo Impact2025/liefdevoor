@@ -1,163 +1,242 @@
 /**
- * Cloudflare Turnstile Component
+ * Cloudflare Turnstile Component - Wereldklasse Implementatie
  *
  * Privacy-friendly CAPTCHA widget die formulieren beschermt tegen bots.
- * Rendert invisible/managed challenge die alleen verschijnt wanneer nodig.
+ * Ondersteunt zowel invisible als managed challenges.
  *
  * @example
  * ```tsx
+ * const { token, setToken, resetToken, isReady } = useTurnstile()
+ *
  * <Turnstile
- *   onSuccess={(token) => setTurnstileToken(token)}
+ *   onSuccess={setToken}
  *   onError={() => setError('Verificatie mislukt')}
  * />
+ *
+ * // Wacht op token voor submit
+ * if (!isReady) return
  * ```
  */
 
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { AlertCircle, RefreshCw, Shield } from 'lucide-react'
+import { Shield, CheckCircle2 } from 'lucide-react'
+
+// Extend Window interface voor Turnstile
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: TurnstileRenderOptions) => string
+      reset: (widgetId: string) => void
+      remove: (widgetId: string) => void
+      execute: (widgetId: string) => void
+      getResponse: (widgetId: string) => string | undefined
+      isExpired: (widgetId: string) => boolean
+    }
+    onTurnstileLoad?: () => void
+  }
+}
+
+interface TurnstileRenderOptions {
+  sitekey: string
+  theme?: 'light' | 'dark' | 'auto'
+  size?: 'normal' | 'compact' | 'flexible'
+  action?: string
+  appearance?: 'always' | 'execute' | 'interaction-only'
+  callback?: (token: string) => void
+  'error-callback'?: (error?: string) => void
+  'expired-callback'?: () => void
+  'timeout-callback'?: () => void
+  'after-interactive-callback'?: () => void
+  'before-interactive-callback'?: () => void
+  retry?: 'auto' | 'never'
+  'retry-interval'?: number
+  'refresh-expired'?: 'auto' | 'manual' | 'never'
+  language?: string
+}
 
 export interface TurnstileProps {
   onSuccess: (token: string) => void
   onError?: () => void
   onExpire?: () => void
   theme?: 'light' | 'dark' | 'auto'
-  size?: 'normal' | 'compact'
+  size?: 'normal' | 'compact' | 'flexible'
   action?: string
   className?: string
-  appearance?: 'always' | 'execute' | 'interaction-only'
 }
 
 /**
  * Cloudflare Turnstile widget component
+ *
+ * Gebruikt 'managed' mode voor maximale betrouwbaarheid.
+ * Widget verschijnt alleen wanneer nodig (bij verdachte activiteit).
  */
 export function Turnstile({
   onSuccess,
   onError,
   onExpire,
   theme = 'auto',
-  size = 'normal',
+  size = 'flexible',
   action,
   className = '',
-  appearance = 'interaction-only', // Invisible totdat nodig
 }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const mountedRef = useRef(true)
+  const renderAttemptRef = useRef(0)
+
+  // Use refs voor callbacks om closure issues te voorkomen
+  const onSuccessRef = useRef(onSuccess)
+  const onErrorRef = useRef(onError)
+  const onExpireRef = useRef(onExpire)
+
+  const [status, setStatus] = useState<'loading' | 'ready' | 'verified' | 'error'>('loading')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
   const isDevelopment = process.env.NODE_ENV === 'development'
 
-  // Auto-bypass in development mode
+  // Update refs when callbacks change
   useEffect(() => {
-    if (isDevelopment) {
-      // Remove any existing Turnstile scripts to prevent CSP errors
-      const existingScript = document.getElementById('turnstile-script')
-      if (existingScript) {
-        existingScript.remove()
-      }
+    onSuccessRef.current = onSuccess
+    onErrorRef.current = onError
+    onExpireRef.current = onExpire
+  }, [onSuccess, onError, onExpire])
 
-      onSuccess('dev-bypass-token')
-      setIsLoading(false)
-    }
-  }, [isDevelopment, onSuccess])
-
-  // Reset widget
-  const reset = useCallback(() => {
-    if (widgetIdRef.current && window.turnstile) {
-      window.turnstile.reset(widgetIdRef.current)
-      setError(null)
+  // Track mounted state
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
     }
   }, [])
 
-  // Initialize Turnstile widget
+  // Auto-bypass in development mode
   useEffect(() => {
-    // Skip Turnstile initialization in development mode
     if (isDevelopment) {
-      return
+      // Simulate async token generation
+      const timer = setTimeout(() => {
+        if (mountedRef.current) {
+          onSuccessRef.current('dev-bypass-token')
+          setStatus('verified')
+        }
+      }, 100)
+      return () => clearTimeout(timer)
     }
+  }, [isDevelopment])
+
+  // Render widget functie
+  const renderWidget = useCallback(() => {
+    if (!containerRef.current || !window.turnstile || !siteKey) return
+    if (widgetIdRef.current) return // Already rendered
+
+    renderAttemptRef.current++
+    console.log(`[Turnstile] Rendering widget (attempt ${renderAttemptRef.current})`)
+
+    try {
+      // Clear container first
+      containerRef.current.innerHTML = ''
+
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: siteKey,
+        theme,
+        size,
+        action,
+        // Gebruik 'interaction-only' voor betere UX
+        // Widget verschijnt alleen bij verdachte activiteit
+        appearance: 'interaction-only',
+        retry: 'auto',
+        'retry-interval': 5000,
+        'refresh-expired': 'auto',
+        language: 'nl',
+        callback: (token: string) => {
+          console.log('[Turnstile] ✅ Token ontvangen:', token.substring(0, 20) + '...')
+          if (mountedRef.current) {
+            setStatus('verified')
+            setErrorMessage(null)
+            onSuccessRef.current(token)
+          }
+        },
+        'error-callback': (error?: string) => {
+          console.error('[Turnstile] ❌ Error:', error)
+          if (mountedRef.current) {
+            setStatus('error')
+            setErrorMessage('Verificatie mislukt. Herlaad de pagina.')
+            onErrorRef.current?.()
+          }
+        },
+        'expired-callback': () => {
+          console.warn('[Turnstile] ⏰ Token expired')
+          if (mountedRef.current) {
+            setStatus('ready')
+            onExpireRef.current?.()
+          }
+        },
+        'timeout-callback': () => {
+          console.error('[Turnstile] ⏱️ Timeout')
+          if (mountedRef.current) {
+            setStatus('error')
+            setErrorMessage('Verificatie timeout. Controleer je verbinding.')
+            onErrorRef.current?.()
+          }
+        },
+        'after-interactive-callback': () => {
+          console.log('[Turnstile] 🔄 Interactive challenge started')
+        },
+      })
+
+      if (mountedRef.current) {
+        setStatus('ready')
+      }
+      console.log('[Turnstile] Widget rendered met ID:', widgetIdRef.current)
+    } catch (err) {
+      console.error('[Turnstile] Render error:', err)
+      if (mountedRef.current) {
+        setStatus('error')
+        setErrorMessage('Kon verificatie niet laden')
+      }
+    }
+  }, [siteKey, theme, size, action])
+
+  // Initialize Turnstile
+  useEffect(() => {
+    if (isDevelopment) return
 
     if (!siteKey) {
       console.error('[Turnstile] NEXT_PUBLIC_TURNSTILE_SITE_KEY niet geconfigureerd')
-      setError('Turnstile niet geconfigureerd')
-      setIsLoading(false)
+      setStatus('error')
+      setErrorMessage('Turnstile niet geconfigureerd')
       return
     }
 
-    // Load Turnstile script
-    const scriptId = 'turnstile-script'
+    // Load script met onload callback
+    const scriptId = 'cf-turnstile-script'
     let script = document.getElementById(scriptId) as HTMLScriptElement
+
+    // Global callback voor wanneer script laadt
+    window.onTurnstileLoad = () => {
+      console.log('[Turnstile] Script geladen via callback')
+      renderWidget()
+    }
 
     if (!script) {
       script = document.createElement('script')
       script.id = scriptId
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit'
       script.async = true
-      script.defer = true
       document.head.appendChild(script)
-    }
 
-    const handleScriptLoad = () => {
-      setIsLoaded(true)
-      setIsLoading(false)
-
-      if (!containerRef.current || !window.turnstile) return
-
-      // Render widget
-      try {
-        widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: siteKey,
-          theme,
-          size,
-          action,
-          appearance,
-          callback: (token: string) => {
-            setError(null)
-            console.log('[Turnstile] Token ontvangen')
-            onSuccess(token)
-          },
-          'error-callback': () => {
-            setError('Verificatie mislukt. Probeer opnieuw.')
-            console.error('[Turnstile] Error callback triggered')
-            onError?.()
-          },
-          'expired-callback': () => {
-            setError('Verificatie verlopen. Vernieuw de pagina.')
-            console.warn('[Turnstile] Token expired')
-            onExpire?.()
-          },
-          'timeout-callback': () => {
-            setError('Verificatie timeout. Controleer je internetverbinding.')
-            console.error('[Turnstile] Timeout')
-            onError?.()
-          },
-          'unsupported-callback': () => {
-            setError('Je browser wordt niet ondersteund.')
-            console.error('[Turnstile] Browser unsupported')
-            onError?.()
-          },
-        })
-        console.log('[Turnstile] Widget rendered met ID:', widgetIdRef.current)
-      } catch (err) {
-        console.error('[Turnstile] Render error:', err)
-        setError('Kon verificatie niet laden')
-        setIsLoading(false)
-      }
-    }
-
-    // Check if script is already loaded
-    if ((window as any).turnstile) {
-      handleScriptLoad()
-    } else {
-      script.addEventListener('load', handleScriptLoad)
-      script.addEventListener('error', () => {
-        setError('Kon verificatie script niet laden')
-        setIsLoading(false)
+      script.onerror = () => {
         console.error('[Turnstile] Script load failed')
-      })
+        if (mountedRef.current) {
+          setStatus('error')
+          setErrorMessage('Kon beveiligingsscript niet laden')
+        }
+      }
+    } else if (window.turnstile) {
+      // Script already loaded
+      renderWidget()
     }
 
     // Cleanup
@@ -165,27 +244,25 @@ export function Turnstile({
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.remove(widgetIdRef.current)
-          console.log('[Turnstile] Widget removed')
+          widgetIdRef.current = null
         } catch (err) {
-          console.warn('[Turnstile] Cleanup error:', err)
+          // Ignore cleanup errors
         }
       }
     }
-  }, [isDevelopment, siteKey, theme, size, action, appearance, onSuccess, onError, onExpire])
+  }, [isDevelopment, siteKey, renderWidget])
 
-  // Skip Turnstile in development to avoid CSP/SW issues
+  // Development bypass UI
   if (isDevelopment) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 flex-shrink-0" />
-          <span>Development mode - Turnstile bypassed ✓</span>
-        </div>
+      <div className={`flex items-center justify-center gap-2 py-2 text-xs text-blue-600 ${className}`}>
+        <Shield className="w-3.5 h-3.5" />
+        <span>Dev mode - Turnstile bypass</span>
       </div>
     )
   }
 
-  // Render niets als niet geconfigureerd (production fallback)
+  // Niet geconfigureerd
   if (!siteKey) {
     return null
   }
@@ -193,38 +270,29 @@ export function Turnstile({
   return (
     <div className={className}>
       {/* Turnstile widget container */}
-      <div ref={containerRef} className="flex justify-center" />
+      <div
+        ref={containerRef}
+        className="flex justify-center min-h-[65px]"
+      />
 
-      {/* Loading state */}
-      {isLoading && (
-        <div className="flex items-center justify-center gap-2 py-4 text-sm text-slate-500">
-          <RefreshCw className="w-4 h-4 animate-spin" />
-          <span>Beveiliging laden...</span>
+      {/* Status indicator */}
+      {status === 'verified' && (
+        <div className="flex items-center justify-center gap-1.5 text-xs text-green-600 mt-1">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>Geverifieerd</span>
         </div>
       )}
 
       {/* Error state */}
-      {error && (
-        <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
-          <div className="flex items-start gap-2 text-sm text-red-800">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p>{error}</p>
-              <button
-                type="button"
-                onClick={reset}
-                className="mt-2 text-xs font-medium text-red-700 hover:text-red-900 underline"
-              >
-                Opnieuw proberen
-              </button>
-            </div>
-          </div>
+      {status === 'error' && errorMessage && (
+        <div className="text-center text-xs text-red-600 mt-2">
+          {errorMessage}
         </div>
       )}
 
-      {/* Privacy notice */}
-      {isLoaded && !error && (
-        <div className="mt-2 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+      {/* Privacy notice - altijd tonen voor transparantie */}
+      {status !== 'error' && (
+        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 mt-2">
           <Shield className="w-3 h-3" />
           <span>Beschermd door Cloudflare Turnstile</span>
         </div>
@@ -238,9 +306,12 @@ export function Turnstile({
  *
  * @example
  * ```tsx
- * const { token, setToken, resetToken } = useTurnstile()
+ * const { token, setToken, resetToken, isReady } = useTurnstile()
  *
  * <Turnstile onSuccess={setToken} />
+ *
+ * // Check of klaar voor submit
+ * const canSubmit = isReady || process.env.NODE_ENV === 'development'
  * ```
  */
 export function useTurnstile() {
@@ -255,5 +326,6 @@ export function useTurnstile() {
     setToken,
     resetToken,
     hasToken: !!token,
+    isReady: !!token,
   }
 }

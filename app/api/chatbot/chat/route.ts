@@ -11,8 +11,11 @@ import {
 import { auditLog, getClientInfo } from '@/lib/audit'
 
 const chatMessageSchema = z.object({
-  conversationId: z.string().optional(),
-  message: z.string().min(1, 'Bericht mag niet leeg zijn').max(1000)
+  conversationId: z.string().nullable().optional(),
+  message: z.preprocess(
+    (val) => (val === null || val === undefined ? '' : val),
+    z.string().min(1, 'Bericht is verplicht').max(1000)
+  )
 })
 
 // POST /api/chatbot/chat - Send message to chatbot

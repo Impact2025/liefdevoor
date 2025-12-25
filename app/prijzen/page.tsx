@@ -156,19 +156,19 @@ export default function PrijzenPage() {
         </div>
       </header>
 
-      <main className="relative max-w-6xl mx-auto px-4 py-12 md:py-16">
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+        <div className="text-center mb-12 lg:mb-20">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
             Kies het plan dat bij jou past
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
             Upgrade voor meer features, betere matches en onbeperkte mogelijkheden
           </p>
         </div>
 
         {/* Subscription Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-16 lg:mb-20">
           {SUBSCRIPTION_PLANS.map((plan) => {
             const config = planConfigs[plan.id as keyof typeof planConfigs]
             const features = planFeatures[plan.id as keyof typeof planFeatures]
@@ -180,12 +180,12 @@ export default function PrijzenPage() {
                 key={plan.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`relative ${config.recommended ? 'md:-mt-4 md:mb-4' : ''}`}
+                className={`relative ${config.recommended ? 'lg:-mt-6 lg:mb-6' : ''}`}
               >
                 {/* Recommended Badge */}
                 {config.recommended && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-primary text-white text-sm font-semibold px-4 py-1 rounded-full">
+                  <div className="absolute -top-4 lg:-top-5 left-1/2 -translate-x-1/2 z-10">
+                    <div className="bg-primary text-white text-sm lg:text-base font-semibold px-5 lg:px-6 py-1.5 lg:py-2 rounded-full shadow-lg">
                       Aanbevolen
                     </div>
                   </div>
@@ -193,8 +193,8 @@ export default function PrijzenPage() {
 
                 {/* Current Plan Badge */}
                 {isCurrentPlan && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-gray-900 text-white text-sm font-semibold px-4 py-1 rounded-full">
+                  <div className="absolute -top-4 lg:-top-5 left-1/2 -translate-x-1/2 z-10">
+                    <div className="bg-gray-900 text-white text-sm lg:text-base font-semibold px-5 lg:px-6 py-1.5 lg:py-2 rounded-full shadow-lg">
                       Huidig plan
                     </div>
                   </div>
@@ -202,35 +202,35 @@ export default function PrijzenPage() {
 
                 {/* Card */}
                 <div
-                  className={`h-full bg-white rounded-2xl border-2 ${
+                  className={`h-full bg-white rounded-2xl lg:rounded-3xl border-2 ${
                     config.recommended
-                      ? 'border-primary shadow-lg'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } transition-all p-8`}
+                      ? 'border-primary shadow-xl lg:shadow-2xl'
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
+                  } transition-all p-8 lg:p-10`}
                 >
                   {/* Icon */}
-                  <div className="mb-6">
-                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${
+                  <div className="mb-6 lg:mb-8">
+                    <div className={`inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl ${
                       config.recommended ? 'bg-primary' : 'bg-gray-100'
                     }`}>
-                      <Icon className={`w-6 h-6 ${config.recommended ? 'text-white' : 'text-gray-600'}`} />
+                      <Icon className={`w-7 h-7 lg:w-8 lg:h-8 ${config.recommended ? 'text-white' : 'text-gray-600'}`} />
                     </div>
                   </div>
 
                   {/* Plan Name */}
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
                     {plan.name}
                   </h2>
-                  <p className="text-gray-600 mb-6">{plan.description}</p>
+                  <p className="text-gray-600 lg:text-lg mb-8">{plan.description}</p>
 
                   {/* Price */}
-                  <div className="mb-8">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-gray-900">
+                  <div className="mb-8 lg:mb-10">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl lg:text-5xl font-bold text-gray-900">
                         {formatPrice(plan.price)}
                       </span>
                       {plan.price > 0 && (
-                        <span className="text-gray-600">/{plan.periodLabel}</span>
+                        <span className="text-gray-600 lg:text-lg">/{plan.periodLabel}</span>
                       )}
                     </div>
                     {plan.id === 'FREE' && (
@@ -244,11 +244,11 @@ export default function PrijzenPage() {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-4 mb-10">
                     {features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{feature}</span>
+                        <Check className="w-5 h-5 lg:w-6 lg:h-6 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700 lg:text-lg">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -257,16 +257,16 @@ export default function PrijzenPage() {
                   <button
                     onClick={() => handleSubscriptionSelect(plan.id)}
                     disabled={isCurrentPlan}
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
+                    className={`w-full py-3.5 lg:py-4 px-6 rounded-xl lg:rounded-2xl font-semibold lg:text-lg transition-all flex items-center justify-center gap-2 ${
                       isCurrentPlan
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : config.recommended
-                        ? 'bg-primary text-white hover:bg-primary-hover shadow-md hover:shadow-lg'
-                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                        ? 'bg-primary text-white hover:bg-primary-hover shadow-lg hover:shadow-xl hover:scale-105'
+                        : 'bg-gray-900 text-white hover:bg-gray-800 hover:scale-105'
                     }`}
                   >
                     {isCurrentPlan ? 'Huidig plan' : plan.id === 'FREE' ? 'Gratis beginnen' : 'Kies dit plan'}
-                    {!isCurrentPlan && <ArrowRight className="w-5 h-5" />}
+                    {!isCurrentPlan && <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6" />}
                   </button>
                 </div>
               </motion.div>
@@ -275,18 +275,18 @@ export default function PrijzenPage() {
         </div>
 
         {/* Trust Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600 py-8 border-t border-gray-200">
-          <div className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-primary" />
-            <span>10.000+ actieve gebruikers</span>
+        <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 text-sm lg:text-base text-gray-600 py-10 lg:py-12 border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            <Heart className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+            <span className="font-medium">10.000+ actieve gebruikers</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Check className="w-5 h-5 text-primary" />
-            <span>100% veilig betalen</span>
+          <div className="flex items-center gap-3">
+            <Check className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+            <span className="font-medium">100% veilig betalen</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span>Opzeggen wanneer je wilt</span>
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+            <span className="font-medium">Opzeggen wanneer je wilt</span>
           </div>
         </div>
       </main>

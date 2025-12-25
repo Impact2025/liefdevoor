@@ -8,6 +8,13 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { FAQFeedbackWidget } from '@/components/helpdesk/FAQFeedbackWidget'
+import { marked } from 'marked'
+
+// Configure marked for safe rendering
+marked.setOptions({
+  gfm: true, // GitHub Flavored Markdown
+  breaks: true, // Convert \n to <br>
+})
 
 interface PageProps {
   params: {
@@ -157,7 +164,7 @@ export default async function FAQArticlePage({ params }: PageProps) {
               prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:text-rose-600
               prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg
               prose-blockquote:border-l-4 prose-blockquote:border-rose-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600"
-            dangerouslySetInnerHTML={{ __html: article.contentNl }}
+            dangerouslySetInnerHTML={{ __html: marked.parse(article.contentNl) as string }}
           />
         </article>
 

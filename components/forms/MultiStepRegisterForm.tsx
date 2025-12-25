@@ -738,15 +738,14 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
                   />
                 </div>
 
-                {/* Cloudflare Turnstile - Bot Protection (Invisible) */}
+                {/* Cloudflare Turnstile - Bot Protection */}
                 <Turnstile
                   onSuccess={setTurnstileToken}
                   onError={() => {
-                    setErrors((prev) => ({ ...prev, turnstile: 'Verificatie mislukt. Probeer opnieuw.' }))
+                    setErrors((prev) => ({ ...prev, turnstile: 'Verificatie mislukt. Herlaad de pagina.' }))
                   }}
                   onExpire={resetTurnstileToken}
-                  theme="auto"
-                  appearance="interaction-only"
+                  action="register"
                 />
                 {errors.turnstile && (
                   <p className="mt-2 text-sm text-red-600">{errors.turnstile}</p>

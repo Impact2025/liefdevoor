@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Sparkles, ShieldCheck, Mic, MessageCircle, Heart } from "lucide-react";
 
 export default function HowItWorksSection() {
@@ -11,44 +10,29 @@ export default function HowItWorksSection() {
 
         {/* Sectie Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-block px-4 py-1.5 mb-4 rounded-full bg-rose-100 text-rose-700 font-semibold text-sm tracking-wide"
+          <div
+            className="inline-block px-4 py-1.5 mb-4 rounded-full bg-rose-100 text-rose-700 font-semibold text-sm tracking-wide animate-fade-in-up"
           >
             Eenvoudig & Veilig
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6"
+          </div>
+          <h2
+            className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 animate-fade-in-up"
           >
             In 3 stappen naar <span className="text-rose-600">echt contact.</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-slate-600 leading-relaxed"
+          </h2>
+          <p
+            className="text-xl text-slate-600 leading-relaxed animate-fade-in-up"
           >
             Geen ingewikkeld gedoe. Wij helpen je bij elke stap, van je eerste woord tot je eerste date.
-          </motion.p>
+          </p>
         </div>
 
         {/* BENTO GRID LAYOUT */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           {/* STAP 1: Profiel & AI (Groot Blok Links) */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="md:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm overflow-hidden relative group"
+          <div
+            className="md:col-span-2 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm overflow-hidden relative group hover:-translate-y-1 transition-transform"
           >
             <div className="relative z-10">
               <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center mb-6">
@@ -81,16 +65,11 @@ export default function HowItWorksSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* STAP 2: Veiligheid (Blok Rechtsboven) */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden"
+          <div
+            className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden hover:-translate-y-1 transition-transform"
           >
             <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
               <span className="text-2xl font-bold text-blue-600">2</span>
@@ -103,16 +82,11 @@ export default function HowItWorksSection() {
             <div className="absolute top-6 right-6">
                <ShieldCheck className="w-16 h-16 text-blue-50 transform rotate-12" />
             </div>
-          </motion.div>
+          </div>
 
           {/* STAP 3: Contact (Blok Linksonder) */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm overflow-hidden"
+          <div
+            className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm overflow-hidden hover:-translate-y-1 transition-transform"
           >
              <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-6">
               <span className="text-2xl font-bold text-purple-600">3</span>
@@ -130,16 +104,11 @@ export default function HowItWorksSection() {
                   <div className="w-12 h-1 bg-purple-200 rounded-full" />
                 </div>
              </div>
-          </motion.div>
+          </div>
 
           {/* USP: De Match (Groot Blok Rechtsonder) */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="md:col-span-2 bg-gradient-to-br from-rose-600 to-orange-500 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden flex flex-col justify-center items-start"
+          <div
+            className="md:col-span-2 bg-gradient-to-br from-rose-600 to-orange-500 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden flex flex-col justify-center items-start hover:-translate-y-1 transition-transform"
           >
             <div className="relative z-10 max-w-lg">
               <h3 className="text-2xl md:text-3xl font-bold mb-4">Klaar voor de liefde?</h3>
@@ -160,7 +129,7 @@ export default function HowItWorksSection() {
                <Heart className="w-64 h-64 absolute -top-10 -right-10 fill-white" />
                <Heart className="w-32 h-32 absolute bottom-10 right-20 fill-white" />
             </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>

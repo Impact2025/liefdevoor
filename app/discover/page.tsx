@@ -288,8 +288,14 @@ export default function DiscoverPage() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg">
-                <Sparkles size={22} className="text-white" />
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg overflow-hidden">
+                <Image
+                  src="/images/LiefdevoorIedereen_logo.png"
+                  alt="Liefde voor Iedereen"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-bold text-xl text-white">Ontdek</span>
             </div>
@@ -395,8 +401,14 @@ export default function DiscoverPage() {
                 />
               ) : (
                 <div className="text-center px-8">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-500 to-rose-600 rounded-full flex items-center justify-center shadow-xl">
-                    <Sparkles className="w-12 h-12 text-white" />
+                  <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-xl p-4 overflow-hidden">
+                    <Image
+                      src="/images/LiefdevoorIedereen_logo.png"
+                      alt="Liefde voor Iedereen"
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-3">Geen profielen meer</h3>
                   <p className="text-gray-400 mb-6">
