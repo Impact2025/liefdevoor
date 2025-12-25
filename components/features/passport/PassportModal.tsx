@@ -29,11 +29,12 @@ import {
   ChevronRight,
   Loader2,
   Heart,
+  Flame,
 } from 'lucide-react'
 import { usePassport } from '@/hooks/usePassport'
 import { LocationMap } from '@/components/features/location/LocationMap'
 
-type TabType = 'search' | 'recent' | 'favorites' | 'popular'
+type TabType = 'search' | 'recent' | 'favorites' | 'trending' | 'popular'
 
 interface PassportModalProps {
   isOpen: boolean
@@ -59,6 +60,7 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
     recentCities,
     favoriteCities,
     popularCities,
+    trendingCities,
     searchQuery,
     setSearchQuery,
     searchResults,
@@ -317,6 +319,19 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                   Favorieten
                 </button>
               )}
+              {trendingCities.length > 0 && (
+                <button
+                  onClick={() => setActiveTab('trending')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    activeTab === 'trending'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Flame size={14} />
+                  Trending
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab('popular')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
@@ -400,6 +415,32 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                       </p>
                     ) : (
                       favoriteCities.map((city) => renderCityItem(city, false))
+                    )}
+                  </>
+                )}
+
+                {/* Trending cities */}
+                {activeTab === 'trending' && (
+                  <>
+                    {trendingCities.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">
+                        Nog geen trending steden
+                      </p>
+                    ) : (
+                      <>
+                        <div className="mb-3 p-3 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-orange-200">
+                          <div className="flex items-center gap-2 text-sm text-orange-700">
+                            <Flame className="w-4 h-4" />
+                            <span className="font-medium">Populair deze week - {trendingCities.reduce((sum, c) => sum + c.travelers, 0)} reizigers</span>
+                          </div>
+                        </div>
+                        {trendingCities.map((city) => renderCityItem({
+                          ...city,
+                          name: city.city,
+                          lat: city.latitude,
+                          lng: city.longitude
+                        }))}
+                      </>
                     )}
                   </>
                 )}

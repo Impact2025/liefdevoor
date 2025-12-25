@@ -116,6 +116,36 @@ export async function GET() {
       },
     })
 
+    // Get trending cities (most visited in last 7 days)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    const trendingCitiesRaw = await prisma.passportHistory.groupBy({
+      by: ['city', 'latitude', 'longitude'],
+      where: {
+        usedAt: { gte: sevenDaysAgo },
+      },
+      _count: {
+        city: true,
+      },
+      orderBy: {
+        _count: {
+          city: 'desc',
+        },
+      },
+      take: 5,
+    })
+
+    const trendingCities = trendingCitiesRaw.map(t => ({
+      city: t.city,
+      latitude: t.latitude,
+      longitude: t.longitude,
+      travelers: t._count.city,
+      distanceFromHome: user.latitude && user.longitude
+        ? calculateDistance(user.latitude, user.longitude, t.latitude, t.longitude)
+        : null,
+    }))
+
     // Add distance from home to popular cities
     const popularWithDistance = POPULAR_DUTCH_CITIES.map(city => ({
       ...city,
@@ -150,6 +180,7 @@ export async function GET() {
           : null,
       })),
       popularCities: popularWithDistance,
+      trendingCities,
     })
   } catch (error) {
     console.error('Error fetching passport:', error)

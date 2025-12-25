@@ -22,8 +22,10 @@ import {
   Plane,
 } from 'lucide-react'
 import { DiscoverProfileCard } from '@/components/features/discover/DiscoverProfileCard'
+import { LocationIndicator } from '@/components/features/discover/LocationIndicator'
 import { BoostButton } from '@/components/features/boost/BoostButton'
 import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
+import { usePassport } from '@/hooks/usePassport'
 import { Modal, Button, Input, Select, Alert } from '@/components/ui'
 import { Gender } from '@prisma/client'
 import type { DiscoverFilters, SwipeResult } from '@/lib/types'
@@ -79,9 +81,14 @@ export default function DiscoverPage() {
   const [isRewinding, setIsRewinding] = useState(false)
   const [lastSwipedUser, setLastSwipedUser] = useState<any>(null)
 
-  // Passport feature
+  // Passport feature - Use the usePassport hook
   const [showPassportModal, setShowPassportModal] = useState(false)
-  const [activePassport, setActivePassport] = useState<{ city: string; expiresAt: Date } | null>(null)
+  const {
+    currentPassport,
+    homeLocation,
+    isPassportActive,
+    hoursRemaining,
+  } = usePassport()
 
   // Daily Prompter state
   const [showDailyPrompter, setShowDailyPrompter] = useState(false)
@@ -302,24 +309,21 @@ export default function DiscoverPage() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* Location Indicator with Passport status */}
+              <LocationIndicator
+                effectiveCity={isPassportActive ? currentPassport?.city || 'Onbekend' : homeLocation?.city || 'Onbekend'}
+                effectivePostcode={!isPassportActive ? currentUser?.postcode : null}
+                isPassportActive={isPassportActive}
+                passportExpiresAt={currentPassport?.expiresAt ? new Date(currentPassport.expiresAt) : null}
+                onClick={() => setShowPassportModal(true)}
+              />
+
               {/* People nearby indicator */}
               {users.length > 0 && (
                 <div className="hidden sm:flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl">
                   <span className="text-sm text-white/80">{users.length}</span>
                 </div>
               )}
-
-              {/* Passport Button */}
-              <button
-                onClick={() => setShowPassportModal(true)}
-                className={`p-2.5 rounded-xl backdrop-blur-md transition-all ${
-                  activePassport
-                    ? 'bg-rose-500/80 text-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                {activePassport ? <Plane size={20} /> : <Globe size={20} />}
-              </button>
 
               {/* Boost Button */}
               <BoostButton />
@@ -347,23 +351,6 @@ export default function DiscoverPage() {
               </button>
             </div>
           </div>
-
-          {/* Passport Active Banner - Compact */}
-          {activePassport && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-2 flex items-center justify-between bg-gradient-to-r from-rose-500/90 to-pink-500/90 backdrop-blur-md text-white py-2 px-4 rounded-xl"
-            >
-              <div className="flex items-center gap-2">
-                <Plane size={16} />
-                <span className="text-sm font-medium">Je bent in {activePassport.city}</span>
-              </div>
-              <button onClick={() => setShowPassportModal(true)} className="text-xs underline">
-                Wijzig
-              </button>
-            </motion.div>
-          )}
         </div>
       </header>
 
@@ -713,10 +700,7 @@ export default function DiscoverPage() {
         isOpen={showPassportModal}
         onClose={() => setShowPassportModal(false)}
         onSelect={(city) => {
-          setActivePassport({
-            city: city.name,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          })
+          // Passport is now activated via the modal, just refresh discover cards
           refetch(filters)
         }}
       />

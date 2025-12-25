@@ -57,6 +57,14 @@ interface SearchResult {
   population?: number
 }
 
+interface TrendingCity {
+  city: string
+  latitude: number
+  longitude: number
+  travelers: number
+  distanceFromHome?: number | null
+}
+
 interface PassportData {
   hasFeature: boolean
   currentPassport: CurrentPassport | null
@@ -64,6 +72,7 @@ interface PassportData {
   recentCities: PassportCity[]
   favoriteCities: PassportCity[]
   popularCities: City[]
+  trendingCities: TrendingCity[]
 }
 
 export function usePassport() {
@@ -276,6 +285,7 @@ export function usePassport() {
     recentCities: data?.recentCities ?? [],
     favoriteCities: data?.favoriteCities ?? [],
     popularCities: data?.popularCities ?? [],
+    trendingCities: data?.trendingCities ?? [],
 
     // Search
     searchQuery,
