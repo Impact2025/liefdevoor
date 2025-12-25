@@ -86,11 +86,11 @@ function SubscriptionSuccessContent() {
 
         console.log('[Success Page] Verification response:', data)
 
-        if (data.success && data.subscription?.status === 'active') {
+        if (data.success && data.data?.subscription?.status === 'active') {
           setStatus('success')
           setMessage('Je premium abonnement is geactiveerd!')
           setRetryCount(0)
-        } else if (data.subscription?.status === 'pending') {
+        } else if (data.data?.subscription?.status === 'pending') {
           // Check if we haven't exceeded max retries
           if (retryCount < maxRetries) {
             setStatus('checking')
