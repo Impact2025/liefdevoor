@@ -272,23 +272,75 @@ export function Turnstile({
 }
 
 /**
- * Hook om Turnstile token state te beheren
+ * Hook om Turnstile token state te beheren met auto-wait functionaliteit
  *
  * @example
  * ```tsx
- * const { token, setToken, resetToken, isReady } = useTurnstile()
+ * const { token, setToken, resetToken, isReady, waitForToken } = useTurnstile()
  *
  * <Turnstile onSuccess={setToken} />
  *
- * // Check of klaar voor submit
- * const canSubmit = isReady || process.env.NODE_ENV === 'development'
+ * // Bij submit: wacht automatisch op token (max 10 sec)
+ * const handleSubmit = async () => {
+ *   const verifiedToken = await waitForToken()
+ *   if (!verifiedToken) {
+ *     setError('Verificatie timeout')
+ *     return
+ *   }
+ *   // Proceed with submit...
+ * }
  * ```
  */
 export function useTurnstile() {
   const [token, setToken] = useState<string | null>(null)
+  const tokenRef = useRef<string | null>(null)
+  const resolversRef = useRef<Array<(token: string | null) => void>>([])
+
+  // Update ref when token changes and resolve any waiting promises
+  useEffect(() => {
+    tokenRef.current = token
+    if (token && resolversRef.current.length > 0) {
+      resolversRef.current.forEach(resolve => resolve(token))
+      resolversRef.current = []
+    }
+  }, [token])
 
   const resetToken = useCallback(() => {
     setToken(null)
+    tokenRef.current = null
+  }, [])
+
+  /**
+   * Wacht op token met timeout
+   * @param timeoutMs - Maximum wachttijd in ms (default: 10000)
+   * @returns Promise met token of null bij timeout
+   */
+  const waitForToken = useCallback((timeoutMs: number = 10000): Promise<string | null> => {
+    // Development bypass
+    if (process.env.NODE_ENV === 'development') {
+      return Promise.resolve('dev-bypass-token')
+    }
+
+    // Token al beschikbaar
+    if (tokenRef.current) {
+      return Promise.resolve(tokenRef.current)
+    }
+
+    // Wacht op token met timeout
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        // Remove this resolver from the list
+        resolversRef.current = resolversRef.current.filter(r => r !== resolve)
+        resolve(null) // Timeout
+      }, timeoutMs)
+
+      const wrappedResolve = (token: string | null) => {
+        clearTimeout(timeoutId)
+        resolve(token)
+      }
+
+      resolversRef.current.push(wrappedResolve)
+    })
   }, [])
 
   return {
@@ -297,5 +349,6 @@ export function useTurnstile() {
     resetToken,
     hasToken: !!token,
     isReady: !!token,
+    waitForToken,
   }
 }

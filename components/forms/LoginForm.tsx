@@ -29,7 +29,13 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
   const [error, setError] = useState<string | null>(null)
 
   // Turnstile state voor bot protection
-  const { token: turnstileToken, setToken: setTurnstileToken, resetToken: resetTurnstileToken } = useTurnstile()
+  const {
+    token: turnstileToken,
+    setToken: setTurnstileToken,
+    resetToken: resetTurnstileToken,
+    waitForToken
+  } = useTurnstile()
+  const [isWaitingForVerification, setIsWaitingForVerification] = useState(false)
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof LoginFormData, string>> = {}
@@ -56,20 +62,27 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
     if (!validateForm()) return
 
-    // Check Turnstile token (alleen in production - development heeft auto-bypass)
-    const isDevelopment = process.env.NODE_ENV === 'development'
-    if (!isDevelopment && !turnstileToken) {
-      setError('Voltooi de beveiligingscontrole')
-      return
-    }
-
     setIsLoading(true)
+
+    // Wacht automatisch op Turnstile token als nog niet klaar
+    let tokenToUse = turnstileToken
+    if (!tokenToUse && process.env.NODE_ENV !== 'development') {
+      setIsWaitingForVerification(true)
+      tokenToUse = await waitForToken(10000) // Max 10 seconden wachten
+      setIsWaitingForVerification(false)
+
+      if (!tokenToUse) {
+        setError('Beveiligingsverificatie duurde te lang. Probeer opnieuw.')
+        setIsLoading(false)
+        return
+      }
+    }
 
     try {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        turnstileToken, // Turnstile verification token
+        turnstileToken: tokenToUse, // Turnstile verification token
         redirect: false,
       })
 
@@ -203,7 +216,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         isLoading={isLoading}
         size="lg"
       >
-        Inloggen
+        {isWaitingForVerification ? 'Beveiliging controleren...' : 'Inloggen'}
       </Button>
 
       {/* Social Login Divider */}

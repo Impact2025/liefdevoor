@@ -154,7 +154,13 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
 
   // Turnstile state voor bot protection
-  const { token: turnstileToken, setToken: setTurnstileToken, resetToken: resetTurnstileToken } = useTurnstile()
+  const {
+    token: turnstileToken,
+    setToken: setTurnstileToken,
+    resetToken: resetTurnstileToken,
+    waitForToken
+  } = useTurnstile()
+  const [isWaitingForVerification, setIsWaitingForVerification] = useState(false)
 
   // Debounced email for availability check
   const debouncedEmail = useDebounce(formData.email, 500)
@@ -260,13 +266,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       if (!formData.acceptedTerms) {
         newErrors.acceptedTerms = 'Je moet akkoord gaan met de voorwaarden'
       }
-
-      // Turnstile verification (alleen enforced als geconfigureerd)
-      const shouldEnforce = process.env.NODE_ENV === 'production' ||
-        process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-      if (shouldEnforce && !turnstileToken) {
-        newErrors.turnstile = 'Voltooi de beveiligingscontrole'
-      }
+      // Turnstile check wordt nu automatisch gedaan bij submit via waitForToken
     }
 
     setErrors(newErrors)
@@ -292,11 +292,30 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
   }
 
   const handleSubmit = async () => {
+    // Wacht automatisch op Turnstile token als nog niet klaar
+    let tokenToUse = turnstileToken
+    const shouldEnforce = process.env.NODE_ENV === 'production' ||
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+
+    if (shouldEnforce && !tokenToUse) {
+      setIsWaitingForVerification(true)
+      tokenToUse = await waitForToken(10000) // Max 10 seconden wachten
+      setIsWaitingForVerification(false)
+
+      if (!tokenToUse) {
+        setErrors(prev => ({
+          ...prev,
+          turnstile: 'Beveiligingsverificatie duurde te lang. Probeer opnieuw.'
+        }))
+        return
+      }
+    }
+
     await post({
       name: formData.name.trim(),
       email: formData.email.toLowerCase().trim(),
       password: formData.password,
-      turnstileToken, // Turnstile verification token
+      turnstileToken: tokenToUse, // Turnstile verification token
     })
   }
 
@@ -782,15 +801,20 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
           onClick={handleNext}
           disabled={
             isLoading ||
+            isWaitingForVerification ||
             (currentStep === 1 && emailCheck.available === false) ||
             (currentStep === 2 && !isPasswordValid) ||
             (currentStep === 3 && !nameValidation.valid)
           }
-          isLoading={isLoading && currentStep === STEPS.length}
+          isLoading={(isLoading || isWaitingForVerification) && currentStep === STEPS.length}
           className="flex-1 bg-rose-500 hover:bg-rose-600"
           size="lg"
         >
-          {currentStep < STEPS.length ? 'Volgende' : 'Account aanmaken'}
+          {currentStep < STEPS.length
+            ? 'Volgende'
+            : isWaitingForVerification
+              ? 'Beveiliging controleren...'
+              : 'Account aanmaken'}
         </Button>
       </div>
 

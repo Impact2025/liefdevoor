@@ -2,48 +2,64 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Turnstile } from '@/components/ui'
+import { Turnstile, useTurnstile } from '@/components/ui'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [isWaitingForVerification, setIsWaitingForVerification] = useState(false)
+
+  // Gebruik de hook met waitForToken functionaliteit
+  const {
+    token: turnstileToken,
+    setToken: setTurnstileToken,
+    resetToken: resetTurnstileToken,
+    waitForToken
+  } = useTurnstile()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
 
-    // Check Turnstile token (alleen als geconfigureerd)
+    // Wacht automatisch op Turnstile token als nog niet klaar
+    let tokenToUse = turnstileToken
     const shouldEnforce = process.env.NODE_ENV === 'production' ||
       process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-    if (shouldEnforce && !turnstileToken) {
-      setError('Voltooi de beveiligingscontrole')
-      return
-    }
 
-    setLoading(true)
+    if (shouldEnforce && !tokenToUse) {
+      setIsWaitingForVerification(true)
+      tokenToUse = await waitForToken(10000) // Max 10 seconden wachten
+      setIsWaitingForVerification(false)
+
+      if (!tokenToUse) {
+        setError('Beveiligingsverificatie duurde te lang. Probeer opnieuw.')
+        setLoading(false)
+        return
+      }
+    }
 
     try {
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, turnstileToken })
+        body: JSON.stringify({ email, turnstileToken: tokenToUse })
       })
 
       const data = await response.json()
 
       if (!response.ok) {
         setError(data.error || 'Er is iets misgegaan')
-        setTurnstileToken(null) // Reset token zodat gebruiker opnieuw kan proberen
+        resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
         return
       }
 
       setSubmitted(true)
     } catch {
       setError('Er is een fout opgetreden. Probeer het later opnieuw.')
-      setTurnstileToken(null) // Reset token zodat gebruiker opnieuw kan proberen
+      resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
     } finally {
       setLoading(false)
     }
@@ -104,7 +120,7 @@ export default function ForgotPassword() {
         <Turnstile
           onSuccess={setTurnstileToken}
           onError={() => setError('Beveiligingsverificatie mislukt. Herlaad de pagina.')}
-          onExpire={() => setTurnstileToken(null)}
+          onExpire={resetTurnstileToken}
           action="forgot-password"
         />
 
@@ -113,7 +129,11 @@ export default function ForgotPassword() {
           disabled={loading}
           className="w-full bg-primary text-white py-3 rounded-full font-bold hover:bg-rose-hover transition-colors disabled:opacity-50"
         >
-          {loading ? 'Verzenden...' : 'Reset link versturen'}
+          {isWaitingForVerification
+            ? 'Beveiliging controleren...'
+            : loading
+              ? 'Verzenden...'
+              : 'Reset link versturen'}
         </button>
 
         <div className="mt-6 text-center">
