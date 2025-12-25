@@ -10,8 +10,11 @@ declare global {
       render: (container: string | HTMLElement, options: TurnstileRenderOptions) => string
       reset: (widgetId: string) => void
       remove: (widgetId: string) => void
+      execute: (widgetId: string) => void
       getResponse: (widgetId: string) => string | undefined
+      isExpired: (widgetId: string) => boolean
     }
+    onTurnstileLoad?: () => void
   }
 }
 

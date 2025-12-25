@@ -22,46 +22,14 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { Shield, CheckCircle2 } from 'lucide-react'
-
-// Extend Window interface voor Turnstile
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (container: HTMLElement, options: TurnstileRenderOptions) => string
-      reset: (widgetId: string) => void
-      remove: (widgetId: string) => void
-      execute: (widgetId: string) => void
-      getResponse: (widgetId: string) => string | undefined
-      isExpired: (widgetId: string) => boolean
-    }
-    onTurnstileLoad?: () => void
-  }
-}
-
-interface TurnstileRenderOptions {
-  sitekey: string
-  theme?: 'light' | 'dark' | 'auto'
-  size?: 'normal' | 'compact' | 'flexible'
-  action?: string
-  appearance?: 'always' | 'execute' | 'interaction-only'
-  callback?: (token: string) => void
-  'error-callback'?: (error?: string) => void
-  'expired-callback'?: () => void
-  'timeout-callback'?: () => void
-  'after-interactive-callback'?: () => void
-  'before-interactive-callback'?: () => void
-  retry?: 'auto' | 'never'
-  'retry-interval'?: number
-  'refresh-expired'?: 'auto' | 'manual' | 'never'
-  language?: string
-}
+import type { TurnstileRenderOptions } from '@/lib/types/turnstile'
 
 export interface TurnstileProps {
   onSuccess: (token: string) => void
   onError?: () => void
   onExpire?: () => void
   theme?: 'light' | 'dark' | 'auto'
-  size?: 'normal' | 'compact' | 'flexible'
+  size?: 'normal' | 'compact'
   action?: string
   className?: string
 }
@@ -77,7 +45,7 @@ export function Turnstile({
   onError,
   onExpire,
   theme = 'auto',
-  size = 'flexible',
+  size = 'normal',
   action,
   className = '',
 }: TurnstileProps) {
@@ -138,28 +106,28 @@ export function Turnstile({
       // Clear container first
       containerRef.current.innerHTML = ''
 
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+      const options: TurnstileRenderOptions = {
         sitekey: siteKey,
         theme,
         size,
         action,
-        // Gebruik 'interaction-only' voor betere UX
-        // Widget verschijnt alleen bij verdachte activiteit
-        appearance: 'interaction-only',
+        // Gebruik 'always' voor zichtbare widget die altijd token genereert
+        // Dit is de meest betrouwbare optie
+        appearance: 'always',
         retry: 'auto',
         'retry-interval': 5000,
         'refresh-expired': 'auto',
         language: 'nl',
         callback: (token: string) => {
-          console.log('[Turnstile] ✅ Token ontvangen:', token.substring(0, 20) + '...')
+          console.log('[Turnstile] Token ontvangen:', token.substring(0, 20) + '...')
           if (mountedRef.current) {
             setStatus('verified')
             setErrorMessage(null)
             onSuccessRef.current(token)
           }
         },
-        'error-callback': (error?: string) => {
-          console.error('[Turnstile] ❌ Error:', error)
+        'error-callback': () => {
+          console.error('[Turnstile] Error callback triggered')
           if (mountedRef.current) {
             setStatus('error')
             setErrorMessage('Verificatie mislukt. Herlaad de pagina.')
@@ -167,14 +135,14 @@ export function Turnstile({
           }
         },
         'expired-callback': () => {
-          console.warn('[Turnstile] ⏰ Token expired')
+          console.warn('[Turnstile] Token expired')
           if (mountedRef.current) {
             setStatus('ready')
             onExpireRef.current?.()
           }
         },
         'timeout-callback': () => {
-          console.error('[Turnstile] ⏱️ Timeout')
+          console.error('[Turnstile] Timeout')
           if (mountedRef.current) {
             setStatus('error')
             setErrorMessage('Verificatie timeout. Controleer je verbinding.')
@@ -182,9 +150,11 @@ export function Turnstile({
           }
         },
         'after-interactive-callback': () => {
-          console.log('[Turnstile] 🔄 Interactive challenge started')
+          console.log('[Turnstile] Interactive challenge started')
         },
-      })
+      }
+
+      widgetIdRef.current = window.turnstile.render(containerRef.current, options)
 
       if (mountedRef.current) {
         setStatus('ready')
