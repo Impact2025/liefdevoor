@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 import { requireAuth, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
-import { getCachedProfile } from '@/lib/cache'
 import type { UserProfile, UserPreferences } from '@/lib/types'
 import type { Gender } from '@prisma/client'
 
@@ -49,18 +48,59 @@ async function geocodePostcode(postcode: string): Promise<{ lat: number; lng: nu
 /**
  * GET /api/profile
  *
- * Fetch current user's profile with caching
+ * Fetch current user's profile - no caching to ensure fresh data after updates
  */
 export async function GET() {
   try {
     const user = await requireAuth()
-    const profile = await getCachedProfile(user.id)
+
+    // Direct database query to ensure fresh data (no caching)
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        birthDate: true,
+        gender: true,
+        city: true,
+        postcode: true,
+        preferences: true,
+        profileImage: true,
+        voiceIntro: true,
+        role: true,
+        isVerified: true,
+        safetyScore: true,
+        latitude: true,
+        longitude: true,
+        createdAt: true,
+        updatedAt: true,
+        occupation: true,
+        education: true,
+        height: true,
+        drinking: true,
+        smoking: true,
+        children: true,
+        photos: {
+          select: { id: true, url: true, order: true },
+          orderBy: { order: 'asc' },
+        },
+      },
+    })
 
     if (!profile) {
       throw new Error('Profile not found')
     }
 
-    return successResponse({ profile })
+    // Format response
+    const formattedProfile = {
+      ...profile,
+      preferences: profile.preferences || null,
+      birthDate: profile.birthDate ? profile.birthDate.toISOString().split('T')[0] : null,
+    }
+
+    return successResponse({ profile: formattedProfile })
   } catch (error) {
     return handleApiError(error)
   }
