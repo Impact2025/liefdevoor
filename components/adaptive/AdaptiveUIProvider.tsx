@@ -360,7 +360,20 @@ export function AdaptiveUIProvider({
   // ============================================================================
 
   // Add CSS custom properties for adaptive styling
+  // Only compute after hydration to prevent SSR mismatch
   const cssVariables = useMemo(() => {
+    // During SSR, use minimal variables to prevent hydration mismatch
+    if (!isHydrated) {
+      return {
+        '--adaptive-text-scale': '1',
+        '--adaptive-target-min': '44px',
+        '--adaptive-spacing-scale': '1',
+        '--adaptive-animation-duration': '200ms',
+        '--adaptive-transition': 'all 200ms ease',
+      }
+    }
+
+    // After hydration, use full preferences
     const vars: Record<string, string> = {
       '--adaptive-text-scale': preferences.visionImpairedMode ? '1.25' : preferences.largeText ? '1.125' : '1',
       '--adaptive-target-min': preferences.visionImpairedMode ? '56px' : preferences.largeTargets ? '56px' : '44px',
@@ -370,12 +383,16 @@ export function AdaptiveUIProvider({
       '--adaptive-contrast-mode': preferences.extraHighContrast ? 'aaa' : preferences.highContrast ? 'aa' : 'normal',
     }
     return vars
-  }, [preferences])
+  }, [preferences, isHydrated])
 
   return (
     <AdaptiveUIContext.Provider value={value}>
       {/* CSS Variables Container */}
-      <div style={cssVariables as React.CSSProperties} className="contents">
+      <div
+        style={cssVariables as React.CSSProperties}
+        className="contents"
+        suppressHydrationWarning
+      >
         {/* Screen Reader Announcer */}
         <div
           ref={announcerRef}

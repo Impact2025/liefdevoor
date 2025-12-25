@@ -49,6 +49,21 @@ export function Turnstile({
   const [isLoading, setIsLoading] = useState(true)
 
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  const isDevelopment = process.env.NODE_ENV === 'development'
+
+  // Auto-bypass in development mode
+  useEffect(() => {
+    if (isDevelopment) {
+      // Remove any existing Turnstile scripts to prevent CSP errors
+      const existingScript = document.getElementById('turnstile-script')
+      if (existingScript) {
+        existingScript.remove()
+      }
+
+      onSuccess('dev-bypass-token')
+      setIsLoading(false)
+    }
+  }, [isDevelopment, onSuccess])
 
   // Reset widget
   const reset = useCallback(() => {
@@ -60,6 +75,11 @@ export function Turnstile({
 
   // Initialize Turnstile widget
   useEffect(() => {
+    // Skip Turnstile initialization in development mode
+    if (isDevelopment) {
+      return
+    }
+
     if (!siteKey) {
       console.error('[Turnstile] NEXT_PUBLIC_TURNSTILE_SITE_KEY niet geconfigureerd')
       setError('Turnstile niet geconfigureerd')
@@ -151,20 +171,22 @@ export function Turnstile({
         }
       }
     }
-  }, [siteKey, theme, size, action, appearance, onSuccess, onError, onExpire])
+  }, [isDevelopment, siteKey, theme, size, action, appearance, onSuccess, onError, onExpire])
 
-  // Render niets als niet geconfigureerd (development fallback)
-  if (!siteKey) {
-    if (process.env.NODE_ENV === 'development') {
-      return (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Turnstile niet geconfigureerd (development mode)</span>
-          </div>
+  // Skip Turnstile in development to avoid CSP/SW issues
+  if (isDevelopment) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 flex-shrink-0" />
+          <span>Development mode - Turnstile bypassed ✓</span>
         </div>
-      )
-    }
+      </div>
+    )
+  }
+
+  // Render niets als niet geconfigureerd (production fallback)
+  if (!siteKey) {
     return null
   }
 

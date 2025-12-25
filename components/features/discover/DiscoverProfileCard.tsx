@@ -6,15 +6,18 @@
  * - Full-screen hero photo
  * - Smooth scroll to reveal more info
  * - Online status indicator
- * - Swipe gesture support
+ * - Swipe gesture support with spring physics
  * - Premium visual design
  * - React.memo for optimal performance
+ * - Accessibility: prefers-reduced-motion support
+ * - Gesture cancellation hints
+ * - Tablet/landscape optimization
  */
 
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect, memo } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo, useSpring, useReducedMotion, animate } from 'framer-motion'
 import Image from 'next/image'
 import { logSwipeBehavior } from '@/app/actions/tracking'
 import {
@@ -119,6 +122,21 @@ function getOnlineStatus(lastActive: Date | string | undefined): 'online' | 'rec
 
 const SWIPE_THRESHOLD = 100
 const SWIPE_VELOCITY_THRESHOLD = 500
+const HINT_THRESHOLD = 50 // Show "almost" indicator at 50% of swipe threshold
+
+// Spring configuration for natural, Tinder-like feel
+const SPRING_CONFIG = {
+  stiffness: 400,
+  damping: 30,
+  mass: 0.8,
+}
+
+// Exit animation spring (faster, more decisive)
+const EXIT_SPRING_CONFIG = {
+  stiffness: 300,
+  damping: 25,
+  mass: 0.5,
+}
 
 // ============================================================================
 // MAIN COMPONENT
@@ -137,8 +155,12 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
   const [isScrolled, setIsScrolled] = useState(false)
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'up' | null>(null)
   const [isPlayingVoice, setIsPlayingVoice] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Accessibility: Detect reduced motion preference
+  const prefersReducedMotion = useReducedMotion()
 
   // Swipe lock using ref for more reliable locking (fixes second swipe bug)
   const isSwipingRef = useRef(false)
@@ -150,13 +172,43 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
   const [voiceIntroPlayed, setVoiceIntroPlayed] = useState(false)
   const [maxScrollDepth, setMaxScrollDepth] = useState(0)
 
-  // Motion values for swipe gestures
+  // Motion values for swipe gestures with spring physics
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-  const rotate = useTransform(x, [-200, 200], [-15, 15])
-  const likeOpacity = useTransform(x, [0, 100], [0, 1])
-  const passOpacity = useTransform(x, [-100, 0], [1, 0])
-  const superLikeOpacity = useTransform(y, [-100, 0], [1, 0])
+
+  // Spring-based values for smooth, natural movement
+  const springX = useSpring(x, SPRING_CONFIG)
+  const springY = useSpring(y, SPRING_CONFIG)
+
+  // Derived transforms with smooth interpolation
+  const rotate = useTransform(springX, [-200, 200], [-15, 15])
+
+  // Dynamic shadow based on tilt (3D effect)
+  const shadowX = useTransform(springX, [-200, 200], [20, -20])
+  const shadowOpacity = useTransform(
+    springX,
+    [-200, -50, 0, 50, 200],
+    [0.3, 0.15, 0.1, 0.15, 0.3]
+  )
+
+  // Swipe indicator opacities with smooth transitions
+  const likeOpacity = useTransform(springX, [0, HINT_THRESHOLD, SWIPE_THRESHOLD], [0, 0.3, 1])
+  const passOpacity = useTransform(springX, [-SWIPE_THRESHOLD, -HINT_THRESHOLD, 0], [1, 0.3, 0])
+  const superLikeOpacity = useTransform(springY, [-SWIPE_THRESHOLD, -HINT_THRESHOLD, 0], [1, 0.3, 0])
+
+  // "Almost there" hint indicators (subtle pulse at 50% threshold)
+  const likeHintOpacity = useTransform(springX, [0, HINT_THRESHOLD - 10, HINT_THRESHOLD, SWIPE_THRESHOLD - 10], [0, 0, 0.6, 0])
+  const passHintOpacity = useTransform(springX, [-SWIPE_THRESHOLD + 10, -HINT_THRESHOLD, -HINT_THRESHOLD + 10, 0], [0, 0.6, 0, 0])
+  const superLikeHintOpacity = useTransform(springY, [-SWIPE_THRESHOLD + 10, -HINT_THRESHOLD, -HINT_THRESHOLD + 10, 0], [0, 0.6, 0, 0])
+
+  // Scale effect during drag (slight shrink for depth)
+  const scale = useTransform(
+    [springX, springY],
+    ([latestX, latestY]: number[]) => {
+      const distance = Math.sqrt(latestX * latestX + latestY * latestY)
+      return Math.max(0.95, 1 - distance / 1000)
+    }
+  )
 
   // Reset state when profile changes - CRITICAL FIX: Remove x,y from deps (they're MotionValues!)
   useEffect(() => {
@@ -167,20 +219,26 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
     setIsScrolled(false)
     setSwipeDirection(null)
     setIsPlayingVoice(false)
+    setIsExiting(false)
 
     // Reset swipe lock - CRITICAL for second swipe to work
     isSwipingRef.current = false
 
-    // Reset motion values immediately
-    x.set(0)
-    y.set(0)
+    // Reset motion values with spring animation (or instant if reduced motion)
+    if (prefersReducedMotion) {
+      x.set(0)
+      y.set(0)
+    } else {
+      animate(x, 0, { type: 'spring', ...SPRING_CONFIG })
+      animate(y, 0, { type: 'spring', ...SPRING_CONFIG })
+    }
 
     // Stop any playing audio
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause()
       voiceAudioRef.current = null
     }
-  }, [profile.id]) // Only profile.id - MotionValues are refs, not state!
+  }, [profile.id, prefersReducedMotion]) // Only profile.id - MotionValues are refs, not state!
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -235,10 +293,47 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
     }).catch(() => {}) // Silent fail - don't block swipe
   }, [profile.id, viewStartTime, maxPhotoViewed, bioExpanded, maxScrollDepth, voiceIntroPlayed])
 
+  // Animated exit with Framer Motion (consistent, smooth, interruptible)
+  const animateExit = useCallback((direction: 'left' | 'right' | 'up', callback: () => void) => {
+    setIsExiting(true)
+    setSwipeDirection(direction)
+
+    const exitDistance = window.innerWidth * 1.5
+    const exitConfig = prefersReducedMotion
+      ? { duration: 0.15 }
+      : { type: 'spring' as const, ...EXIT_SPRING_CONFIG }
+
+    if (direction === 'left') {
+      animate(x, -exitDistance, {
+        ...exitConfig,
+        onComplete: () => {
+          callback()
+          isSwipingRef.current = false
+        },
+      })
+    } else if (direction === 'right') {
+      animate(x, exitDistance, {
+        ...exitConfig,
+        onComplete: () => {
+          callback()
+          isSwipingRef.current = false
+        },
+      })
+    } else {
+      animate(y, -window.innerHeight, {
+        ...exitConfig,
+        onComplete: () => {
+          callback()
+          isSwipingRef.current = false
+        },
+      })
+    }
+  }, [x, y, prefersReducedMotion])
+
   const handleLike = useCallback(() => {
     // CRITICAL FIX: Use ref-based locking for more reliable double-trigger prevention
-    if (isLoading || swipeDirection || isSwipingRef.current) {
-      console.log('[DiscoverCard] Like blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current })
+    if (isLoading || swipeDirection || isSwipingRef.current || isExiting) {
+      console.log('[DiscoverCard] Like blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current, isExiting })
       return
     }
 
@@ -246,22 +341,15 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
     isSwipingRef.current = true // Lock immediately
     hapticSuccess() // Haptic feedback for like
     trackSwipe('RIGHT') // Track behavior
-    setSwipeDirection('right')
 
-    // Call onLike after animation starts (300ms total animation, call parent at 150ms)
-    setTimeout(() => {
-      onLike()
-      // Reset lock after animation completes (do NOT reset swipeDirection - let useEffect handle it)
-      setTimeout(() => {
-        isSwipingRef.current = false
-      }, 200) // Extra buffer for animation to complete
-    }, 150)
-  }, [isLoading, swipeDirection, onLike, trackSwipe, profile.id])
+    // Animate exit with Framer Motion
+    animateExit('right', onLike)
+  }, [isLoading, swipeDirection, isExiting, onLike, trackSwipe, profile.id, animateExit])
 
   const handlePass = useCallback(() => {
     // CRITICAL FIX: Use ref-based locking for more reliable double-trigger prevention
-    if (isLoading || swipeDirection || isSwipingRef.current) {
-      console.log('[DiscoverCard] Pass blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current })
+    if (isLoading || swipeDirection || isSwipingRef.current || isExiting) {
+      console.log('[DiscoverCard] Pass blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current, isExiting })
       return
     }
 
@@ -269,22 +357,15 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
     isSwipingRef.current = true // Lock immediately
     hapticImpact() // Haptic feedback for pass
     trackSwipe('LEFT') // Track behavior
-    setSwipeDirection('left')
 
-    // Call onPass after animation starts
-    setTimeout(() => {
-      onPass()
-      // Reset lock after animation completes
-      setTimeout(() => {
-        isSwipingRef.current = false
-      }, 200)
-    }, 150)
-  }, [isLoading, swipeDirection, onPass, trackSwipe, profile.id])
+    // Animate exit with Framer Motion
+    animateExit('left', onPass)
+  }, [isLoading, swipeDirection, isExiting, onPass, trackSwipe, profile.id, animateExit])
 
   const handleSuperLike = useCallback(() => {
     // CRITICAL FIX: Use ref-based locking for more reliable double-trigger prevention
-    if (isLoading || swipeDirection || isSwipingRef.current) {
-      console.log('[DiscoverCard] SuperLike blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current })
+    if (isLoading || swipeDirection || isSwipingRef.current || isExiting) {
+      console.log('[DiscoverCard] SuperLike blocked', { isLoading, swipeDirection, isSwipingRef: isSwipingRef.current, isExiting })
       return
     }
 
@@ -292,23 +373,16 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
     isSwipingRef.current = true // Lock immediately
     hapticHeavy() // Haptic feedback for super like
     trackSwipe('UP') // Track behavior
-    setSwipeDirection('up')
 
-    // Call onSuperLike after animation starts
-    setTimeout(() => {
-      onSuperLike()
-      // Reset lock after animation completes
-      setTimeout(() => {
-        isSwipingRef.current = false
-      }, 200)
-    }, 150)
-  }, [isLoading, swipeDirection, onSuperLike, trackSwipe, profile.id])
+    // Animate exit with Framer Motion
+    animateExit('up', onSuperLike)
+  }, [isLoading, swipeDirection, isExiting, onSuperLike, trackSwipe, profile.id, animateExit])
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       // CRITICAL FIX: Check ref-based lock as well
-      if (swipeDirection || isSwipingRef.current) {
-        console.log('[DiscoverCard] DragEnd blocked', { swipeDirection, isSwipingRef: isSwipingRef.current })
+      if (swipeDirection || isSwipingRef.current || isExiting) {
+        console.log('[DiscoverCard] DragEnd blocked', { swipeDirection, isSwipingRef: isSwipingRef.current, isExiting })
         return
       }
 
@@ -323,12 +397,17 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
       } else if (offset.y < -SWIPE_THRESHOLD || velocity.y < -SWIPE_VELOCITY_THRESHOLD) {
         handleSuperLike()
       } else {
-        // Animate back to center
-        x.set(0)
-        y.set(0)
+        // Animate back to center with spring physics (natural bounce)
+        if (prefersReducedMotion) {
+          x.set(0)
+          y.set(0)
+        } else {
+          animate(x, 0, { type: 'spring', ...SPRING_CONFIG })
+          animate(y, 0, { type: 'spring', ...SPRING_CONFIG })
+        }
       }
     },
-    [swipeDirection, handleLike, handlePass, handleSuperLike, x, y]
+    [swipeDirection, isExiting, handleLike, handlePass, handleSuperLike, x, y, prefersReducedMotion]
   )
 
   const nextPhoto = () => {
@@ -375,56 +454,120 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
   // RENDER
   // ============================================================================
 
+  // Dynamic box shadow based on tilt
+  const boxShadow = useTransform(
+    [shadowX, shadowOpacity],
+    ([latestShadowX, latestOpacity]: number[]) =>
+      `${latestShadowX}px 25px 50px rgba(0, 0, 0, ${latestOpacity})`
+  )
+
   return (
     <motion.div
       style={{
-        x,
-        y,
+        x: springX,
+        y: springY,
         rotate,
+        scale,
+        boxShadow: prefersReducedMotion ? '0 25px 50px rgba(0,0,0,0.15)' : boxShadow,
         touchAction: 'none', // Critical for Android - prevents browser handling touch
       }}
-      drag={!isLoading && !swipeDirection && !isSwipingRef.current}
+      drag={!isLoading && !swipeDirection && !isSwipingRef.current && !isExiting}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.9}
       dragMomentum={false}
       onDragEnd={handleDragEnd}
       className={`
-        relative w-full h-full max-w-lg mx-auto
-        bg-white rounded-3xl overflow-hidden shadow-2xl
+        relative w-full h-full mx-auto
+        bg-white rounded-3xl overflow-hidden
         cursor-grab active:cursor-grabbing select-none
-        ${swipeDirection === 'left' ? 'translate-x-[-150%] rotate-[-30deg] opacity-0' : ''}
-        ${swipeDirection === 'right' ? 'translate-x-[150%] rotate-[30deg] opacity-0' : ''}
-        ${swipeDirection === 'up' ? 'translate-y-[-150%] opacity-0' : ''}
-        transition-all duration-300
+        max-w-lg
+        lg:landscape:max-w-md lg:landscape:max-h-[85vh]
+        xl:landscape:max-w-lg
       `}
     >
-      {/* Swipe Overlays */}
+      {/* Swipe Overlays - Full commitment indicators */}
       <motion.div
         style={{ opacity: likeOpacity }}
         className="absolute inset-0 bg-green-500/30 z-20 pointer-events-none flex items-center justify-center"
       >
-        <div className="bg-green-500 text-white px-10 py-5 rounded-2xl text-3xl font-black rotate-[-20deg] border-4 border-white shadow-2xl">
-          LEUK! 💚
-        </div>
+        <motion.div
+          initial={{ scale: 0.8, rotate: -20 }}
+          animate={{ scale: 1, rotate: -20 }}
+          className="bg-green-500 text-white px-10 py-5 rounded-2xl text-3xl font-black border-4 border-white shadow-2xl"
+        >
+          LEUK!
+        </motion.div>
       </motion.div>
 
       <motion.div
         style={{ opacity: passOpacity }}
         className="absolute inset-0 bg-red-500/30 z-20 pointer-events-none flex items-center justify-center"
       >
-        <div className="bg-red-500 text-white px-10 py-5 rounded-2xl text-3xl font-black rotate-[20deg] border-4 border-white shadow-2xl">
-          NEE ✕
-        </div>
+        <motion.div
+          initial={{ scale: 0.8, rotate: 20 }}
+          animate={{ scale: 1, rotate: 20 }}
+          className="bg-red-500 text-white px-10 py-5 rounded-2xl text-3xl font-black border-4 border-white shadow-2xl"
+        >
+          NEE
+        </motion.div>
       </motion.div>
 
       <motion.div
         style={{ opacity: superLikeOpacity }}
         className="absolute inset-0 bg-blue-500/30 z-20 pointer-events-none flex items-center justify-center"
       >
-        <div className="bg-blue-500 text-white px-10 py-5 rounded-2xl text-3xl font-black border-4 border-white shadow-2xl">
-          SUPER LIKE! ⭐
-        </div>
+        <motion.div
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-10 py-5 rounded-2xl text-3xl font-black border-4 border-white shadow-2xl"
+        >
+          SUPER LIKE!
+        </motion.div>
       </motion.div>
+
+      {/* Gesture Hint Overlays - "Almost there" indicators */}
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            style={{ opacity: likeHintOpacity }}
+            className="absolute inset-0 z-19 pointer-events-none flex items-center justify-end pr-8"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 0.6 }}
+              className="bg-green-400/80 backdrop-blur-sm text-white px-6 py-3 rounded-xl text-lg font-bold border-2 border-white/50"
+            >
+              Blijf slepen →
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            style={{ opacity: passHintOpacity }}
+            className="absolute inset-0 z-19 pointer-events-none flex items-center justify-start pl-8"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 0.6 }}
+              className="bg-red-400/80 backdrop-blur-sm text-white px-6 py-3 rounded-xl text-lg font-bold border-2 border-white/50"
+            >
+              ← Blijf slepen
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            style={{ opacity: superLikeHintOpacity }}
+            className="absolute inset-0 z-19 pointer-events-none flex items-start justify-center pt-24"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 0.6 }}
+              className="bg-blue-400/80 backdrop-blur-sm text-white px-6 py-3 rounded-xl text-lg font-bold border-2 border-white/50"
+            >
+              ↑ Blijf slepen
+            </motion.div>
+          </motion.div>
+        </>
+      )}
 
       {/* Scrollable Content */}
       <div
@@ -436,6 +579,8 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
           msOverflowStyle: 'none',
           WebkitOverflowScrolling: 'touch', // Smooth scroll on iOS
           touchAction: 'pan-y', // Allow vertical scroll, but let parent handle horizontal
+          overscrollBehaviorY: 'contain', // Prevent pull-to-refresh
+          overscrollBehavior: 'contain', // Prevent all overscroll effects
         }}
       >
         {/* Hero Section - Full Screen Photo */}
@@ -687,55 +832,61 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
         </div>
       </div>
 
-      {/* Fixed Action Buttons */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 z-30" style={{ touchAction: 'manipulation' }}>
-        <div className="flex items-center justify-center gap-5">
-          {/* Pass Button */}
+      {/* Fixed Action Buttons - Premium feel with enhanced animations */}
+      <div
+        className="absolute bottom-0 left-0 right-0 p-4 z-30 safe-area-inset-bottom"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <div className="flex items-center justify-center gap-4 sm:gap-5">
+          {/* Pass Button - Enhanced with glow effect */}
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={prefersReducedMotion ? {} : { scale: 1.1, boxShadow: '0 0 20px rgba(239, 68, 68, 0.4)' }}
+            whileTap={prefersReducedMotion ? {} : { scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onTouchEnd={(e) => {
               e.preventDefault()
               handlePass()
             }}
             onClick={handlePass}
-            disabled={isLoading || !!swipeDirection}
-            className="w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center transition-colors disabled:opacity-50 border-2 border-gray-100 touch-manipulation"
+            disabled={isLoading || !!swipeDirection || isExiting}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-2 border-gray-100 touch-manipulation active:bg-red-50"
             aria-label="Niet interessant"
           >
-            <X size={32} className="text-red-500" strokeWidth={3} />
+            <X size={28} className="text-red-500 sm:w-8 sm:h-8" strokeWidth={3} />
           </motion.button>
 
-          {/* Super Like Button */}
+          {/* Super Like Button - Star with glow */}
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={prefersReducedMotion ? {} : { scale: 1.15, boxShadow: '0 0 25px rgba(59, 130, 246, 0.5)' }}
+            whileTap={prefersReducedMotion ? {} : { scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onTouchEnd={(e) => {
               e.preventDefault()
               handleSuperLike()
             }}
             onClick={handleSuperLike}
-            disabled={isLoading || !!swipeDirection}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl flex items-center justify-center disabled:opacity-50 touch-manipulation"
+            disabled={isLoading || !!swipeDirection || isExiting}
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
             aria-label="Super Like"
           >
-            <Star size={26} fill="white" className="text-white" />
+            <Star size={24} fill="white" className="text-white sm:w-6 sm:h-6" />
           </motion.button>
 
-          {/* Like Button */}
+          {/* Like Button - Main action, larger with heart glow */}
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={prefersReducedMotion ? {} : { scale: 1.1, boxShadow: '0 0 25px rgba(244, 63, 94, 0.5)' }}
+            whileTap={prefersReducedMotion ? {} : { scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onTouchEnd={(e) => {
               e.preventDefault()
               handleLike()
             }}
             onClick={handleLike}
-            disabled={isLoading || !!swipeDirection}
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 shadow-xl flex items-center justify-center disabled:opacity-50 touch-manipulation"
+            disabled={isLoading || !!swipeDirection || isExiting}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
             aria-label="Leuk!"
           >
-            <Heart size={32} fill="white" className="text-white" />
+            <Heart size={28} fill="white" className="text-white sm:w-8 sm:h-8" />
           </motion.button>
         </div>
       </div>

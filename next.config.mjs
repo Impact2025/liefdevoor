@@ -23,6 +23,8 @@ const allowedConnectDomains = [
   'https://www.google-analytics.com',
   'https://www.googletagmanager.com',
   'https://region1.google-analytics.com',
+  'https://challenges.cloudflare.com',  // Cloudflare Turnstile
+  'https://*.cloudflare.com',  // Cloudflare CDN
 ];
 
 // Google Analytics domains
