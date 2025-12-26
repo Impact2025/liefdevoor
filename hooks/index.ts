@@ -25,6 +25,8 @@ export { useAudioRecorder, formatDuration } from './useAudioRecorder'
 // PWA & Notifications
 export { usePWA } from './usePWA'
 export { usePushNotifications } from './usePushNotifications'
+export { useAppBadge, AppBadgeManager } from './useAppBadge'
+export { useContextualInstall, trackUserAction } from './useContextualInstall'
 
 // Real-time
 export { useWebSocket, useTypingIndicator } from './useWebSocket'

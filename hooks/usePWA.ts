@@ -120,6 +120,52 @@ export function usePWA(): UsePWAReturn {
     }
   }, [registration])
 
+  // Track PWA events to analytics
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const trackPWAEvent = (event: string, data?: any) => {
+      // Track to analytics (if available)
+      if (window.gtag) {
+        window.gtag('event', event, {
+          event_category: 'PWA',
+          ...data
+        })
+      }
+      // Also log to console in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[PWA Analytics] ${event}`, data)
+      }
+    }
+
+    // Track when install prompt is shown
+    const handleBeforeInstall = () => {
+      trackPWAEvent('pwa_prompt_shown', {
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Track when app is installed
+    const handleAppInstalled = () => {
+      trackPWAEvent('pwa_installed', {
+        timestamp: new Date().toISOString()
+      })
+
+      // Show success message
+      if (localStorage) {
+        localStorage.setItem('pwa-install-success', 'true')
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
+  }, [])
+
   return {
     isInstalled,
     isInstallable,
