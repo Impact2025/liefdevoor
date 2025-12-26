@@ -15,8 +15,7 @@ import {
   sendPasswordResetEmail
 } from '@/lib/email/notification-service'
 import { sendBirthdayEmail } from '@/lib/email/birthday-system'
-import { emailTestSchema } from '@/lib/validations/admin-schemas'
-import { validateBody } from '@/lib/validations/schemas'
+import { emailTestSchema, validateBody } from '@/lib/validations/admin-schemas'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { auditLogImmediate } from '@/lib/audit'
 
@@ -282,7 +281,7 @@ export async function POST(request: NextRequest) {
         recipient: adminEmail // Always admin's email
       },
       success: true,
-      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
       userAgent: request.headers.get('user-agent') || undefined
     })
 

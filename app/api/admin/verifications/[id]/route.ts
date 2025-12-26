@@ -3,8 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { verificationActionSchema } from '@/lib/validations/admin-schemas';
-import { validateBody } from '@/lib/validations/schemas';
+import { verificationActionSchema, validateBody } from '@/lib/validations/admin-schemas';
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin';
 import { auditLogImmediate, getClientInfo } from '@/lib/audit';
 
@@ -168,7 +167,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await auditLogImmediate(action === 'approve' ? 'VERIFICATION_APPROVED' : 'VERIFICATION_REJECTED', {
       userId: session.user.id,
       targetUserId: verification.userId,
-      ipAddress: clientInfo.ip,
+      ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         verificationId: id,

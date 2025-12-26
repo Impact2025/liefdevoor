@@ -3,8 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
-import { userActionSchema, userSearchSchema } from '@/lib/validations/admin-schemas'
-import { validateBody, validateQuery } from '@/lib/validations/schemas'
+import { userActionSchema, userSearchSchema, validateBody, validateQuery } from '@/lib/validations/admin-schemas'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { getRedis } from '@/lib/redis'
 
@@ -191,7 +190,7 @@ export async function PATCH(request: NextRequest) {
     await auditLogImmediate(auditAction, {
       userId: session.user.id,
       targetUserId: userId,
-      ipAddress: clientInfo.ip,
+      ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         action,
@@ -228,7 +227,7 @@ export async function PATCH(request: NextRequest) {
     const clientInfo = getClientInfo(request)
     await auditLogImmediate('ADMIN_ACTION_FAILED', {
       userId: (await getServerSession(authOptions))?.user?.id,
-      ipAddress: clientInfo.ip,
+      ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         endpoint: '/api/admin/users',
