@@ -30,7 +30,9 @@ export interface CityOption {
 
 /**
  * Geocode Dutch postcode to coordinates using Nominatim (OpenStreetMap)
- * Free, no API key required, already in CSP whitelist
+ *
+ * SERVER-SIDE ONLY - Use geocodePostcodeClient() for client components
+ * This function makes direct API calls which will fail with CORS in browsers
  */
 export async function geocodePostcode(postcode: string): Promise<GeocodingResult | null> {
   try {
@@ -74,6 +76,49 @@ export async function geocodePostcode(postcode: string): Promise<GeocodingResult
       city: result.address.city || result.address.town || result.address.village || '',
       region: result.address.state || result.address.county,
       country: result.address.country,
+    }
+  } catch (error) {
+    console.error('Geocoding error:', error)
+    return null
+  }
+}
+
+/**
+ * Geocode Dutch postcode to coordinates (CLIENT-SAFE)
+ *
+ * Use this function in client components - it calls our API route to avoid CORS
+ */
+export async function geocodePostcodeClient(postcode: string): Promise<GeocodingResult | null> {
+  try {
+    // Clean postcode (remove spaces)
+    const cleanedPostcode = postcode.replace(/\s/g, '').toUpperCase()
+
+    // Validate Dutch postcode format (1234AB)
+    if (!isValidDutchPostcode(cleanedPostcode)) {
+      throw new Error('Invalid Dutch postcode format')
+    }
+
+    // Call our API route instead of Nominatim directly
+    const response = await fetch('/api/geocode', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ postcode: cleanedPostcode }),
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      city: data.city,
+      region: data.region,
+      country: data.country,
     }
   } catch (error) {
     console.error('Geocoding error:', error)

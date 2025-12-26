@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react'
 import { MapPin, Check, X } from 'lucide-react'
-import { isValidDutchPostcode, formatDutchPostcode, geocodePostcode } from '@/lib/services/geocoding'
+import { isValidDutchPostcode, formatDutchPostcode, geocodePostcodeClient } from '@/lib/services/geocoding'
 import type { GeocodingResult } from '@/lib/services/geocoding'
 
 interface PostcodeInputProps {
@@ -70,7 +70,7 @@ export function PostcodeInput({
 
     setIsValidating(true)
     try {
-      const result = await geocodePostcode(postcode)
+      const result = await geocodePostcodeClient(postcode)
 
       if (result) {
         onGeocode(result)
