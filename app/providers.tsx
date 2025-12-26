@@ -5,12 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { AdaptiveUIProvider } from '@/components/adaptive'
 import { InstallPrompt, IOSInstallInstructions } from '@/components/ui'
-import {
-  UpdatePrompt,
-  InstallSuccess,
-  ContextualInstallPrompt,
-  IOSPushPermissions
-} from '@/components/pwa'
+import { UpdatePrompt } from '@/components/pwa/UpdatePrompt'
+import { InstallSuccess } from '@/components/pwa/InstallSuccess'
+import { ContextualInstallPrompt } from '@/components/pwa/ContextualInstallPrompt'
+import { IOSPushPermissions } from '@/components/pwa/IOSPushPermissions'
 import { ToastProvider } from '@/components/ui/toast'
 import { analytics, identifyUser } from '@/lib/analytics'
 
