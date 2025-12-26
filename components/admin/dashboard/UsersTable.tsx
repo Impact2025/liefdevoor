@@ -1,9 +1,10 @@
 'use client'
 
-import { Search, Ban, UserCheck, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Ban, UserCheck, ChevronLeft, ChevronRight, Activity } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import BulkActionBar from '@/components/admin/tables/BulkActionBar'
+import UserActivityTimeline from '@/components/admin/UserActivityTimeline'
 
 interface User {
   id: string
@@ -54,6 +55,7 @@ export default function UsersTable({
   onUserAction,
 }: UsersTableProps) {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
+  const [viewingActivity, setViewingActivity] = useState<User | null>(null)
 
   const handleUserAction = async (userId: string, action: 'ban' | 'unban') => {
     const actionText = action === 'ban' ? 'ban' : 'unban'
@@ -240,7 +242,14 @@ export default function UsersTable({
                       {(user._count?.matches1 || 0) + (user._count?.matches2 || 0)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => setViewingActivity(user)}
+                          className="text-indigo-600 hover:text-indigo-900 flex items-center transition-colors"
+                          title="View activity timeline"
+                        >
+                          <Activity className="w-4 h-4" />
+                        </button>
                         {user.role !== 'BANNED' ? (
                           <button
                             onClick={() => handleUserAction(user.id, 'ban')}
@@ -305,6 +314,39 @@ export default function UsersTable({
         onBulkAction={handleBulkAction}
         actions={['ban', 'unban', 'approve', 'reject']}
       />
+
+      {/* Activity Timeline Modal */}
+      {viewingActivity && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {viewingActivity.name || 'Unknown User'}
+                </h2>
+                <p className="text-sm text-gray-600">{viewingActivity.email}</p>
+              </div>
+              <button
+                onClick={() => setViewingActivity(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto">
+              <UserActivityTimeline
+                userId={viewingActivity.id}
+                userName={viewingActivity.name || undefined}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
