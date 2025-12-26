@@ -11,6 +11,9 @@ import Image from 'next/image';
 import VoiceIntroRecorder from '@/components/onboarding/steps/VoiceIntroRecorder';
 import RelationshipGoalStep from '@/components/onboarding/steps/RelationshipGoalStep';
 import VibeCard, { VibeAnswers } from '@/components/onboarding/steps/VibeCard';
+import LifestyleStep, { LifestyleData } from '@/components/onboarding/steps/LifestyleStep';
+import LoveLanguagesStep, { LoveLanguageData } from '@/components/onboarding/steps/LoveLanguagesStep';
+import DealbreakersStep, { DealbreakersData } from '@/components/onboarding/steps/DealbreakersStep';
 import FinishStep from '@/components/onboarding/steps/FinishStep';
 
 // Error Boundary & Analytics
@@ -18,13 +21,18 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { trackOnboardingStep, trackOnboardingDropoff, trackOnboardingComplete } from '@/lib/analytics-events';
 import { useExperiment } from '@/lib/ab-testing';
 
-// Step configuration (Verificatie temporarily disabled due to mobile issues)
+// Step configuration - Wereldklasse onboarding flow
 const STEPS = [
   { id: 1, name: 'Stem', description: 'Voice intro' },
   { id: 2, name: 'Doel', description: 'Wat zoek je?' },
   { id: 3, name: 'Vibe', description: 'Persoonlijkheid' },
-  { id: 4, name: 'Klaar', description: 'Profiel compleet' },
+  { id: 4, name: 'Lifestyle', description: 'Jouw levensstijl' },
+  { id: 5, name: 'Liefde', description: 'Love Languages' },
+  { id: 6, name: 'Filters', description: 'Dealbreakers' },
+  { id: 7, name: 'Klaar', description: 'Profiel compleet' },
 ];
+
+const TOTAL_STEPS = STEPS.length;
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -99,7 +107,7 @@ export default function OnboardingPage() {
   // Navigate to next step
   const goToNextStep = useCallback(async (data?: Record<string, unknown>) => {
     const nextStep = currentStep + 1;
-    if (nextStep <= 4) {
+    if (nextStep <= TOTAL_STEPS) {
       await updateStepOnServer(nextStep, data);
       setDirection(1);
       setCurrentStep(nextStep);
@@ -126,11 +134,26 @@ export default function OnboardingPage() {
     await goToNextStep({ psychProfile: answers });
   }, [goToNextStep]);
 
+  // Handle lifestyle completion
+  const handleLifestyleComplete = useCallback(async (data: LifestyleData) => {
+    await goToNextStep({ lifestyle: data });
+  }, [goToNextStep]);
+
+  // Handle love languages completion
+  const handleLoveLanguagesComplete = useCallback(async (data: LoveLanguageData) => {
+    await goToNextStep({ loveLanguages: data });
+  }, [goToNextStep]);
+
+  // Handle dealbreakers completion
+  const handleDealbreakersComplete = useCallback(async (data: DealbreakersData) => {
+    await goToNextStep({ dealbreakers: data });
+  }, [goToNextStep]);
+
   // Handle finish
   const handleFinishComplete = useCallback(() => {
     // Track onboarding completion
     if (session?.user?.id) {
-      trackOnboardingComplete(session.user.id, 4);
+      trackOnboardingComplete(session.user.id, TOTAL_STEPS);
       trackConversion('onboarding_complete', 1);
     }
   }, [session?.user?.id, trackConversion]);
@@ -267,8 +290,35 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 4: Finish */}
+              {/* Step 4: Lifestyle */}
               {currentStep === 4 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('lifestyle', error.message)}
+                >
+                  <LifestyleStep onComplete={handleLifestyleComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 5: Love Languages */}
+              {currentStep === 5 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('love_languages', error.message)}
+                >
+                  <LoveLanguagesStep onComplete={handleLoveLanguagesComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 6: Dealbreakers */}
+              {currentStep === 6 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('dealbreakers', error.message)}
+                >
+                  <DealbreakersStep onComplete={handleDealbreakersComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 7: Finish */}
+              {currentStep === 7 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('finish', error.message)}
                 >

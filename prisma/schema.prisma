@@ -234,6 +234,9 @@ model User {
   // 🔐 Admin relation
   admin                Admin?
 
+  // 🎯 Dealbreakers & Preferences
+  dealbreakers         UserDealbreaker?
+
   @@index([gender])
   @@index([birthDate])
   @@index([city])
@@ -306,6 +309,57 @@ model PsychProfile {
   @@index([userId])
 }
 
+// 🎯 User Dealbreakers - Matching filters
+model UserDealbreaker {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Dealbreakers - null = geen voorkeur
+  mustNotSmoke      Boolean?  // Moet niet (regelmatig) roken
+  mustNotDrink      Boolean?  // Moet niet (regelmatig) drinken
+  mustWantChildren  Boolean?  // Moet kinderen willen (of al hebben)
+  mustNotHaveChildren Boolean? // Mag geen kinderen hebben
+  mustBeVerified    Boolean?  // Moet geverifieerd profiel hebben
+  maxDistance       Int?      // Maximum afstand in km
+
+  // Lifestyle voorkeuren
+  minHeight         Int?      // Minimum lengte in cm
+  maxHeight         Int?      // Maximum lengte in cm
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// 💕 Vibe Check - Na 3 dagen chatten: willen jullie een date?
+model VibeCheck {
+  id          String    @id @default(cuid())
+  matchId     String
+  match       Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  // Antwoorden: "want_date" | "keep_chatting" | "not_sure" | null
+  user1Id     String
+  user1Answer String?
+  user1AnsweredAt DateTime?
+
+  user2Id     String
+  user2Answer String?
+  user2AnsweredAt DateTime?
+
+  // Status en timing
+  status      String    @default("pending") // "pending", "partial", "completed", "expired"
+  revealedAt  DateTime? // Wanneer beide antwoorden onthuld zijn
+  expiresAt   DateTime  // Wanneer de vibe check verloopt
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([matchId])
+  @@index([status])
+}
+
 model Photo {
   id        String   @id @default(cuid())
   url       String
@@ -342,6 +396,15 @@ model Match {
   user2Id   String
   user2     User      @relation("User2", fields: [user2Id], references: [id], onDelete: Cascade)
   messages  Message[]
+
+  // 💕 Compatibility Journey - Growing score
+  initialCompatibility Float?   // Score at match time (0-100)
+  currentCompatibility Float?   // Current score after milestones
+  milestones           Json?    // {"first_message": true, "voice_shared": true, ...}
+
+  // 💕 Vibe Check
+  vibeChecks           VibeCheck[]
+
   @@unique([user1Id, user2Id])
   @@index([user1Id])
   @@index([user2Id])

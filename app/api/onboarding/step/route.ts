@@ -16,6 +16,26 @@ interface StepData {
     conflictStyle: string;
     communicationStyle: string;
   };
+  lifestyle?: {
+    height: number | null;
+    smoking: string;
+    drinking: string;
+    children: string;
+  };
+  loveLanguages?: {
+    loveLangWords: number;
+    loveLangTime: number;
+    loveLangGifts: number;
+    loveLangActs: number;
+    loveLangTouch: number;
+  };
+  dealbreakers?: {
+    mustNotSmoke: boolean;
+    mustNotDrink: boolean;
+    mustWantChildren: boolean;
+    mustBeVerified: boolean;
+    maxDistance: number | null;
+  };
 }
 
 export async function PUT(request: NextRequest) {
@@ -32,7 +52,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { step, data } = body as { step: number; data?: StepData };
 
-    if (!step || step < 1 || step > 5) {
+    if (!step || step < 1 || step > 8) {
       return NextResponse.json(
         { error: 'Ongeldige stap' },
         { status: 400 }
@@ -111,6 +131,66 @@ export async function PUT(request: NextRequest) {
           adventureScale: psychProfile.adventureScale,
           conflictStyle: conflictStyleEnum,
           communicationStyle: psychProfile.communicationStyle,
+        },
+      });
+    }
+
+    // Handle lifestyle data - save to User model
+    if (data?.lifestyle) {
+      const { lifestyle } = data;
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: {
+          height: lifestyle.height,
+          smoking: lifestyle.smoking,
+          drinking: lifestyle.drinking,
+          children: lifestyle.children,
+        },
+      });
+    }
+
+    // Handle love languages - save to PsychProfile
+    if (data?.loveLanguages) {
+      const { loveLanguages } = data;
+      await prisma.psychProfile.upsert({
+        where: { userId: session.user.id },
+        create: {
+          userId: session.user.id,
+          loveLangWords: loveLanguages.loveLangWords,
+          loveLangTime: loveLanguages.loveLangTime,
+          loveLangGifts: loveLanguages.loveLangGifts,
+          loveLangActs: loveLanguages.loveLangActs,
+          loveLangTouch: loveLanguages.loveLangTouch,
+        },
+        update: {
+          loveLangWords: loveLanguages.loveLangWords,
+          loveLangTime: loveLanguages.loveLangTime,
+          loveLangGifts: loveLanguages.loveLangGifts,
+          loveLangActs: loveLanguages.loveLangActs,
+          loveLangTouch: loveLanguages.loveLangTouch,
+        },
+      });
+    }
+
+    // Handle dealbreakers - save to UserDealbreaker model
+    if (data?.dealbreakers) {
+      const { dealbreakers } = data;
+      await prisma.userDealbreaker.upsert({
+        where: { userId: session.user.id },
+        create: {
+          userId: session.user.id,
+          mustNotSmoke: dealbreakers.mustNotSmoke || null,
+          mustNotDrink: dealbreakers.mustNotDrink || null,
+          mustWantChildren: dealbreakers.mustWantChildren || null,
+          mustBeVerified: dealbreakers.mustBeVerified || null,
+          maxDistance: dealbreakers.maxDistance,
+        },
+        update: {
+          mustNotSmoke: dealbreakers.mustNotSmoke || null,
+          mustNotDrink: dealbreakers.mustNotDrink || null,
+          mustWantChildren: dealbreakers.mustWantChildren || null,
+          mustBeVerified: dealbreakers.mustBeVerified || null,
+          maxDistance: dealbreakers.maxDistance,
         },
       });
     }

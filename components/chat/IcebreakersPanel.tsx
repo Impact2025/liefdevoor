@@ -1,12 +1,16 @@
 /**
- * Icebreakers Panel - Conversation starters
+ * Icebreakers Panel - Conversation starters (WERELDKLASSE - Personalized!)
  *
- * Shows fun questions and prompts to help start conversations
+ * Shows personalized questions based on:
+ * - Shared interests
+ * - Personality compatibility
+ * - Love languages
+ * - Location
  */
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles,
@@ -19,9 +23,19 @@ import {
   Plane,
   ChevronRight,
   RefreshCw,
+  Loader2,
+  Zap,
 } from 'lucide-react'
 
+interface PersonalizedStarter {
+  emoji: string
+  text: string
+  reason: string
+  category: 'shared_interest' | 'personality' | 'love_language' | 'location' | 'generic'
+}
+
 interface IcebreakersPanelProps {
+  matchId?: string // NEW: For fetching personalized starters
   otherUserName: string
   onSelect: (message: string) => void
   onClose: () => void
@@ -108,9 +122,35 @@ const QUICK_STARTERS = [
   { emoji: '🎵', text: 'Ik zie dat je van muziek houdt, wat luister je nu?' },
 ]
 
-export function IcebreakersPanel({ otherUserName, onSelect, onClose }: IcebreakersPanelProps) {
+export function IcebreakersPanel({ matchId, otherUserName, onSelect, onClose }: IcebreakersPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [personalizedStarters, setPersonalizedStarters] = useState<PersonalizedStarter[]>([])
+  const [isLoadingPersonalized, setIsLoadingPersonalized] = useState(false)
+  const [hasPersonalized, setHasPersonalized] = useState(false)
+
+  // Fetch personalized starters when matchId is provided
+  useEffect(() => {
+    if (!matchId) return
+
+    const fetchPersonalized = async () => {
+      setIsLoadingPersonalized(true)
+      try {
+        const res = await fetch(`/api/matches/${matchId}/starters`)
+        if (res.ok) {
+          const data = await res.json()
+          setPersonalizedStarters(data.starters || [])
+          setHasPersonalized(data.hasPersonalized || false)
+        }
+      } catch (error) {
+        console.error('Error fetching personalized starters:', error)
+      } finally {
+        setIsLoadingPersonalized(false)
+      }
+    }
+
+    fetchPersonalized()
+  }, [matchId])
 
   const handleSelectQuestion = (question: string) => {
     onSelect(question)
@@ -131,6 +171,22 @@ export function IcebreakersPanel({ otherUserName, onSelect, onClose }: Icebreake
     return shuffled.slice(0, count)
   }
 
+  // Get category color for personalized starters
+  const getCategoryColor = (category: PersonalizedStarter['category']) => {
+    switch (category) {
+      case 'shared_interest':
+        return 'bg-emerald-50 border-emerald-200 text-emerald-700'
+      case 'personality':
+        return 'bg-purple-50 border-purple-200 text-purple-700'
+      case 'love_language':
+        return 'bg-rose-50 border-rose-200 text-rose-700'
+      case 'location':
+        return 'bg-blue-50 border-blue-200 text-blue-700'
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-700'
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -143,6 +199,12 @@ export function IcebreakersPanel({ otherUserName, onSelect, onClose }: Icebreake
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-rose-500" />
           <h3 className="font-bold text-gray-900">Gespreksstart</h3>
+          {hasPersonalized && (
+            <span className="flex items-center gap-1 text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full">
+              <Zap className="w-3 h-3" />
+              Gepersonaliseerd
+            </span>
+          )}
         </div>
         <button
           onClick={onClose}
@@ -160,24 +222,86 @@ export function IcebreakersPanel({ otherUserName, onSelect, onClose }: Icebreake
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Quick Starters */}
-            <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-3">Snel starten</p>
-              <div className="flex flex-wrap gap-2">
-                {QUICK_STARTERS.map((starter, index) => (
-                  <motion.button
-                    key={index}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleQuickStart(starter.text)}
-                    className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-sm transition-colors"
-                  >
-                    <span>{starter.emoji}</span>
-                    <span className="truncate max-w-[150px]">{starter.text}</span>
-                  </motion.button>
-                ))}
+            {/* Personalized Starters (NEW - shown first!) */}
+            {matchId && (
+              <div className="mb-6">
+                <p className="text-sm text-gray-500 mb-3 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-rose-500" />
+                  Voor jou en {otherUserName}
+                </p>
+                {isLoadingPersonalized ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
+                  </div>
+                ) : personalizedStarters.length > 0 ? (
+                  <div className="space-y-2">
+                    {personalizedStarters.slice(0, 4).map((starter, index) => (
+                      <motion.button
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => handleQuickStart(starter.text)}
+                        className={`w-full text-left p-3 rounded-xl border transition-colors ${getCategoryColor(
+                          starter.category
+                        )}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-xl">{starter.emoji}</span>
+                          <div className="flex-1">
+                            <span className="block text-gray-800">{starter.text}</span>
+                            {starter.category !== 'generic' && (
+                              <span className="text-xs opacity-70 mt-1 block">
+                                {starter.reason}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                ) : (
+                  // Fallback to quick starters
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_STARTERS.map((starter, index) => (
+                      <motion.button
+                        key={index}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleQuickStart(starter.text)}
+                        className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-sm transition-colors"
+                      >
+                        <span>{starter.emoji}</span>
+                        <span className="truncate max-w-[150px]">{starter.text}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Quick Starters (only show if no matchId) */}
+            {!matchId && (
+              <div className="mb-6">
+                <p className="text-sm text-gray-500 mb-3">Snel starten</p>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_STARTERS.map((starter, index) => (
+                    <motion.button
+                      key={index}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleQuickStart(starter.text)}
+                      className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-sm transition-colors"
+                    >
+                      <span>{starter.emoji}</span>
+                      <span className="truncate max-w-[150px]">{starter.text}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Categories */}
             <p className="text-sm text-gray-500 mb-3">Of kies een categorie</p>

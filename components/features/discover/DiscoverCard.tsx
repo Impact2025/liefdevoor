@@ -8,7 +8,7 @@
 
 import React, { useState, useRef } from 'react'
 import Image from 'next/image'
-import { Avatar, Badge, Button, Modal } from '@/components/ui'
+import { Avatar, Badge, Button, Modal, CompatibilityBadge } from '@/components/ui'
 import { usePost } from '@/hooks'
 import type { DiscoverUser, SwipeResult } from '@/lib/types'
 
@@ -178,9 +178,14 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <div className="flex items-end justify-between mb-4">
               <div className="flex-1">
-                <h2 className="text-3xl font-bold mb-1">
-                  {user.name}, {user.birthDate && calculateAge(user.birthDate)}
-                </h2>
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-3xl font-bold">
+                    {user.name}, {user.birthDate && calculateAge(user.birthDate)}
+                  </h2>
+                  {user.compatibility && user.compatibility > 0 && (
+                    <CompatibilityBadge score={user.compatibility} size="md" showLabel={false} />
+                  )}
+                </div>
                 <div className="flex items-center gap-2 text-sm">
                   {user.city && (
                     <span className="flex items-center gap-1">
@@ -298,6 +303,59 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
         size="md"
       >
         <div className="space-y-4">
+          {/* Compatibility Score Header */}
+          {user.compatibility && user.compatibility > 0 && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-gray-800">Match Score</span>
+                <CompatibilityBadge score={user.compatibility} size="lg" />
+              </div>
+
+              {/* Compatibility Breakdown */}
+              {user.compatibilityBreakdown && (
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
+                    <span className="text-gray-600">Interesses</span>
+                    <span className="font-medium text-gray-800">{user.compatibilityBreakdown.interests}%</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
+                    <span className="text-gray-600">Locatie</span>
+                    <span className="font-medium text-gray-800">{user.compatibilityBreakdown.location}%</span>
+                  </div>
+                  {user.compatibilityBreakdown.personality && (
+                    <div className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
+                      <span className="text-gray-600">Personality</span>
+                      <span className="font-medium text-gray-800">{user.compatibilityBreakdown.personality}%</span>
+                    </div>
+                  )}
+                  {user.compatibilityBreakdown.loveLanguage && (
+                    <div className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
+                      <span className="text-gray-600">Love Language</span>
+                      <span className="font-medium text-gray-800">{user.compatibilityBreakdown.loveLanguage}%</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Match Reasons */}
+          {user.matchReasons && user.matchReasons.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-800">Waarom jullie matchen</h3>
+              <div className="flex flex-wrap gap-2">
+                {user.matchReasons.map((reason, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-full text-sm border border-rose-100"
+                  >
+                    {reason}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Voice intro in modal */}
           {user.voiceIntro && (
             <div className="bg-gradient-to-r from-rose-50 to-purple-50 p-4 rounded-xl border border-rose-100">
@@ -336,6 +394,23 @@ export function DiscoverCard({ user, onSwipe, onMatch }: DiscoverCardProps) {
             <p className="text-gray-700">{user.bio}</p>
           ) : (
             <p className="text-gray-500 italic">Geen bio beschikbaar</p>
+          )}
+
+          {/* Interests */}
+          {user.interests && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-800">Interesses</h3>
+              <div className="flex flex-wrap gap-2">
+                {user.interests.split(',').map((interest, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm"
+                  >
+                    {interest.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </Modal>

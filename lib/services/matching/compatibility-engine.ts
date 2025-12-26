@@ -1,14 +1,18 @@
 /**
- * AI Smart Matching - Compatibility Engine
+ * AI Smart Matching - Compatibility Engine (WERELDKLASSE)
  *
  * Calculates compatibility scores between users based on:
- * - Interest overlap (40%)
- * - Bio/About similarity (30%)
+ * - Interest overlap (20%)
+ * - Bio/About similarity (15%)
  * - Location proximity (15%)
- * - Activity level match (15%)
+ * - Activity level match (10%)
+ * - Personality match (20%) - NEW: PsychProfile compatibility
+ * - Love Language match (10%) - NEW: Chapman's 5 Love Languages
+ * - Lifestyle match (10%) - NEW: Smoking, drinking, children preferences
  */
 
 import { prisma } from '@/lib/prisma'
+import { PsychProfile } from '@prisma/client'
 
 interface UserProfile {
   id: string
@@ -19,6 +23,13 @@ interface UserProfile {
   longitude: number | null
   lastSeen: Date | null
   createdAt: Date
+  // Lifestyle fields
+  smoking?: string | null
+  drinking?: string | null
+  children?: string | null
+  height?: number | null
+  // PsychProfile (optional, for enhanced matching)
+  psychProfile?: PsychProfile | null
 }
 
 interface CompatibilityResult {
@@ -28,6 +39,23 @@ interface CompatibilityResult {
   bioScore: number
   locationScore: number
   activityScore: number
+  // New scores
+  personalityScore: number
+  loveLanguageScore: number
+  lifestyleScore: number
+  // Match explanations (Dutch)
+  explanations: string[]
+}
+
+// New weighted scoring (total = 100%)
+const WEIGHTS = {
+  interests: 0.20,      // Was 0.40
+  bio: 0.15,            // Was 0.30
+  location: 0.15,       // Was 0.15
+  activity: 0.10,       // Was 0.15
+  personality: 0.20,    // NEW
+  loveLanguage: 0.10,   // NEW
+  lifestyle: 0.10,      // NEW
 }
 
 // Interest categories for semantic grouping
@@ -207,6 +235,281 @@ function calculateActivityScore(
 }
 
 /**
+ * Calculate personality compatibility score (0-100) - NEW
+ * Based on PsychProfile scales
+ */
+function calculatePersonalityScore(
+  userPsych: PsychProfile | null | undefined,
+  targetPsych: PsychProfile | null | undefined
+): { score: number; explanations: string[] } {
+  const explanations: string[] = []
+
+  if (!userPsych || !targetPsych) {
+    return { score: 50, explanations } // Neutral score if no profile
+  }
+
+  let totalScore = 0
+  let factors = 0
+
+  // Personality scales comparison (similar = better)
+  const scales = [
+    { key: 'introvertScale', label: 'sociaal' },
+    { key: 'spontaneityScale', label: 'spontaan' },
+    { key: 'emotionalScale', label: 'emotioneel' },
+    { key: 'adventureScale', label: 'avontuurlijk' },
+  ] as const
+
+  for (const scale of scales) {
+    const userVal = userPsych[scale.key]
+    const targetVal = targetPsych[scale.key]
+
+    if (userVal !== null && targetVal !== null) {
+      const diff = Math.abs(userVal - targetVal)
+      // Score: 0 diff = 100, 1 diff = 90, etc.
+      const scaleScore = Math.max(0, 100 - diff * 12)
+      totalScore += scaleScore
+      factors++
+
+      // Add explanation for high matches
+      if (diff <= 2) {
+        if (scale.key === 'introvertScale' && userVal >= 6) {
+          explanations.push('Jullie zijn allebei sociaal')
+        } else if (scale.key === 'adventureScale' && userVal >= 6) {
+          explanations.push('Jullie zijn allebei avontuurlijk')
+        } else if (scale.key === 'spontaneityScale' && userVal >= 6) {
+          explanations.push('Jullie zijn allebei spontaan')
+        }
+      }
+    }
+  }
+
+  // Conflict style compatibility
+  if (userPsych.conflictStyle && targetPsych.conflictStyle) {
+    factors++
+    // Collaborating is the ideal match for any style
+    if (userPsych.conflictStyle === 'COLLABORATING' || targetPsych.conflictStyle === 'COLLABORATING') {
+      totalScore += 90
+      explanations.push('Goede communicatie over conflicten')
+    } else if (userPsych.conflictStyle === targetPsych.conflictStyle) {
+      totalScore += 80
+    } else {
+      // Avoiding + Competing is challenging
+      if (
+        (userPsych.conflictStyle === 'AVOIDING' && targetPsych.conflictStyle === 'COMPETING') ||
+        (userPsych.conflictStyle === 'COMPETING' && targetPsych.conflictStyle === 'AVOIDING')
+      ) {
+        totalScore += 40
+      } else {
+        totalScore += 60
+      }
+    }
+  }
+
+  // Communication style
+  if (userPsych.communicationStyle && targetPsych.communicationStyle) {
+    factors++
+    if (userPsych.communicationStyle === targetPsych.communicationStyle) {
+      totalScore += 90
+      explanations.push('Dezelfde communicatiestijl')
+    } else {
+      // Compatible styles: direct+analytical, diplomatic+expressive
+      const compatiblePairs = [
+        ['direct', 'analytical'],
+        ['diplomatic', 'expressive'],
+      ]
+      const isCompatible = compatiblePairs.some(
+        pair =>
+          pair.includes(userPsych.communicationStyle!) &&
+          pair.includes(targetPsych.communicationStyle!)
+      )
+      totalScore += isCompatible ? 70 : 50
+    }
+  }
+
+  // Relationship goal match
+  if (userPsych.relationshipGoal && targetPsych.relationshipGoal) {
+    factors++
+    if (userPsych.relationshipGoal === targetPsych.relationshipGoal) {
+      totalScore += 100
+      if (userPsych.relationshipGoal === 'serious') {
+        explanations.push('Jullie zoeken allebei iets serieus')
+      } else if (userPsych.relationshipGoal === 'marriage') {
+        explanations.push('Jullie willen allebei trouwen')
+      }
+    } else if (
+      (userPsych.relationshipGoal === 'open' || targetPsych.relationshipGoal === 'open')
+    ) {
+      totalScore += 70 // Open is flexible
+    } else {
+      totalScore += 30 // Mismatched goals
+    }
+  }
+
+  return {
+    score: factors > 0 ? Math.round(totalScore / factors) : 50,
+    explanations,
+  }
+}
+
+/**
+ * Calculate love language compatibility score (0-100) - NEW
+ */
+function calculateLoveLanguageScore(
+  userPsych: PsychProfile | null | undefined,
+  targetPsych: PsychProfile | null | undefined
+): { score: number; explanations: string[] } {
+  const explanations: string[] = []
+
+  if (!userPsych || !targetPsych) {
+    return { score: 50, explanations }
+  }
+
+  const languages = [
+    { key: 'loveLangWords', label: 'Complimenten' },
+    { key: 'loveLangTime', label: 'Quality Time' },
+    { key: 'loveLangGifts', label: 'Cadeaus' },
+    { key: 'loveLangActs', label: 'Behulpzaamheid' },
+    { key: 'loveLangTouch', label: 'Aanraking' },
+  ] as const
+
+  // Get primary love languages (highest scores)
+  const getUserPrimary = (psych: PsychProfile): string | null => {
+    let max = 0
+    let primary: string | null = null
+    for (const lang of languages) {
+      const val = psych[lang.key]
+      if (val !== null && val > max) {
+        max = val
+        primary = lang.label
+      }
+    }
+    return primary
+  }
+
+  const userPrimary = getUserPrimary(userPsych)
+  const targetPrimary = getUserPrimary(targetPsych)
+
+  // Calculate overlap score
+  let overlapScore = 0
+  let count = 0
+
+  for (const lang of languages) {
+    const userVal = userPsych[lang.key]
+    const targetVal = targetPsych[lang.key]
+
+    if (userVal !== null && targetVal !== null) {
+      // Both value this language similarly = good
+      const diff = Math.abs(userVal - targetVal)
+      overlapScore += Math.max(0, 100 - diff * 20)
+      count++
+    }
+  }
+
+  const score = count > 0 ? Math.round(overlapScore / count) : 50
+
+  // Add explanation if primary love languages match
+  if (userPrimary && targetPrimary && userPrimary === targetPrimary) {
+    explanations.push(`${userPrimary} is voor jullie beiden belangrijk`)
+  }
+
+  return { score, explanations }
+}
+
+/**
+ * Calculate lifestyle compatibility score (0-100) - NEW
+ */
+function calculateLifestyleScore(
+  user: UserProfile,
+  target: UserProfile
+): { score: number; explanations: string[] } {
+  const explanations: string[] = []
+  let totalScore = 0
+  let factors = 0
+
+  // Smoking compatibility
+  if (user.smoking && target.smoking) {
+    factors++
+    if (user.smoking === target.smoking) {
+      totalScore += 100
+      if (user.smoking === 'never') {
+        explanations.push('Jullie roken allebei niet')
+      }
+    } else if (user.smoking === 'never' && target.smoking === 'regularly') {
+      totalScore += 30 // Non-smoker + regular smoker = low compatibility
+    } else {
+      totalScore += 60 // Partial match
+    }
+  }
+
+  // Drinking compatibility
+  if (user.drinking && target.drinking) {
+    factors++
+    if (user.drinking === target.drinking) {
+      totalScore += 100
+    } else {
+      totalScore += 60 // Drinking is less of a dealbreaker typically
+    }
+  }
+
+  // Children compatibility (most important lifestyle factor)
+  if (user.children && target.children) {
+    factors += 2 // Double weight
+    if (user.children === target.children) {
+      totalScore += 200
+      if (user.children === 'want_someday') {
+        explanations.push('Jullie willen allebei ooit kinderen')
+      } else if (user.children === 'have') {
+        explanations.push('Jullie hebben allebei kinderen')
+      }
+    } else if (
+      (user.children === 'want_someday' && target.children === 'dont_want') ||
+      (user.children === 'dont_want' && target.children === 'want_someday')
+    ) {
+      totalScore += 40 // Major mismatch
+    } else {
+      totalScore += 120 // Partial match
+    }
+  }
+
+  return {
+    score: factors > 0 ? Math.round(totalScore / factors) : 50,
+    explanations,
+  }
+}
+
+/**
+ * Generate shared interest explanations
+ */
+function generateInterestExplanations(userInterests: string | null, targetInterests: string | null): string[] {
+  const explanations: string[] = []
+
+  if (!userInterests || !targetInterests) return explanations
+
+  const parseInterests = (str: string): string[] => {
+    return str.toLowerCase()
+      .split(/[,;|]/)
+      .map(i => i.trim())
+      .filter(i => i.length > 0)
+  }
+
+  const user = parseInterests(userInterests)
+  const target = parseInterests(targetInterests)
+  const shared = user.filter(i => target.includes(i))
+
+  if (shared.length > 0) {
+    // Pick first 2 shared interests for explanation
+    const topShared = shared.slice(0, 2)
+    if (topShared.length === 1) {
+      explanations.push(`Jullie houden allebei van ${topShared[0]}`)
+    } else if (topShared.length >= 2) {
+      explanations.push(`Gedeelde interesses: ${topShared.join(' en ')}`)
+    }
+  }
+
+  return explanations
+}
+
+/**
  * Calculate overall compatibility score for a target user
  */
 export function calculateCompatibility(user: UserProfile, target: UserProfile): CompatibilityResult {
@@ -222,13 +525,41 @@ export function calculateCompatibility(user: UserProfile, target: UserProfile): 
     target.lastSeen, target.createdAt
   )
 
-  // Weighted average
+  // NEW: Calculate personality, love language, and lifestyle scores
+  const personalityResult = calculatePersonalityScore(user.psychProfile, target.psychProfile)
+  const loveLanguageResult = calculateLoveLanguageScore(user.psychProfile, target.psychProfile)
+  const lifestyleResult = calculateLifestyleScore(user, target)
+
+  // NEW: Weighted average with all 7 factors
   const overallScore = Math.round(
-    interestScore * 0.40 +
-    bioScore * 0.30 +
-    locationScore * 0.15 +
-    activityScore * 0.15
+    interestScore * WEIGHTS.interests +
+    bioScore * WEIGHTS.bio +
+    locationScore * WEIGHTS.location +
+    activityScore * WEIGHTS.activity +
+    personalityResult.score * WEIGHTS.personality +
+    loveLanguageResult.score * WEIGHTS.loveLanguage +
+    lifestyleResult.score * WEIGHTS.lifestyle
   )
+
+  // NEW: Collect all explanations
+  const explanations: string[] = [
+    ...generateInterestExplanations(user.interests, target.interests),
+    ...personalityResult.explanations,
+    ...loveLanguageResult.explanations,
+    ...lifestyleResult.explanations,
+  ]
+
+  // Add location explanation
+  if (locationScore >= 90) {
+    if (user.city && target.city && user.city.toLowerCase() === target.city.toLowerCase()) {
+      explanations.push(`Woont ook in ${user.city}`)
+    } else {
+      explanations.push('Woont in de buurt')
+    }
+  }
+
+  // Limit to top 5 explanations
+  const topExplanations = explanations.slice(0, 5)
 
   return {
     targetUserId: target.id,
@@ -237,6 +568,10 @@ export function calculateCompatibility(user: UserProfile, target: UserProfile): 
     bioScore,
     locationScore,
     activityScore,
+    personalityScore: personalityResult.score,
+    loveLanguageScore: loveLanguageResult.score,
+    lifestyleScore: lifestyleResult.score,
+    explanations: topExplanations,
   }
 }
 
@@ -244,7 +579,7 @@ export function calculateCompatibility(user: UserProfile, target: UserProfile): 
  * Calculate and store compatibility scores for a user
  */
 export async function calculateAndStoreScores(userId: string, limit = 100): Promise<CompatibilityResult[]> {
-  // Get the user
+  // Get the user with PsychProfile and lifestyle data
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -258,6 +593,13 @@ export async function calculateAndStoreScores(userId: string, limit = 100): Prom
       createdAt: true,
       gender: true,
       preferences: true,
+      // NEW: Lifestyle fields
+      smoking: true,
+      drinking: true,
+      children: true,
+      height: true,
+      // NEW: PsychProfile
+      psychProfile: true,
     },
   })
 
@@ -312,7 +654,7 @@ export async function calculateAndStoreScores(userId: string, limit = 100): Prom
     whereClause.gender = { in: genderPreference }
   }
 
-  // Get potential matches
+  // Get potential matches with PsychProfile and lifestyle data
   const potentialMatches = await prisma.user.findMany({
     where: whereClause,
     select: {
@@ -324,6 +666,13 @@ export async function calculateAndStoreScores(userId: string, limit = 100): Prom
       longitude: true,
       lastSeen: true,
       createdAt: true,
+      // NEW: Lifestyle fields
+      smoking: true,
+      drinking: true,
+      children: true,
+      height: true,
+      // NEW: PsychProfile
+      psychProfile: true,
     },
     take: limit * 2, // Get more to filter/sort
   })
@@ -387,6 +736,11 @@ export async function getCachedScores(userId: string, limit = 50): Promise<Compa
     bioScore: s.bioScore,
     locationScore: s.locationScore,
     activityScore: s.activityScore,
+    // New fields (not cached, use defaults)
+    personalityScore: 50,
+    loveLanguageScore: 50,
+    lifestyleScore: 50,
+    explanations: [],
   }))
 }
 

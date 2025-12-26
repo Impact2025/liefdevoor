@@ -114,12 +114,29 @@ export interface Photo {
 }
 
 /**
+ * Compatibility breakdown scores
+ */
+export interface CompatibilityBreakdown {
+  overall: number
+  interests: number
+  bio: number
+  location: number
+  activity: number
+  personality?: number
+  loveLanguage?: number
+  lifestyle?: number
+}
+
+/**
  * Discover user - profile shown in discover feed
  */
 export interface DiscoverUser extends Omit<UserProfile, 'email' | 'preferences'> {
   distance?: number
   compatibility?: number
+  compatibilityBreakdown?: CompatibilityBreakdown
+  matchReasons?: string[]  // "Jullie houden allebei van reizen"
   photos: Photo[]
+  interests?: string  // Comma-separated interests
 }
 
 /**

@@ -109,6 +109,15 @@ export async function GET(request: NextRequest) {
         passportLatitude: true,
         passportLongitude: true,
         passportExpiresAt: true,
+        // Lifestyle fields for matching
+        smoking: true,
+        drinking: true,
+        children: true,
+        height: true,
+        // PsychProfile for personality matching
+        psychProfile: true,
+        // Dealbreakers for filtering
+        dealbreakers: true,
       },
     })
 
@@ -166,6 +175,67 @@ export async function GET(request: NextRequest) {
     // Filter out incognito users (they don't appear in discover)
     where.incognitoMode = false
 
+    // 🛑 DEALBREAKER FILTERING - Apply user's dealbreakers
+    const dealbreakers = currentUser.dealbreakers
+    if (dealbreakers) {
+      // Filter out smokers if user doesn't want them
+      if (dealbreakers.mustNotSmoke) {
+        where.OR = [
+          { smoking: { not: 'regularly' } },
+          { smoking: null },
+        ]
+      }
+
+      // Filter out drinkers if user doesn't want them
+      if (dealbreakers.mustNotDrink) {
+        where.AND = where.AND || []
+        ;(where.AND as Prisma.UserWhereInput[]).push({
+          OR: [
+            { drinking: { not: 'regularly' } },
+            { drinking: null },
+          ],
+        })
+      }
+
+      // Filter for people who want children
+      if (dealbreakers.mustWantChildren) {
+        where.AND = where.AND || []
+        ;(where.AND as Prisma.UserWhereInput[]).push({
+          children: { in: ['want_someday', 'want', 'have'] },
+        })
+      }
+
+      // Filter for people who DON'T want children
+      if (dealbreakers.mustNotHaveChildren) {
+        where.AND = where.AND || []
+        ;(where.AND as Prisma.UserWhereInput[]).push({
+          children: { in: ['dont_want', 'dont_have'] },
+        })
+      }
+
+      // Filter for verified users only
+      if (dealbreakers.mustBeVerified) {
+        where.AND = where.AND || []
+        ;(where.AND as Prisma.UserWhereInput[]).push({
+          isVerified: true,
+        })
+      }
+
+      // Height filters (if set)
+      if (dealbreakers.minHeight) {
+        where.AND = where.AND || []
+        ;(where.AND as Prisma.UserWhereInput[]).push({
+          height: { gte: dealbreakers.minHeight },
+        })
+      }
+      if (dealbreakers.maxHeight) {
+        where.AND = where.AND || []
+        ;(where.AND as Prisma.UserWhereInput[]).push({
+          height: { lte: dealbreakers.maxHeight },
+        })
+      }
+    }
+
     // Fetch potential matches (3x limit for distance filtering)
     const potentialMatches = await prisma.user.findMany({
       where,
@@ -195,6 +265,8 @@ export async function GET(request: NextRequest) {
         drinking: true,
         smoking: true,
         children: true,
+        // PsychProfile for personality & love language matching
+        psychProfile: true,
         photos: {
           select: { id: true, url: true, order: true },
           orderBy: { order: 'asc' },
@@ -206,8 +278,8 @@ export async function GET(request: NextRequest) {
     })
 
     // Apply distance filtering if needed (use effective location from passport if active)
-    // Filter maxDistance overrides preferences maxDistance
-    const effectiveMaxDistance = filters.maxDistance ?? prefs.maxDistance
+    // Priority: filter maxDistance > dealbreaker maxDistance > preferences maxDistance
+    const effectiveMaxDistance = filters.maxDistance ?? dealbreakers?.maxDistance ?? prefs.maxDistance
     let filteredMatches = potentialMatches
     if (effectiveLatitude && effectiveLongitude && effectiveMaxDistance) {
       filteredMatches = potentialMatches.filter(user => {
@@ -253,10 +325,17 @@ export async function GET(request: NextRequest) {
       longitude: effectiveLongitude,
       lastSeen: currentUserFull?.lastSeen || null,
       createdAt: currentUserFull?.createdAt || new Date(),
+      // NEW: Lifestyle fields
+      smoking: currentUser.smoking,
+      drinking: currentUser.drinking,
+      children: currentUser.children,
+      height: currentUser.height,
+      // NEW: PsychProfile for personality & love language matching
+      psychProfile: currentUser.psychProfile,
     }
 
-    // 🤖 AI MATCHING ACTIVE - Calculate compatibility scores for all matches
-    console.log(`[AI Matching] Calculating compatibility for ${filteredMatches.length} potential matches`)
+    // 🤖 AI MATCHING ACTIVE - Calculate compatibility scores for all matches (7 factors!)
+    console.log(`[AI Matching] Calculating compatibility for ${filteredMatches.length} potential matches (7-factor engine)`)
     const matchesWithScores = filteredMatches.map(match => {
       const targetProfile = {
         id: match.id,
@@ -267,6 +346,13 @@ export async function GET(request: NextRequest) {
         longitude: match.longitude,
         lastSeen: match.lastSeen,
         createdAt: match.createdAt,
+        // NEW: Lifestyle fields
+        smoking: match.smoking,
+        drinking: match.drinking,
+        children: match.children,
+        height: match.height,
+        // NEW: PsychProfile for personality & love language matching
+        psychProfile: match.psychProfile,
       }
 
       const compatibility = calculateCompatibility(userProfile, targetProfile)
@@ -279,7 +365,13 @@ export async function GET(request: NextRequest) {
           bioScore: compatibility.bioScore,
           locationScore: compatibility.locationScore,
           activityScore: compatibility.activityScore,
+          // NEW: Additional scores
+          personalityScore: compatibility.personalityScore,
+          loveLanguageScore: compatibility.loveLanguageScore,
+          lifestyleScore: compatibility.lifestyleScore,
         },
+        // NEW: Match explanations (Dutch)
+        matchExplanations: compatibility.explanations,
       }
     })
 
@@ -310,14 +402,22 @@ export async function GET(request: NextRequest) {
       matchScore: user.compatibilityScore,
       matchQuality: user.compatibilityScore >= 75 ? 'excellent' :
                     user.compatibilityScore >= 60 ? 'good' : 'fair',
-      // Detailed breakdown for premium users
-      compatibility: {
+      // Detailed breakdown (7 factors - WERELDKLASSE!)
+      compatibility: user.compatibilityScore,
+      compatibilityBreakdown: {
         overall: user.compatibilityScore,
         interests: user.compatibilityDetails.interestScore,
         bio: user.compatibilityDetails.bioScore,
         location: user.compatibilityDetails.locationScore,
         activity: user.compatibilityDetails.activityScore,
+        personality: user.compatibilityDetails.personalityScore,
+        loveLanguage: user.compatibilityDetails.loveLanguageScore,
+        lifestyle: user.compatibilityDetails.lifestyleScore,
       },
+      // Match explanations (Dutch) - "Waarom jullie matchen"
+      matchReasons: user.matchExplanations,
+      // Remove psychProfile from response (internal use only)
+      psychProfile: undefined,
     }))
 
     const totalCount = await prisma.user.count({ where })
