@@ -31,6 +31,7 @@ export function buildCSP(nonce: string, isDev: boolean): string {
     "'self'",
     'https://api.uploadthing.com',
     'https://uploadthing.com',
+    'https://utfs.io',
     'https://*.ingest.uploadthing.com',
     'https://nominatim.openstreetmap.org',
     'https://openrouter.ai',
