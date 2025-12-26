@@ -66,7 +66,8 @@
       "Bash(if not exist \"D:\\\\datingsite2026\\\\components\\\\features\\\\discover\" mkdir \"D:\\\\datingsite2026\\\\components\\\\features\\\\discover\")",
       "Bash(if not exist \"D:\\\\datingsite2026\\\\components\\\\admin\\\\dashboard\" mkdir \"D:\\\\datingsite2026\\\\components\\\\admin\\\\dashboard\")",
       "Bash(if exist \"D:\\\\datingsite2026\\\\app\\\\admin\\\\dashboard\\\\page-refactored.tsx\" del \"D:\\\\datingsite2026\\\\app\\\\admin\\\\dashboard\\\\page-refactored.tsx\")",
-      "Bash(del \"D:\\\\datingsite2026\\\\app\\\\admin\\\\dashboard\\\\page-refactored.tsx\")"
+      "Bash(del \"D:\\\\datingsite2026\\\\app\\\\admin\\\\dashboard\\\\page-refactored.tsx\")",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
