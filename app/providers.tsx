@@ -5,6 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { AdaptiveUIProvider } from '@/components/adaptive'
 import { InstallPrompt, IOSInstallInstructions } from '@/components/ui'
+import {
+  UpdatePrompt,
+  InstallSuccess,
+  ContextualInstallPrompt,
+  IOSPushPermissions
+} from '@/components/pwa'
+import { ToastProvider } from '@/components/ui/toast'
 import { analytics, identifyUser } from '@/lib/analytics'
 
 // Analytics tracker component
@@ -53,7 +60,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
           <AnalyticsTracker />
+          <ToastProvider />
           {children}
+
+          {/* PWA Install & Update Prompts */}
+          <UpdatePrompt />
+          <InstallSuccess />
+          <ContextualInstallPrompt trigger="return_visit" delay={5000} />
+          <IOSPushPermissions />
           <InstallPrompt delay={10000} />
           <IOSInstallInstructions />
         </SessionProvider>
