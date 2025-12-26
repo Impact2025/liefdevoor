@@ -1,7 +1,6 @@
 'use client'
 
 import { Toaster as SonnerToaster } from 'sonner'
-import { useTheme } from 'next-themes'
 
 /**
  * Toast Provider - Wrapper around Sonner
@@ -22,20 +21,18 @@ import { useTheme } from 'next-themes'
  * })
  */
 export function ToastProvider() {
-  const { theme } = useTheme()
-
   return (
     <SonnerToaster
-      theme={(theme as 'light' | 'dark' | 'system') || 'system'}
+      theme="light"
       position="top-right"
       expand={false}
       richColors
       closeButton
       toastOptions={{
         style: {
-          background: theme === 'dark' ? '#1f2937' : '#ffffff',
-          color: theme === 'dark' ? '#f9fafb' : '#111827',
-          border: theme === 'dark' ? '1px solid #374151' : '1px solid #e5e7eb',
+          background: '#ffffff',
+          color: '#111827',
+          border: '1px solid #e5e7eb',
         },
         className: 'toast',
         duration: 4000,
