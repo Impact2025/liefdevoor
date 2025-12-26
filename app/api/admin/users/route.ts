@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { auditLog, getClientInfo } from '@/lib/audit'
+import { auditLogImmediate, getClientInfo } from '@/lib/audit'
+import { userActionSchema, userSearchSchema } from '@/lib/validations/admin-schemas'
+import { validateBody, validateQuery } from '@/lib/validations/schemas'
+import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
+import { getRedis } from '@/lib/redis'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,13 +16,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const search = searchParams.get('search') || ''
-    const role = searchParams.get('role') || ''
+    // Validate query parameters
+    const validation = validateQuery(request.nextUrl.searchParams, userSearchSchema)
+    if (!validation.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        field: validation.field,
+        message: validation.message
+      }, { status: 400 })
+    }
 
+    const { page, limit, search, role, isVerified } = validation.data
     const skip = (page - 1) * limit
+
+    // Check Redis cache first (5 min TTL)
+    const cacheKey = `admin:users:${page}:${limit}:${search}:${role}:${isVerified}`
+    const redis = getRedis()
+
+    if (redis) {
+      try {
+        const cached = await redis.get(cacheKey)
+        if (cached) {
+          return NextResponse.json(JSON.parse(cached))
+        }
+      } catch (error) {
+        console.warn('[Cache] Redis get failed:', error)
+      }
+    }
 
     const where: any = {}
 
@@ -29,8 +53,12 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    if (role) {
+    if (role && role !== '') {
       where.role = role
+    }
+
+    if (isVerified !== undefined && isVerified !== '') {
+      where.isVerified = isVerified === 'true'
     }
 
     const [users, total] = await Promise.all([
@@ -42,8 +70,11 @@ export async function GET(request: NextRequest) {
           email: true,
           role: true,
           isVerified: true,
+          isPhotoVerified: true,
           safetyScore: true,
           createdAt: true,
+          lastSeen: true,
+          subscriptionTier: true,
           _count: {
             select: {
               matches1: true,
@@ -59,7 +90,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where })
     ])
 
-    return NextResponse.json({
+    const response = {
       users,
       pagination: {
         page,
@@ -67,7 +98,18 @@ export async function GET(request: NextRequest) {
         total,
         pages: Math.ceil(total / limit)
       }
-    })
+    }
+
+    // Cache response for 5 minutes
+    if (redis) {
+      try {
+        await redis.setex(cacheKey, 300, JSON.stringify(response))
+      } catch (error) {
+        console.warn('[Cache] Redis set failed:', error)
+      }
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Error fetching users:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -82,10 +124,32 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { userId, action } = await request.json()
+    // Zod validation
+    const validation = await validateBody(request, userActionSchema)
+    if (!validation.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        field: validation.field,
+        message: validation.message
+      }, { status: 400 })
+    }
 
-    if (!userId || !action) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    const { userId, action, reason } = validation.data
+
+    // Rate limiting - 100 user actions per hour
+    const rateLimit = await checkAdminRateLimit(session.user.id, 'user_action', 100, 3600)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(rateLimitErrorResponse(rateLimit), { status: 429 })
+    }
+
+    // Get user before update for audit trail
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, role: true }
+    })
+
+    if (!existingUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     let updateData: any = {}
@@ -118,28 +182,62 @@ export async function PATCH(request: NextRequest) {
       }
     })
 
-    // Audit log the admin action
+    // Immediate audit log for critical action
     const clientInfo = getClientInfo(request)
     const auditAction = action === 'ban' ? 'USER_BANNED' :
                         action === 'unban' ? 'USER_UNBANNED' :
                         action === 'promote' ? 'USER_PROMOTED' : 'USER_DEMOTED'
 
-    auditLog(auditAction, {
+    await auditLogImmediate(auditAction, {
       userId: session.user.id,
       targetUserId: userId,
-      ip: clientInfo.ip,
+      ipAddress: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         action,
+        reason: reason || 'No reason provided',
         targetEmail: user.email,
+        previousRole: existingUser.role,
         newRole: user.role
       },
       success: true
     })
 
-    return NextResponse.json({ user })
+    // Invalidate cache
+    const redis = getRedis()
+    if (redis) {
+      try {
+        const keys = await redis.keys('admin:users:*')
+        if (keys.length > 0) {
+          await redis.del(...keys)
+        }
+      } catch (error) {
+        console.warn('[Cache] Failed to invalidate:', error)
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      user,
+      message: `User ${action} successful`
+    })
   } catch (error) {
     console.error('Error updating user:', error)
+
+    // Log failed action
+    const clientInfo = getClientInfo(request)
+    await auditLogImmediate('ADMIN_ACTION_FAILED', {
+      userId: (await getServerSession(authOptions))?.user?.id,
+      ipAddress: clientInfo.ip,
+      userAgent: clientInfo.userAgent,
+      details: {
+        endpoint: '/api/admin/users',
+        method: 'PATCH',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      success: false
+    })
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

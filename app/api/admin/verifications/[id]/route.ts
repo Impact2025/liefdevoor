@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import { verificationActionSchema } from '@/lib/validations/admin-schemas';
+import { validateBody } from '@/lib/validations/schemas';
+import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin';
+import { auditLogImmediate, getClientInfo } from '@/lib/audit';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -87,15 +92,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { action, reason, notes } = body as {
-      action: 'approve' | 'reject';
-      reason?: string;
-      notes?: string;
-    };
+    // Zod validation
+    const validation = await validateBody(request, verificationActionSchema.extend({ verificationId: z.string().cuid().optional() }));
+    if (!validation.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        field: validation.field,
+        message: validation.message
+      }, { status: 400 });
+    }
 
-    if (!['approve', 'reject'].includes(action)) {
-      return NextResponse.json({ error: 'Ongeldige actie' }, { status: 400 });
+    const { action, reason } = validation.data;
+
+    // Rate limiting - 150 verification actions per hour
+    const rateLimit = await checkAdminRateLimit(session.user.id, 'verification_action', 150, 3600);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(rateLimitErrorResponse(rateLimit), { status: 429 });
     }
 
     // Get the verification
@@ -116,7 +128,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         reviewedAt: new Date(),
         reviewedBy: session.user.id,
         rejectionReason: action === 'reject' ? reason : null,
-        moderatorNotes: notes || null,
+        moderatorNotes: reason || null,
       },
     });
 
@@ -151,18 +163,26 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    // Log admin action
-    console.log(`[ADMIN] Verification ${action}:`, {
-      verificationId: id,
-      userId: verification.userId,
-      adminId: session.user.id,
-      adminName: adminUser.name,
-      reason: reason || null,
+    // Immediate audit log for critical action
+    const clientInfo = getClientInfo(request);
+    await auditLogImmediate(action === 'approve' ? 'VERIFICATION_APPROVED' : 'VERIFICATION_REJECTED', {
+      userId: session.user.id,
+      targetUserId: verification.userId,
+      ipAddress: clientInfo.ip,
+      userAgent: clientInfo.userAgent,
+      details: {
+        verificationId: id,
+        action,
+        reason: reason || 'No reason provided',
+        adminName: adminUser.name
+      },
+      success: true
     });
 
     return NextResponse.json({
       success: true,
       verification: updatedVerification,
+      message: `Verificatie ${action === 'approve' ? 'goedgekeurd' : 'afgewezen'}`
     });
   } catch (error) {
     console.error('Update verification error:', error);
