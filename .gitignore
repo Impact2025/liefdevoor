@@ -50,8 +50,8 @@ prisma/migrations/**/migration_lock.toml
 # Turbo
 .turbo
 
-# PWA
-public/sw.js
+# PWA (removed sw.js to allow manual service worker management)
+# public/sw.js
 public/workbox-*.js
 
 # Uploads (if stored locally)
