@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { verificationActionSchema, validateBody } from '@/lib/validations/admin-schemas';
+import { verificationActionSchema } from '@/lib/validations/admin-schemas';
+import { validateBody } from '@/lib/api-helpers';
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin';
 import { auditLogImmediate, getClientInfo } from '@/lib/audit';
 

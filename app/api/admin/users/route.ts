@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
-import { userActionSchema, userSearchSchema, validateBody, validateQuery } from '@/lib/validations/admin-schemas'
+import { userActionSchema, userSearchSchema } from '@/lib/validations/admin-schemas'
+import { validateBody, validateQuery } from '@/lib/api-helpers'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { getRedis } from '@/lib/redis'
 
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    if (role && role !== '') {
+    if (role) {
       where.role = role
     }
 
@@ -225,7 +226,7 @@ export async function PATCH(request: NextRequest) {
 
     // Log failed action
     const clientInfo = getClientInfo(request)
-    await auditLogImmediate('ADMIN_ACTION_FAILED', {
+    await auditLogImmediate('ADMIN_ACTION', {
       userId: (await getServerSession(authOptions))?.user?.id,
       ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,

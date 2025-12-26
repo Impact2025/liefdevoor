@@ -15,9 +15,10 @@ import {
   sendPasswordResetEmail
 } from '@/lib/email/notification-service'
 import { sendBirthdayEmail } from '@/lib/email/birthday-system'
-import { emailTestSchema, validateBody } from '@/lib/validations/admin-schemas'
+import { emailTestSchema } from '@/lib/validations/admin-schemas'
+import { validateBody } from '@/lib/api-helpers'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
-import { auditLogImmediate } from '@/lib/audit'
+import { auditLogImmediate, getClientInfo } from '@/lib/audit'
 
 /**
  * GET /api/admin/emails
@@ -273,16 +274,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log
+    const clientInfo = getClientInfo(request)
     await auditLogImmediate('ADMIN_ACTION', {
       userId: admin.id,
+      ip: clientInfo.ip,
+      userAgent: clientInfo.userAgent,
       details: {
         action: 'test_email_sent',
         type,
         recipient: adminEmail // Always admin's email
       },
-      success: true,
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-      userAgent: request.headers.get('user-agent') || undefined
+      success: true
     })
 
     return NextResponse.json({
