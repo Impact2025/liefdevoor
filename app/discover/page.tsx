@@ -198,30 +198,51 @@ export default function DiscoverPage() {
     return age
   }
 
-  const convertToProfileData = (user: any) => ({
-    id: user.id,
-    name: user.name || 'Onbekend',
-    age: user.birthDate ? calculateAge(user.birthDate) : 0,
-    photo: user.profileImage || user.photos?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&size=400&background=C34C60&color=fff`,
-    photos: user.photos,
-    distance: user.distance || 0,
-    city: user.city || '',
-    bio: user.bio || '',
-    interests: Array.isArray(user.interests)
-      ? user.interests
-      : user.interests
-        ? user.interests.split(',').map((i: string) => i.trim())
-        : [],
-    verified: user.isVerified || false,
-    lastActive: user.lastActive || user.updatedAt,
-    occupation: user.occupation,
-    education: user.education,
-    height: user.height,
-    drinking: user.drinking,
-    smoking: user.smoking,
-    children: user.children,
-    voiceIntro: user.voiceIntro,
-  })
+  const convertToProfileData = (user: any) => {
+    // Helper function to safely parse interests
+    const parseInterests = (interests: any): string[] => {
+      if (!interests) return []
+      if (Array.isArray(interests)) return interests
+
+      // If it's a string, try parsing as JSON first
+      if (typeof interests === 'string') {
+        // Try parsing as JSON array
+        if (interests.trim().startsWith('[')) {
+          try {
+            const parsed = JSON.parse(interests)
+            return Array.isArray(parsed) ? parsed : []
+          } catch {
+            // If JSON parsing fails, fall through to comma-separated
+          }
+        }
+        // Parse as comma-separated string
+        return interests.split(',').map((i: string) => i.trim()).filter(Boolean)
+      }
+
+      return []
+    }
+
+    return {
+      id: user.id,
+      name: user.name || 'Onbekend',
+      age: user.birthDate ? calculateAge(user.birthDate) : 0,
+      photo: user.profileImage || user.photos?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&size=400&background=C34C60&color=fff`,
+      photos: user.photos,
+      distance: user.distance || 0,
+      city: user.city || '',
+      bio: user.bio || '',
+      interests: parseInterests(user.interests),
+      verified: user.isVerified || false,
+      lastActive: user.lastActive || user.updatedAt,
+      occupation: user.occupation,
+      education: user.education,
+      height: user.height,
+      drinking: user.drinking,
+      smoking: user.smoking,
+      children: user.children,
+      voiceIntro: user.voiceIntro,
+    }
+  }
 
   const handleLike = useCallback(async () => {
     console.log('[Discover] handleLike called', { usersCount: users.length, isSwipeLoading })

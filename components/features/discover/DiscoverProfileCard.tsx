@@ -778,7 +778,7 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
           </div>
 
           {/* Interests */}
-          {profile.interests && profile.interests.length > 0 && (
+          {profile.interests && Array.isArray(profile.interests) && profile.interests.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-lg font-bold text-gray-900">Interesses</h3>
               <div className="flex flex-wrap gap-2">
