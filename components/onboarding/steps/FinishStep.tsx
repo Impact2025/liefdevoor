@@ -74,6 +74,9 @@ export default function FinishStep({ onComplete }: FinishStepProps) {
       // Update the session to reflect the new isOnboarded status
       await update();
 
+      // Force session reload to ensure JWT is refreshed
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Trigger final celebration
       confetti({
         particleCount: 200,
@@ -84,10 +87,10 @@ export default function FinishStep({ onComplete }: FinishStepProps) {
 
       onComplete?.();
 
-      // Navigate to discover
+      // Navigate to discover with longer delay to ensure session is fully updated
       setTimeout(() => {
         router.push('/discover');
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error('Error completing onboarding:', error);
       setIsSubmitting(false);
