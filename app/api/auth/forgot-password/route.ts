@@ -104,7 +104,8 @@ export async function POST(request: NextRequest) {
     })
 
     // Send password reset email
-    const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`
+    const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`
 
     try {
       await sendEmail({

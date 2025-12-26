@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
     // Send welcome email
     if (result.email) {
       try {
-        const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login?verified=true`
+        // Remove trailing slash to prevent //
+        const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
+        const loginUrl = `${baseUrl}/login?verified=true`
 
         await sendEmail({
           to: result.email,
@@ -51,8 +53,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Redirect to login page with success message
-    const redirectUrl = new URL('/login', request.url)
+    // Redirect to login page with success message (use clean base URL)
+    const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
+    const redirectUrl = new URL(`${baseUrl}/login`)
     redirectUrl.searchParams.set('verified', 'true')
 
     return NextResponse.redirect(redirectUrl)

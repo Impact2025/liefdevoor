@@ -186,9 +186,9 @@ class MultiSafepayClient {
       recurring_model: 'subscription',
       recurring_id: recurringId,
       payment_options: {
-        notification_url: `${process.env.NEXTAUTH_URL}/api/subscription/webhook`,
-        redirect_url: `${process.env.NEXTAUTH_URL}/subscription/success`,
-        cancel_url: `${process.env.NEXTAUTH_URL}/subscription/cancel`,
+        notification_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/api/subscription/webhook`,
+        redirect_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/subscription/success`,
+        cancel_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/subscription/cancel`,
       },
     })
   }
@@ -318,9 +318,9 @@ export async function createSubscriptionPayment(
     amount: plan.price,
     description: `${plan.name} Abonnement - Liefde Voor Iedereen`,
     payment_options: {
-      notification_url: `${process.env.NEXTAUTH_URL}/api/subscription/webhook`,
-      redirect_url: `${process.env.NEXTAUTH_URL}/subscription/success?order_id=${subscriptionId}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/subscription/cancel`,
+      notification_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/api/subscription/webhook`,
+      redirect_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/subscription/success?order_id=${subscriptionId}`,
+      cancel_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/subscription/cancel`,
     },
     customer: {
       email: userEmail,
