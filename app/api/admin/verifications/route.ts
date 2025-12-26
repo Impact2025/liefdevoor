@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getRedis } from '@/lib/redis';
 
 /**
  * GET /api/admin/verifications
@@ -34,6 +35,24 @@ export async function GET(request: NextRequest) {
 
     const statusFilter = status.split(',');
     const skip = (page - 1) * limit;
+
+    // Check Redis cache first (2 min TTL for verifications - shorter because they change frequently)
+    const cacheKey = `admin:verifications:${status}:${page}:${limit}:${sortBy}`
+    const redis = getRedis()
+
+    if (redis) {
+      try {
+        const cached = await redis.get(cacheKey)
+        if (cached) {
+          console.log('[Verifications] Cache HIT - returning cached verifications')
+          return NextResponse.json(JSON.parse(cached))
+        }
+      } catch (error) {
+        console.warn('[Cache] Redis get failed:', error)
+      }
+    }
+
+    console.log('[Verifications] Cache MISS - fetching from database')
 
     // Build sort order
     const orderBy: Record<string, 'asc' | 'desc'>[] = [];
@@ -87,7 +106,7 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, number>);
 
-    return NextResponse.json({
+    const response = {
       verifications: verifications.map(v => ({
         ...v,
         aiAnalysis: v.aiAnalysis ? JSON.parse(v.aiAnalysis) : null,
@@ -104,7 +123,19 @@ export async function GET(request: NextRequest) {
         approved: statusCounts['approved'] || 0,
         rejected: statusCounts['rejected'] || 0,
       },
-    });
+    }
+
+    // Cache response for 2 minutes (shorter TTL because verifications change frequently)
+    if (redis) {
+      try {
+        await redis.setex(cacheKey, 120, JSON.stringify(response))
+        console.log('[Verifications] Cached verifications for 2 minutes')
+      } catch (error) {
+        console.warn('[Cache] Redis set failed:', error)
+      }
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Admin verifications error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
