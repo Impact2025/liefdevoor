@@ -199,10 +199,22 @@ export default function DiscoverPage() {
   }
 
   const convertToProfileData = (user: any) => {
-    // Helper function to safely parse interests
+    // Helper function to safely parse interests and clean formatting artifacts
     const parseInterests = (interests: any): string[] => {
       if (!interests) return []
-      if (Array.isArray(interests)) return interests
+
+      // Helper to clean individual interest values (remove quotes, brackets, etc.)
+      const cleanValue = (val: string): string => {
+        return val
+          .replace(/^[\["\s]+|[\]"\s]+$/g, '') // Remove leading/trailing brackets, quotes, spaces
+          .replace(/^"+|"+$/g, '') // Remove any remaining quotes
+          .trim()
+      }
+
+      // If already an array, clean each value
+      if (Array.isArray(interests)) {
+        return interests.map(i => cleanValue(String(i))).filter(Boolean)
+      }
 
       // If it's a string, try parsing as JSON first
       if (typeof interests === 'string') {
@@ -210,13 +222,18 @@ export default function DiscoverPage() {
         if (interests.trim().startsWith('[')) {
           try {
             const parsed = JSON.parse(interests)
-            return Array.isArray(parsed) ? parsed : []
+            if (Array.isArray(parsed)) {
+              return parsed.map(i => cleanValue(String(i))).filter(Boolean)
+            }
           } catch {
             // If JSON parsing fails, fall through to comma-separated
           }
         }
         // Parse as comma-separated string
-        return interests.split(',').map((i: string) => i.trim()).filter(Boolean)
+        return interests
+          .split(',')
+          .map((i: string) => cleanValue(i))
+          .filter(Boolean)
       }
 
       return []
