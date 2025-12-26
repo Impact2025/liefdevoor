@@ -73,7 +73,7 @@ export function InstallBanner() {
             <div className="p-5">
               {/* Icon and Title */}
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
                   <Heart size={28} className="text-white" fill="white" />
                 </div>
                 <div>
@@ -89,20 +89,20 @@ export function InstallBanner() {
               {/* Benefits */}
               <div className="grid grid-cols-3 gap-3 mb-5">
                 <div className="text-center">
-                  <div className="w-10 h-10 mx-auto mb-1.5 bg-rose-100 rounded-full flex items-center justify-center">
-                    <Zap size={18} className="text-rose-600" />
+                  <div className="w-10 h-10 mx-auto mb-1.5 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Zap size={18} className="text-primary-600" />
                   </div>
                   <span className="text-xs text-gray-600">Sneller</span>
                 </div>
                 <div className="text-center">
-                  <div className="w-10 h-10 mx-auto mb-1.5 bg-rose-100 rounded-full flex items-center justify-center">
-                    <Bell size={18} className="text-rose-600" />
+                  <div className="w-10 h-10 mx-auto mb-1.5 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Bell size={18} className="text-primary-600" />
                   </div>
                   <span className="text-xs text-gray-600">Notificaties</span>
                 </div>
                 <div className="text-center">
-                  <div className="w-10 h-10 mx-auto mb-1.5 bg-rose-100 rounded-full flex items-center justify-center">
-                    <Smartphone size={18} className="text-rose-600" />
+                  <div className="w-10 h-10 mx-auto mb-1.5 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Smartphone size={18} className="text-primary-600" />
                   </div>
                   <span className="text-xs text-gray-600">Volledig scherm</span>
                 </div>
@@ -111,7 +111,7 @@ export function InstallBanner() {
               {/* Install Button */}
               <button
                 onClick={handleInstall}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-rose-600 text-white py-3.5 rounded-xl font-semibold hover:from-rose-600 hover:to-rose-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3.5 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-colors"
               >
                 <Download size={20} />
                 <span>Installeren</span>
