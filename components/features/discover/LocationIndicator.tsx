@@ -32,56 +32,53 @@ export function LocationIndicator({
   passportExpiresAt,
   onClick
 }: LocationIndicatorProps) {
+  const tooltipText = isPassportActive
+    ? `✈️ ${effectiveCity}${passportExpiresAt ? ` • Nog ${timeRemaining(passportExpiresAt)}` : ''}`
+    : `📍 ${effectiveCity}${effectivePostcode ? ` (${effectivePostcode})` : ''}`
+
   return (
     <motion.button
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
       onClick={onClick}
-      title={isPassportActive ? `${effectiveCity} via Passport` : effectiveCity} // Tooltip
+      title={tooltipText}
       className={`
         relative group
-        bg-white/10 backdrop-blur-md rounded-xl px-3 py-2
-        flex items-center gap-2
+        w-10 h-10
+        bg-white/10 backdrop-blur-md rounded-xl
+        flex items-center justify-center
         hover:bg-white/20 transition-all
         cursor-pointer
-        ${isPassportActive ? 'ring-2 ring-rose-400/50' : ''}
+        ${isPassportActive ? 'ring-2 ring-rose-400/60 shadow-lg shadow-rose-400/20' : ''}
       `}
     >
-      {/* Icon with visual accent */}
+      {/* Icon only - ultra minimal */}
       <div className={`
         flex-shrink-0
         ${isPassportActive ? 'animate-pulse' : ''}
       `}>
         {isPassportActive ? (
-          <Plane size={16} className="text-rose-400" />
+          <Plane size={18} className="text-rose-400" />
         ) : (
-          <MapPin size={16} className="text-white/80" />
+          <MapPin size={18} className="text-white/80" />
         )}
       </div>
 
-      {/* Postcode only (compact!) */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-sm font-medium text-white whitespace-nowrap">
-          {effectivePostcode || effectiveCity}
-        </span>
+      {/* Active indicator dot */}
+      {isPassportActive && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-gray-900 animate-pulse" />
+      )}
 
-        {/* Passport timer badge */}
-        {isPassportActive && passportExpiresAt && (
-          <span className="text-xs px-1.5 py-0.5 bg-rose-500/80 rounded text-white whitespace-nowrap">
-            {timeRemaining(passportExpiresAt)}
-          </span>
-        )}
-      </div>
-
-      {/* Hover tooltip - shows full city name */}
+      {/* Hover tooltip - shows full info */}
       <div className="
         absolute top-full left-1/2 -translate-x-1/2 mt-2
-        bg-gray-900 text-white text-xs py-1 px-2 rounded
+        bg-gray-900 text-white text-xs py-1.5 px-2.5 rounded-lg
         opacity-0 group-hover:opacity-100
         transition-opacity pointer-events-none
         whitespace-nowrap z-50
+        shadow-xl
       ">
-        {effectiveCity}
+        {tooltipText}
       </div>
     </motion.button>
   )
