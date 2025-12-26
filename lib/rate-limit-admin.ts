@@ -59,11 +59,11 @@ const inMemoryStore = new Map<string, { count: number; resetTime: number }>()
 
 function cleanupInMemory() {
   const now = Date.now()
-  for (const [key, value] of inMemoryStore.entries()) {
+  Array.from(inMemoryStore.entries()).forEach(([key, value]) => {
     if (now > value.resetTime) {
       inMemoryStore.delete(key)
     }
-  }
+  })
 }
 
 // Cleanup every 5 minutes

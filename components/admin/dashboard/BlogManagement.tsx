@@ -20,7 +20,7 @@ interface BlogManagementProps {
   onDiscard: () => void
   onTogglePublish: (postId: string) => Promise<void>
   onDelete: (postId: string) => Promise<void>
-  onEdit: (postId: string) => void
+  onEdit: (post: BlogPost) => void
   onPageChange: (page: number) => void
   onFilterChange: (filters: any) => void
 }

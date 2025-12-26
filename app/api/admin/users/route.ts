@@ -184,17 +184,18 @@ export async function PATCH(request: NextRequest) {
 
     // Immediate audit log for critical action
     const clientInfo = getClientInfo(request)
-    const auditAction = action === 'ban' ? 'USER_BANNED' :
+    const userActionType = action === 'ban' ? 'USER_BANNED' :
                         action === 'unban' ? 'USER_UNBANNED' :
                         action === 'promote' ? 'USER_PROMOTED' : 'USER_DEMOTED'
 
-    await auditLogImmediate(auditAction, {
+    await auditLogImmediate('ADMIN_ACTION', {
       userId: session.user.id,
       targetUserId: userId,
       ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         action,
+        userAction: userActionType,
         reason: reason || 'No reason provided',
         targetEmail: user.email,
         previousRole: existingUser.role,

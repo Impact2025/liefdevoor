@@ -207,7 +207,7 @@ export default function DiscoverPage() {
     distance: user.distance || 0,
     city: user.city || '',
     bio: user.bio || '',
-    interests: user.interests || [],
+    interests: user.interests ? user.interests.split(',').map((i: string) => i.trim()) : [],
     verified: user.isVerified || false,
     lastActive: user.lastActive || user.updatedAt,
     occupation: user.occupation,

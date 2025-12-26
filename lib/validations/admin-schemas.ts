@@ -7,14 +7,15 @@
 
 import { z } from 'zod'
 
+// Re-export validation helpers
+export { validateBody, validateQuery } from '@/lib/api-helpers'
+
 /**
  * User Management Schemas
  */
 export const userActionSchema = z.object({
   userId: z.string().cuid('Invalid user ID format'),
-  action: z.enum(['ban', 'unban', 'promote', 'demote'], {
-    errorMap: () => ({ message: 'Action must be ban, unban, promote, or demote' })
-  }),
+  action: z.enum(['ban', 'unban', 'promote', 'demote']),
   reason: z.string()
     .min(10, 'Reason must be at least 10 characters')
     .max(500, 'Reason must not exceed 500 characters')
@@ -44,9 +45,7 @@ export const userSearchSchema = z.object({
  */
 export const reportActionSchema = z.object({
   reportId: z.string().cuid('Invalid report ID format'),
-  action: z.enum(['resolve', 'dismiss', 'escalate'], {
-    errorMap: () => ({ message: 'Action must be resolve, dismiss, or escalate' })
-  }),
+  action: z.enum(['resolve', 'dismiss', 'escalate']),
   notes: z.string()
     .max(1000, 'Notes must not exceed 1000 characters')
     .optional(),
@@ -74,17 +73,19 @@ export const verificationActionSchema = z.object({
     .min(10)
     .max(500)
     .optional()
-    .refine(
-      (val, ctx) => {
-        // Reason required for rejections
-        if (ctx.parent.action === 'reject' && !val) {
-          return false
-        }
-        return true
-      },
-      { message: 'Rejection reason is required' }
-    )
-})
+}).refine(
+  (data) => {
+    // Reason required for rejections
+    if (data.action === 'reject' && !data.reason) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Rejection reason is required',
+    path: ['reason']
+  }
+)
 
 export const bulkVerificationActionSchema = z.object({
   verificationIds: z.array(z.string().cuid())
@@ -141,16 +142,7 @@ export const couponCreateSchema = z.object({
     .optional(),
   discountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT']),
   discountValue: z.number()
-    .positive('Discount value must be positive')
-    .refine(
-      (val, ctx) => {
-        if (ctx.parent.discountType === 'PERCENTAGE' && val > 100) {
-          return false
-        }
-        return true
-      },
-      { message: 'Percentage discount cannot exceed 100%' }
-    ),
+    .positive('Discount value must be positive'),
   maxUses: z.number()
     .int()
     .positive()
@@ -165,7 +157,18 @@ export const couponCreateSchema = z.object({
   applicablePlans: z.array(z.enum(['PREMIUM', 'GOLD']))
     .min(1, 'At least one applicable plan required')
     .optional()
-})
+}).refine(
+  (data) => {
+    if (data.discountType === 'PERCENTAGE' && data.discountValue > 100) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Percentage discount cannot exceed 100%',
+    path: ['discountValue']
+  }
+)
 
 export const couponUpdateSchema = couponCreateSchema.partial().extend({
   id: z.string().cuid()
@@ -188,9 +191,7 @@ export const emailTestSchema = z.object({
     'password_reset',
     'subscription_confirmation',
     'subscription_cancelled'
-  ], {
-    errorMap: () => ({ message: 'Invalid email type' })
-  })
+  ])
 })
 
 export const emailBroadcastSchema = z.object({
@@ -222,24 +223,26 @@ export const conversationModerationSchema = z.object({
     .min(10)
     .max(500)
     .optional()
-    .refine(
-      (val, ctx) => {
-        // Reason required for ban and delete actions
-        if (['ban_user', 'delete_messages'].includes(ctx.parent.action) && !val) {
-          return false
-        }
-        return true
-      },
-      { message: 'Reason required for this action' }
-    )
-})
+}).refine(
+  (data) => {
+    // Reason required for ban and delete actions
+    if (['ban_user', 'delete_messages'].includes(data.action) && !data.reason) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Reason required for this action',
+    path: ['reason']
+  }
+)
 
 /**
  * Export Schemas
  */
 export const dataExportSchema = z.object({
   type: z.enum(['users', 'matches', 'reports', 'subscriptions', 'audit_logs']),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
   format: z.enum(['csv', 'json']).default('csv'),
   fields: z.array(z.string()).optional() // Specific fields to export
 })
@@ -260,7 +263,7 @@ export const analyticsQuerySchema = z.object({
   startDate: z.string().datetime(),
   endDate: z.string().datetime(),
   groupBy: z.enum(['day', 'week', 'month']).default('day'),
-  filters: z.record(z.any()).optional()
+  filters: z.record(z.string(), z.any()).optional()
 })
 
 /**

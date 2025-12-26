@@ -45,6 +45,28 @@ const experiments: Record<string, Experiment> = {
     variants: ['start_verification', 'verify_me', 'lets_go'],
     active: true,
   },
+  // PWA Install Prompt Experiments
+  pwa_install_timing: {
+    id: 'pwa_install_timing',
+    name: 'PWA Install Prompt Timing',
+    variants: ['immediate', 'delayed', 'contextual'],
+    weights: [0.33, 0.33, 0.34],
+    active: true,
+  },
+  pwa_install_style: {
+    id: 'pwa_install_style',
+    name: 'PWA Install Prompt Design',
+    variants: ['banner', 'modal', 'minimal'],
+    weights: [0.33, 0.33, 0.34],
+    active: true,
+  },
+  pwa_install_copy: {
+    id: 'pwa_install_copy',
+    name: 'PWA Install Prompt Copy',
+    variants: ['benefits', 'urgency', 'social_proof'],
+    weights: [0.33, 0.33, 0.34],
+    active: true,
+  },
 };
 
 // Get stored variant from localStorage or assign new one
