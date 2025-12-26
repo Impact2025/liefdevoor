@@ -7,6 +7,7 @@ import {
 } from '@/lib/services/payment/multisafepay'
 import { trackSubscriptionPurchase } from '@/lib/analytics-events'
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '@/lib/pricing'
+import { sendPaymentConfirmationEmail } from '@/lib/email/notification-service'
 
 /**
  * POST /api/subscription/webhook
@@ -120,6 +121,25 @@ export async function POST(request: NextRequest) {
             planDetails.price,
             'multisafepay'
           )
+
+          // Send payment confirmation email
+          try {
+            const updatedSub = await prisma.subscription.findUnique({
+              where: { id: subscription.id },
+              select: { endDate: true }
+            })
+
+            await sendPaymentConfirmationEmail({
+              userId: subscription.userId,
+              planName: planDetails.name,
+              amount: planDetails.price,
+              transactionId: transactionid || order_id,
+              renewalDate: updatedSub?.endDate || undefined
+            })
+          } catch (emailError) {
+            console.error('[Webhook] Failed to send payment confirmation email:', emailError)
+            // Don't fail the webhook if email fails
+          }
         }
       }
 

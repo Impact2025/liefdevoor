@@ -12,6 +12,11 @@ import { sendEmail } from './send'
 import MatchNotificationEmail from './templates/transactional/match-notification'
 import MessageNotificationEmail from './templates/transactional/message-notification'
 import PasswordResetEmail from './templates/transactional/password-reset'
+import PaymentConfirmationEmail from './templates/transactional/payment-confirmation'
+import SubscriptionRenewedEmail from './templates/transactional/subscription-renewed'
+import PaymentFailedEmail from './templates/transactional/payment-failed'
+import SubscriptionExpiringEmail from './templates/transactional/subscription-expiring'
+import SubscriptionExpiredEmail from './templates/transactional/subscription-expired'
 
 /**
  * Calculate age from birth date
@@ -305,6 +310,390 @@ Het Liefde Voor Iedereen Team
     console.log(`[Email] ✅ Password reset email sent to ${user.email}`)
   } catch (error) {
     console.error('[Email] Failed to send password reset email:', error)
+    throw error
+  }
+}
+
+/**
+ * Send Payment Confirmation Email
+ *
+ * Sent immediately after successful subscription payment
+ */
+export async function sendPaymentConfirmationEmail(params: {
+  userId: string
+  planName: string
+  amount: number
+  transactionId: string
+  renewalDate?: Date
+}) {
+  try {
+    console.log(`[Email] Sending payment confirmation to user ${params.userId}`)
+
+    const user = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true
+      }
+    })
+
+    if (!user || !user.email || !user.emailVerified) {
+      console.log(`[Email] User ${params.userId} has no verified email`)
+      return
+    }
+
+    // Format renewal date
+    const renewalDateStr = params.renewalDate
+      ? new Intl.DateTimeFormat('nl-NL', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }).format(params.renewalDate)
+      : undefined
+
+    // Render email template
+    const html = await render(
+      PaymentConfirmationEmail({
+        userName: user.name || 'daar',
+        planName: params.planName,
+        amount: `€${params.amount.toFixed(2)}`,
+        transactionId: params.transactionId,
+        renewalDate: renewalDateStr,
+        discoverUrl: `${getBaseUrl()}/discover`
+      })
+    )
+
+    const text = `
+Betaling gelukt!
+
+Hoi ${user.name || 'daar'},
+
+Bedankt voor je aankoop! Je ${params.planName} abonnement is nu actief.
+
+Bedrag: €${params.amount.toFixed(2)}
+Transactie ID: ${params.transactionId}
+${renewalDateStr ? `Verlengt op: ${renewalDateStr}` : ''}
+
+Begin met daten: ${getBaseUrl()}/discover
+
+Met liefde,
+Het Liefde Voor Iedereen Team
+    `.trim()
+
+    await sendEmail({
+      to: user.email,
+      subject: '🎉 Betaling gelukt - Je premium abonnement is actief!',
+      html,
+      text
+    })
+
+    console.log(`[Email] ✅ Payment confirmation sent to ${user.email}`)
+  } catch (error) {
+    console.error('[Email] Failed to send payment confirmation:', error)
+    throw error
+  }
+}
+
+/**
+ * Send Subscription Renewed Email
+ *
+ * Sent after successful automatic renewal
+ */
+export async function sendSubscriptionRenewedEmail(params: {
+  userId: string
+  planName: string
+  amount: number
+  nextRenewalDate: Date
+}) {
+  try {
+    console.log(`[Email] Sending subscription renewed to user ${params.userId}`)
+
+    const user = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true
+      }
+    })
+
+    if (!user || !user.email || !user.emailVerified) {
+      console.log(`[Email] User ${params.userId} has no verified email`)
+      return
+    }
+
+    // Format next renewal date
+    const nextRenewalDateStr = new Intl.DateTimeFormat('nl-NL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(params.nextRenewalDate)
+
+    // Render email template
+    const html = await render(
+      SubscriptionRenewedEmail({
+        userName: user.name || 'daar',
+        planName: params.planName,
+        amount: `€${params.amount.toFixed(2)}`,
+        nextRenewalDate: nextRenewalDateStr,
+        manageUrl: `${getBaseUrl()}/settings/subscription`
+      })
+    )
+
+    const text = `
+Abonnement Verlengd
+
+Hoi ${user.name || 'daar'},
+
+Je ${params.planName} abonnement is automatisch verlengd voor een nieuwe maand.
+
+Bedrag: €${params.amount.toFixed(2)}
+Volgende verlenging: ${nextRenewalDateStr}
+
+Abonnement beheren: ${getBaseUrl()}/settings/subscription
+
+Bedankt dat je lid blijft! ❤️
+
+Met liefde,
+Het Liefde Voor Iedereen Team
+    `.trim()
+
+    await sendEmail({
+      to: user.email,
+      subject: '✅ Abonnement verlengd - Liefde Voor Iedereen',
+      html,
+      text
+    })
+
+    console.log(`[Email] ✅ Subscription renewed email sent to ${user.email}`)
+  } catch (error) {
+    console.error('[Email] Failed to send subscription renewed email:', error)
+    throw error
+  }
+}
+
+/**
+ * Send Payment Failed Email
+ *
+ * Sent when automatic renewal payment fails
+ */
+export async function sendPaymentFailedEmail(params: {
+  userId: string
+  planName: string
+  amount: number
+  reason?: string
+}) {
+  try {
+    console.log(`[Email] Sending payment failed to user ${params.userId}`)
+
+    const user = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true
+      }
+    })
+
+    if (!user || !user.email || !user.emailVerified) {
+      console.log(`[Email] User ${params.userId} has no verified email`)
+      return
+    }
+
+    // Render email template
+    const html = await render(
+      PaymentFailedEmail({
+        userName: user.name || 'daar',
+        planName: params.planName,
+        amount: `€${params.amount.toFixed(2)}`,
+        reason: params.reason || 'Betaling kon niet worden verwerkt',
+        updateUrl: `${getBaseUrl()}/settings/subscription`
+      })
+    )
+
+    const text = `
+Betaling Mislukt
+
+Hoi ${user.name || 'daar'},
+
+Helaas is de automatische verlenging van je ${params.planName} abonnement (€${params.amount.toFixed(2)}) mislukt.
+
+Reden: ${params.reason || 'Betaling kon niet worden verwerkt'}
+
+Werk je betaalmethode bij: ${getBaseUrl()}/settings/subscription
+
+Je hebt nog 7 dagen om je betaalgegevens bij te werken.
+
+Met liefde,
+Het Liefde Voor Iedereen Team
+    `.trim()
+
+    await sendEmail({
+      to: user.email,
+      subject: '⚠️ Betaling mislukt - Actie vereist',
+      html,
+      text
+    })
+
+    console.log(`[Email] ✅ Payment failed email sent to ${user.email}`)
+  } catch (error) {
+    console.error('[Email] Failed to send payment failed email:', error)
+    throw error
+  }
+}
+
+/**
+ * Send Subscription Expiring Email
+ *
+ * Sent 7 days before subscription expires
+ */
+export async function sendSubscriptionExpiringEmail(params: {
+  userId: string
+  planName: string
+  expiryDate: Date
+  daysRemaining: number
+}) {
+  try {
+    console.log(`[Email] Sending subscription expiring to user ${params.userId}`)
+
+    const user = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true
+      }
+    })
+
+    if (!user || !user.email || !user.emailVerified) {
+      console.log(`[Email] User ${params.userId} has no verified email`)
+      return
+    }
+
+    // Format expiry date
+    const expiryDateStr = new Intl.DateTimeFormat('nl-NL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(params.expiryDate)
+
+    // Render email template
+    const html = await render(
+      SubscriptionExpiringEmail({
+        userName: user.name || 'daar',
+        planName: params.planName,
+        expiryDate: expiryDateStr,
+        daysRemaining: params.daysRemaining,
+        renewUrl: `${getBaseUrl()}/subscription`
+      })
+    )
+
+    const text = `
+Je abonnement verloopt binnenkort
+
+Hoi ${user.name || 'daar'},
+
+Je ${params.planName} abonnement verloopt over ${params.daysRemaining} dagen (op ${expiryDateStr}).
+
+Verleng nu om je premium functies te behouden:
+${getBaseUrl()}/subscription
+
+Met liefde,
+Het Liefde Voor Iedereen Team
+    `.trim()
+
+    await sendEmail({
+      to: user.email,
+      subject: `⏰ Je abonnement verloopt over ${params.daysRemaining} dagen`,
+      html,
+      text
+    })
+
+    console.log(`[Email] ✅ Subscription expiring email sent to ${user.email}`)
+  } catch (error) {
+    console.error('[Email] Failed to send subscription expiring email:', error)
+    throw error
+  }
+}
+
+/**
+ * Send Subscription Expired Email
+ *
+ * Sent when subscription has expired
+ */
+export async function sendSubscriptionExpiredEmail(params: {
+  userId: string
+  planName: string
+  expiredDate: Date
+}) {
+  try {
+    console.log(`[Email] Sending subscription expired to user ${params.userId}`)
+
+    const user = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true
+      }
+    })
+
+    if (!user || !user.email || !user.emailVerified) {
+      console.log(`[Email] User ${params.userId} has no verified email`)
+      return
+    }
+
+    // Format expired date
+    const expiredDateStr = new Intl.DateTimeFormat('nl-NL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(params.expiredDate)
+
+    // Render email template
+    const html = await render(
+      SubscriptionExpiredEmail({
+        userName: user.name || 'daar',
+        planName: params.planName,
+        expiredDate: expiredDateStr,
+        renewUrl: `${getBaseUrl()}/subscription`
+      })
+    )
+
+    const text = `
+Je abonnement is verlopen
+
+Hoi ${user.name || 'daar'},
+
+Je ${params.planName} abonnement is op ${expiredDateStr} verlopen.
+
+Je account is teruggezet naar het gratis plan, maar al je matches blijven behouden!
+
+Kom terug en activeer premium opnieuw:
+${getBaseUrl()}/subscription
+
+We missen je! ❤️
+
+Met liefde,
+Het Liefde Voor Iedereen Team
+    `.trim()
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Je abonnement is verlopen - Kom terug! 💕',
+      html,
+      text
+    })
+
+    console.log(`[Email] ✅ Subscription expired email sent to ${user.email}`)
+  } catch (error) {
+    console.error('[Email] Failed to send subscription expired email:', error)
     throw error
   }
 }

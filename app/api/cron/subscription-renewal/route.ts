@@ -5,6 +5,12 @@ import {
   SUBSCRIPTION_PLANS,
   type PlanId,
 } from '@/lib/services/payment/multisafepay'
+import {
+  sendSubscriptionRenewedEmail,
+  sendPaymentFailedEmail,
+  sendSubscriptionExpiredEmail,
+  sendSubscriptionExpiringEmail
+} from '@/lib/email/notification-service'
 
 /**
  * POST /api/cron/subscription-renewal
@@ -72,11 +78,14 @@ export async function POST(request: NextRequest) {
         )
 
         if (result.success) {
+          // Calculate new end date
+          const newEndDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
+
           // Update subscription with new end date
           await prisma.subscription.update({
             where: { id: subscription.id },
             data: {
-              endDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days
+              endDate: newEndDate,
               updatedAt: now,
             },
           })
@@ -90,6 +99,18 @@ export async function POST(request: NextRequest) {
               message: `Je ${plan.name} abonnement is automatisch verlengd voor een nieuwe maand.`,
             },
           })
+
+          // Send renewal confirmation email
+          try {
+            await sendSubscriptionRenewedEmail({
+              userId: subscription.userId,
+              planName: plan.name,
+              amount: plan.price,
+              nextRenewalDate: newEndDate
+            })
+          } catch (emailError) {
+            console.error(`[Cron] Failed to send renewal email for ${subscription.id}:`, emailError)
+          }
 
           results.renewed++
           console.log(`[Cron] Renewed subscription ${subscription.id}`)
@@ -120,11 +141,49 @@ export async function POST(request: NextRequest) {
       results.expired++
     }
 
+    // Find subscriptions expiring in 7 days (for reminder emails)
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const eightDaysFromNow = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000)
+
+    const expiringSoonSubscriptions = await prisma.subscription.findMany({
+      where: {
+        status: 'active',
+        plan: { in: ['premium', 'gold'] },
+        recurringId: null, // Only for non-recurring (they'll manually need to renew)
+        endDate: {
+          gte: sevenDaysFromNow,
+          lt: eightDaysFromNow
+        }
+      },
+      include: {
+        user: { select: { id: true } }
+      }
+    })
+
+    // Send expiring soon emails
+    for (const subscription of expiringSoonSubscriptions) {
+      try {
+        const plan = SUBSCRIPTION_PLANS[subscription.plan.toLowerCase() as PlanId]
+        if (plan && subscription.endDate) {
+          await sendSubscriptionExpiringEmail({
+            userId: subscription.userId,
+            planName: plan.name,
+            expiryDate: subscription.endDate,
+            daysRemaining: 7
+          })
+          console.log(`[Cron] Sent expiring email for subscription ${subscription.id}`)
+        }
+      } catch (error) {
+        console.error(`[Cron] Failed to send expiring email for ${subscription.id}:`, error)
+      }
+    }
+
     console.log('[Cron] Subscription renewal complete:', results)
 
     return NextResponse.json({
       success: true,
       results,
+      expiringSoonReminders: expiringSoonSubscriptions.length,
       timestamp: now.toISOString(),
     })
   } catch (error) {
@@ -156,12 +215,33 @@ async function handleRenewalFailure(
       message: `De automatische verlenging van je ${planName} abonnement is mislukt. Werk je betaalmethode bij om toegang te behouden.`,
     },
   })
+
+  // Send payment failed email
+  try {
+    const plan = SUBSCRIPTION_PLANS[planName.toLowerCase() as PlanId]
+    if (plan) {
+      await sendPaymentFailedEmail({
+        userId,
+        planName: plan.name,
+        amount: plan.price,
+        reason: 'Automatische verlenging mislukt'
+      })
+    }
+  } catch (emailError) {
+    console.error(`[Cron] Failed to send payment failed email for ${subscriptionId}:`, emailError)
+  }
 }
 
 /**
  * Handle expired subscription (no recurring setup)
  */
 async function handleExpiredSubscription(subscriptionId: string, userId: string) {
+  // Get subscription details before updating
+  const subscription = await prisma.subscription.findUnique({
+    where: { id: subscriptionId },
+    select: { plan: true, endDate: true }
+  })
+
   await prisma.subscription.update({
     where: { id: subscriptionId },
     data: { status: 'cancelled' },
@@ -175,6 +255,22 @@ async function handleExpiredSubscription(subscriptionId: string, userId: string)
       message: 'Je premium abonnement is verlopen. Verleng je abonnement om toegang te behouden tot alle functies.',
     },
   })
+
+  // Send expired email
+  if (subscription) {
+    try {
+      const plan = SUBSCRIPTION_PLANS[subscription.plan.toLowerCase() as PlanId]
+      if (plan) {
+        await sendSubscriptionExpiredEmail({
+          userId,
+          planName: plan.name,
+          expiredDate: subscription.endDate || new Date()
+        })
+      }
+    } catch (emailError) {
+      console.error(`[Cron] Failed to send expired email for ${subscriptionId}:`, emailError)
+    }
+  }
 }
 
 /**
