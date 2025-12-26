@@ -104,7 +104,8 @@ export async function sendNewPaymentAdminAlert(params: {
         sendEmail({
           to: email,
           subject: `💰 Nieuwe Betaling: €${params.amount.toFixed(2)} - ${params.planName}${isNewCustomer ? ' (NIEUWE KLANT!)' : ''}`,
-          html
+          html,
+          text: `Nieuwe betaling ontvangen: ${user.name || 'Unknown'} (${user.email}) heeft €${params.amount.toFixed(2)} betaald voor ${params.planName}.${isNewCustomer ? ' NIEUWE KLANT!' : ''}`
         })
       )
     )
@@ -164,7 +165,8 @@ export async function sendNewRegistrationAdminAlert(params: {
         sendEmail({
           to: email,
           subject: `👤 Nieuwe Registratie: ${user.name || 'Unknown User'}`,
-          html
+          html,
+          text: `Nieuwe gebruiker geregistreerd: ${user.name || 'Unknown'} (${user.email}), ${user.gender || 'Unknown'}, ${age} jaar, ${user.city || 'Unknown'}`
         })
       )
     )
@@ -231,12 +233,7 @@ export async function sendSafetyAlertToAdmins(params: {
           to: email,
           subject: `🚨 URGENT SAFETY ALERT: ${params.reportCount}+ Reports - ${user.name || 'User'}`,
           html,
-          // Mark as high priority
-          headers: {
-            'X-Priority': '1',
-            'X-MSMail-Priority': 'High',
-            'Importance': 'High'
-          } as any
+          text: `URGENT: ${user.name || 'User'} heeft ${params.reportCount} reports ontvangen. Redenen: ${reasons.join(', ')}. Onmiddellijke actie vereist.`
         })
       )
     )
@@ -286,7 +283,8 @@ export async function sendPaymentFailedAdminAlert(params: {
         sendEmail({
           to: email,
           subject: `⚠️ Betaling Mislukt: ${user.name || 'User'} - €${params.amount.toFixed(2)}`,
-          html
+          html,
+          text: `Betaling mislukt: ${user.name || 'Unknown'} (${user.email}) - €${params.amount.toFixed(2)} voor ${params.planName}. Reden: ${params.reason || 'Unknown'}`
         })
       )
     )
