@@ -12,12 +12,13 @@ import { bulkUserActionSchema, validateBody } from '@/lib/validations/admin-sche
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
 import { getRedis } from '@/lib/redis'
+import { requirePermission, AdminPermission } from '@/lib/permissions'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || (session.user as any)?.role !== 'ADMIN') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -32,6 +33,29 @@ export async function POST(request: NextRequest) {
     }
 
     const { userIds, action, reason } = validation.data
+
+    // Check granular permissions based on action
+    try {
+      switch (action) {
+        case 'ban':
+          await requirePermission(session.user.id, AdminPermission.BAN_USERS)
+          break
+        case 'unban':
+          await requirePermission(session.user.id, AdminPermission.UNBAN_USERS)
+          break
+        case 'approve':
+          await requirePermission(session.user.id, AdminPermission.APPROVE_VERIFICATIONS)
+          break
+        case 'reject':
+          await requirePermission(session.user.id, AdminPermission.RESOLVE_REPORTS)
+          break
+      }
+    } catch (permissionError) {
+      return NextResponse.json({
+        error: 'Insufficient permissions',
+        message: permissionError instanceof Error ? permissionError.message : 'Permission denied'
+      }, { status: 403 })
+    }
 
     // Rate limiting - stricter for bulk actions (10 per hour)
     const rateLimit = await checkAdminRateLimit(session.user.id, 'bulk_action', 10, 3600)

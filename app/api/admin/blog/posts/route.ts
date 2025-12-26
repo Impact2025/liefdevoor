@@ -3,13 +3,28 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getRedis } from '@/lib/redis'
+import { requireAnyPermission, AdminPermission } from '@/lib/permissions'
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check blog view permissions
+    try {
+      await requireAnyPermission(session.user.id, [
+        AdminPermission.CREATE_BLOG_POSTS,
+        AdminPermission.EDIT_BLOG_POSTS,
+        AdminPermission.VIEW_ANALYTICS
+      ])
+    } catch (permissionError) {
+      return NextResponse.json({
+        error: 'Insufficient permissions',
+        message: 'You need blog management permissions to view posts'
+      }, { status: 403 })
     }
 
     // Check Redis cache first (10 min TTL for blog posts - they change less frequently)
@@ -65,8 +80,18 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check CREATE_BLOG_POSTS permission
+    try {
+      await requireAnyPermission(session.user.id, [AdminPermission.CREATE_BLOG_POSTS])
+    } catch (permissionError) {
+      return NextResponse.json({
+        error: 'Insufficient permissions',
+        message: 'You need CREATE_BLOG_POSTS permission to create posts'
+      }, { status: 403 })
     }
 
     const { title, content, categoryId, excerpt, featuredImage, published } = await request.json()

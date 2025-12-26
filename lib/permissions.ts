@@ -8,6 +8,9 @@ import { prisma } from './prisma'
 import { AdminPermission } from '@prisma/client'
 import { redis } from './redis'
 
+// Re-export AdminPermission for use in other files
+export { AdminPermission }
+
 interface PermissionCache {
   permissions: AdminPermission[]
   roleId: string

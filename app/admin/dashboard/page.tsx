@@ -552,9 +552,8 @@ export default function AdminDashboard() {
               setGeneratedContent(null)
               setEditingPost(null)
             }}
-            onTogglePublish={async (id) => {
-              const post = blogPosts.find(p => p.id === id)
-              if (post) await togglePublishBlogPost(id, !post.published)
+            onTogglePublish={async (id, published) => {
+              await togglePublishBlogPost(id, published)
             }}
             onDelete={deleteBlogPost}
             onEdit={handleEditBlogPost}

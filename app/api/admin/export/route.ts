@@ -11,13 +11,24 @@ import { dataExportSchema, validateBody } from '@/lib/validations/admin-schemas'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
 import { exportData, getExportFilename } from '@/lib/admin/export-utils'
+import { requirePermission, AdminPermission } from '@/lib/permissions'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || (session.user as any)?.role !== 'ADMIN') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check EXPORT_DATA permission
+    try {
+      await requirePermission(session.user.id, AdminPermission.EXPORT_DATA)
+    } catch (permissionError) {
+      return NextResponse.json({
+        error: 'Insufficient permissions',
+        message: 'You need EXPORT_DATA permission to export data'
+      }, { status: 403 })
     }
 
     // Validate request body

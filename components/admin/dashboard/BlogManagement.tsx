@@ -18,7 +18,7 @@ interface BlogManagementProps {
   onGenerate: (params: AIGeneratorParams) => Promise<void>
   onSave: (data: SavePostData) => Promise<void>
   onDiscard: () => void
-  onTogglePublish: (postId: string) => Promise<void>
+  onTogglePublish: (postId: string, published: boolean) => Promise<void>
   onDelete: (postId: string) => Promise<void>
   onEdit: (post: BlogPost) => void
   onPageChange: (page: number) => void

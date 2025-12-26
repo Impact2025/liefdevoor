@@ -10,6 +10,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
+import { requirePermission, AdminPermission } from '@/lib/permissions'
 
 interface FlaggedConversation {
   matchId: string
@@ -48,8 +49,18 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || (session.user as any)?.role !== 'ADMIN') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check VIEW_REPORTS permission
+    try {
+      await requirePermission(session.user.id, AdminPermission.VIEW_REPORTS)
+    } catch (permissionError) {
+      return NextResponse.json({
+        error: 'Insufficient permissions',
+        message: 'You need VIEW_REPORTS permission to view moderation queue'
+      }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -277,12 +288,37 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || (session.user as any)?.role !== 'ADMIN') {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { action, matchId, messageIds, userId, reason } = body
+
+    // Check permissions based on action
+    try {
+      switch (action) {
+        case 'delete_messages':
+          await requirePermission(session.user.id, AdminPermission.MODERATE_MESSAGES)
+          break
+        case 'warn_user':
+          await requirePermission(session.user.id, AdminPermission.RESOLVE_REPORTS)
+          break
+        case 'ban_user':
+          await requirePermission(session.user.id, AdminPermission.BAN_USERS)
+          break
+        case 'dismiss':
+          await requirePermission(session.user.id, AdminPermission.RESOLVE_REPORTS)
+          break
+        default:
+          return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+      }
+    } catch (permissionError) {
+      return NextResponse.json({
+        error: 'Insufficient permissions',
+        message: permissionError instanceof Error ? permissionError.message : 'Permission denied'
+      }, { status: 403 })
+    }
 
     const clientInfo = getClientInfo(request)
 
