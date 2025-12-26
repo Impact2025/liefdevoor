@@ -165,14 +165,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Immediate audit log for critical action
     const clientInfo = getClientInfo(request);
-    await auditLogImmediate(action === 'approve' ? 'VERIFICATION_APPROVED' : 'VERIFICATION_REJECTED', {
+    await auditLogImmediate('ADMIN_ACTION', {
       userId: session.user.id,
       targetUserId: verification.userId,
       ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         verificationId: id,
-        action,
+        verificationAction: action === 'approve' ? 'VERIFICATION_APPROVED' : 'VERIFICATION_REJECTED',
         reason: reason || 'No reason provided',
         adminName: adminUser.name
       },
