@@ -397,6 +397,12 @@ export async function GET(request: NextRequest) {
     const users: any[] = sortedMatches.slice(0, limit).map(user => ({
       ...user,
       birthDate: user.birthDate ? user.birthDate.toISOString().split('T')[0] : null,
+      // FIX: Convert interests from string to array for frontend compatibility
+      interests: Array.isArray(user.interests)
+        ? user.interests
+        : typeof user.interests === 'string' && user.interests
+          ? user.interests.split(',').map((i: string) => i.trim())
+          : [],
       isBoosted: boostedUserIds.has(user.id),
       // Include AI compatibility score (0-100)
       matchScore: user.compatibilityScore,
