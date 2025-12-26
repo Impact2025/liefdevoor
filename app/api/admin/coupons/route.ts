@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         type: discountType,
         value: discountValue,
         applicableTo: 'SUBSCRIPTION', // Default
-        applicablePlans: applicablePlans || [],
+        applicablePlans: applicablePlans ? JSON.stringify(applicablePlans) : null,
         maxTotalUses: maxUses,
         maxUsesPerUser,
         validFrom: new Date(),
