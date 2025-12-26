@@ -214,7 +214,7 @@ export async function sendSafetyAlertToAdmins(params: {
       take: 10
     })
 
-    const reasons = [...new Set(reports.map(r => r.reason))]
+    const reasons = Array.from(new Set(reports.map(r => r.reason)))
     const latestReportDate = reports[0]?.createdAt || new Date()
 
     const html = await render(
