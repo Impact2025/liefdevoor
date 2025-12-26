@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     const clientInfo = getClientInfo(req)
     await auditLogImmediate('ADMIN_ACTION', {
       userId: session.user.id,
-      ipAddress: clientInfo.ip,
+      ip: clientInfo.ip,
       userAgent: clientInfo.userAgent,
       details: {
         action: 'coupon_created',
