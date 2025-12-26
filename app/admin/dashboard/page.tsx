@@ -107,6 +107,7 @@ export default function AdminDashboard() {
   // Blog Management state
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [generatedContent, setGeneratedContent] = useState<GeneratedBlogContent | null>(null)
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [blogStats, setBlogStats] = useState<BlogStats>({
     totalPosts: 0,
@@ -417,7 +418,42 @@ export default function AdminDashboard() {
   }
 
   const handleEditBlogPost = (post: BlogPost) => {
-    toast.info(`Edit functionaliteit voor "${post.title}" komt binnenkort!`)
+    // Convert the blog post to GeneratedBlogContent format for editing
+    setGeneratedContent({
+      content: post.content,
+      seoTitle: post.title,
+      seoDescription: post.excerpt || '',
+      keywords: [],
+      socialMedia: {
+        instagram: '',
+        facebook: '',
+        linkedin: '',
+        twitter: ''
+      },
+      midjourneyPrompt: '',
+      excerpt: post.excerpt || ''
+    })
+    setEditingPost(post)
+    toast.success(`Editing "${post.title}"`)
+  }
+
+  const handleSaveEditedPost = async (data: SavePostData) => {
+    if (!editingPost) return
+
+    const response = await fetch(`/api/admin/blog/posts/${editingPost.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+
+    if (response.ok) {
+      toast.success(`Blog post updated!`)
+      setGeneratedContent(null)
+      setEditingPost(null)
+      fetchBlogPosts()
+    } else {
+      toast.error('Failed to update blog post')
+    }
   }
 
   const handleBlogFilterChange = (filters: { category: string; status: string; search: string }) => {
@@ -511,8 +547,11 @@ export default function AdminDashboard() {
             categories={blogCategories}
             pagination={blogPagination}
             onGenerate={handleGenerateBlog}
-            onSave={handleSaveBlogPost}
-            onDiscard={() => setGeneratedContent(null)}
+            onSave={editingPost ? handleSaveEditedPost : handleSaveBlogPost}
+            onDiscard={() => {
+              setGeneratedContent(null)
+              setEditingPost(null)
+            }}
             onTogglePublish={async (id) => {
               const post = blogPosts.find(p => p.id === id)
               if (post) await togglePublishBlogPost(id, !post.published)

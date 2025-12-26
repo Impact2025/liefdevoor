@@ -2,6 +2,8 @@
 
 import { Search, Ban, UserCheck, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
+import { useState } from 'react'
+import BulkActionBar from '@/components/admin/tables/BulkActionBar'
 
 interface User {
   id: string
@@ -51,6 +53,8 @@ export default function UsersTable({
   onPageChange,
   onUserAction,
 }: UsersTableProps) {
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
+
   const handleUserAction = async (userId: string, action: 'ban' | 'unban') => {
     const actionText = action === 'ban' ? 'ban' : 'unban'
 
@@ -68,6 +72,46 @@ export default function UsersTable({
       console.error(`Failed to ${actionText} user:`, error)
     }
   }
+
+  const handleBulkAction = async (action: 'ban' | 'unban' | 'approve' | 'reject', reason?: string) => {
+    const userIds = Array.from(selectedUsers)
+
+    const response = await fetch('/api/admin/users/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userIds, action, reason })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Bulk action failed')
+    }
+
+    // Clear selection and refresh list
+    setSelectedUsers(new Set())
+    // Trigger parent component to refetch users
+    onPageChange(pagination.page)
+  }
+
+  const handleSelectAll = () => {
+    if (selectedUsers.size === users.length) {
+      setSelectedUsers(new Set())
+    } else {
+      setSelectedUsers(new Set(users.map(u => u.id)))
+    }
+  }
+
+  const handleSelectUser = (userId: string) => {
+    const newSelection = new Set(selectedUsers)
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId)
+    } else {
+      newSelection.add(userId)
+    }
+    setSelectedUsers(newSelection)
+  }
+
+  const isAllSelected = users.length > 0 && selectedUsers.size === users.length
 
   return (
     <div>
@@ -105,6 +149,14 @@ export default function UsersTable({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
@@ -128,19 +180,27 @@ export default function UsersTable({
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className={`hover:bg-gray-50 ${selectedUsers.has(user.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.has(user.id)}
+                        onChange={() => handleSelectUser(user.id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
@@ -237,6 +297,14 @@ export default function UsersTable({
           </div>
         </div>
       )}
+
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedCount={selectedUsers.size}
+        onClearSelection={() => setSelectedUsers(new Set())}
+        onBulkAction={handleBulkAction}
+        actions={['ban', 'unban', 'approve', 'reject']}
+      />
     </div>
   )
 }
