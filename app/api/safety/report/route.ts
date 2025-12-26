@@ -9,6 +9,7 @@ import { requireAuth, successResponse, handleApiError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { auditLog } from '@/lib/audit'
 import { isValidReportReason } from '@/lib/report-reasons'
+import { sendSafetyAlertToAdmins } from '@/lib/email/admin-notification-service'
 
 /**
  * POST /api/safety/report
@@ -82,6 +83,12 @@ export async function POST(request: NextRequest) {
           message: 'Je account is door meerdere gebruikers gerapporteerd en wordt gecontroleerd.',
         },
       })
+
+      // Send URGENT admin email alert (non-blocking)
+      sendSafetyAlertToAdmins({
+        reportedUserId: reportedId,
+        reportCount
+      }).catch(err => console.error('[Safety] Admin alert failed:', err))
     }
 
     return successResponse({

@@ -9,6 +9,7 @@ import { createVerificationToken } from '@/lib/email/verification'
 import { sendEmail } from '@/lib/email/send'
 import { getVerificationEmailHtml, getVerificationEmailText } from '@/lib/email/templates'
 import { verifyTurnstileToken, shouldEnforceTurnstile } from '@/lib/turnstile'
+import { sendNewRegistrationAdminAlert } from '@/lib/email/admin-notification-service'
 
 // Zod schema for registration validation
 const registerSchema = z.object({
@@ -142,6 +143,11 @@ export async function POST(request: NextRequest) {
           verificationUrl,
         }),
       })
+
+      // Send admin notification (non-blocking)
+      sendNewRegistrationAdminAlert({
+        userId: user.id
+      }).catch(err => console.error('[Register] Admin alert failed:', err))
     } catch (emailError) {
       console.error('[Register] Failed to send verification email:', emailError)
       // Don't fail registration if email fails - user can request resend

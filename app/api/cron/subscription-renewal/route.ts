@@ -11,6 +11,10 @@ import {
   sendSubscriptionExpiredEmail,
   sendSubscriptionExpiringEmail
 } from '@/lib/email/notification-service'
+import {
+  sendNewPaymentAdminAlert,
+  sendPaymentFailedAdminAlert
+} from '@/lib/email/admin-notification-service'
 
 /**
  * POST /api/cron/subscription-renewal
@@ -108,6 +112,15 @@ export async function POST(request: NextRequest) {
               amount: plan.price,
               nextRenewalDate: newEndDate
             })
+
+            // Admin notification for renewal (non-blocking)
+            sendNewPaymentAdminAlert({
+              userId: subscription.userId,
+              planName: plan.name,
+              amount: plan.price,
+              transactionId: `renewal_${subscription.id}`,
+              isNewCustomer: false
+            }).catch(err => console.error('[Cron] Admin alert failed:', err))
           } catch (emailError) {
             console.error(`[Cron] Failed to send renewal email for ${subscription.id}:`, emailError)
           }
@@ -226,6 +239,14 @@ async function handleRenewalFailure(
         amount: plan.price,
         reason: 'Automatische verlenging mislukt'
       })
+
+      // Admin notification (non-blocking)
+      sendPaymentFailedAdminAlert({
+        userId,
+        planName: plan.name,
+        amount: plan.price,
+        reason: 'Automatische verlenging mislukt'
+      }).catch(err => console.error('[Cron] Admin alert failed:', err))
     }
   } catch (emailError) {
     console.error(`[Cron] Failed to send payment failed email for ${subscriptionId}:`, emailError)

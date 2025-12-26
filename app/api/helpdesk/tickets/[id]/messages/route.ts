@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { auditLog, getClientInfo } from '@/lib/audit'
+import { sendTicketReplyAdminAlert } from '@/lib/email/admin-notification-service'
 
 const createMessageSchema = z.object({
   message: z.string().min(1, 'Bericht mag niet leeg zijn').max(5000),
@@ -99,15 +100,15 @@ export async function POST(
       }
     })
 
-    // TODO: Send email notification
-    // if (!isInternal) {
-    //   if (isAdmin) {
-    //     // Notify user
-    //     await sendTicketReplyEmail({ ... })
-    //   } else {
-    //     // Notify assigned admin or all admins
-    //   }
-    // }
+    // Send admin notification when user replies (non-blocking)
+    if (!isInternal && !isAdmin) {
+      sendTicketReplyAdminAlert({
+        ticketId,
+        subject: ticket.subject,
+        replyMessage: validation.data.message,
+        userName: ticket.user.name || 'Unknown User'
+      }).catch(err => console.error('[Ticket] Admin reply alert failed:', err))
+    }
 
     return NextResponse.json({
       success: true,

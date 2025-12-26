@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { auditLog, getClientInfo } from '@/lib/audit'
+import { sendNewTicketAdminAlert } from '@/lib/email/admin-notification-service'
 
 // Validation schema
 const createTicketSchema = z.object({
@@ -119,11 +120,13 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // TODO: Send email notification to user
-    // await sendTicketCreatedEmail({ ... })
-
-    // TODO: Notify admins
-    // const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
+    // Send admin notification (non-blocking)
+    sendNewTicketAdminAlert({
+      ticketId: ticket.id,
+      subject,
+      category,
+      userName: ticket.user.name || 'Unknown User'
+    }).catch(err => console.error('[Ticket] Admin alert failed:', err))
 
     return NextResponse.json({
       success: true,

@@ -8,6 +8,7 @@ import {
 import { trackSubscriptionPurchase } from '@/lib/analytics-events'
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '@/lib/pricing'
 import { sendPaymentConfirmationEmail } from '@/lib/email/notification-service'
+import { sendNewPaymentAdminAlert } from '@/lib/email/admin-notification-service'
 
 /**
  * POST /api/subscription/webhook
@@ -136,6 +137,14 @@ export async function POST(request: NextRequest) {
               transactionId: transactionid || order_id,
               renewalDate: updatedSub?.endDate || undefined
             })
+
+            // Send admin notification (non-blocking)
+            sendNewPaymentAdminAlert({
+              userId: subscription.userId,
+              planName: planDetails.name,
+              amount: planDetails.price,
+              transactionId: transactionid || order_id
+            }).catch(err => console.error('[Webhook] Admin alert failed:', err))
           } catch (emailError) {
             console.error('[Webhook] Failed to send payment confirmation email:', emailError)
             // Don't fail the webhook if email fails
