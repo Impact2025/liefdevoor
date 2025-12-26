@@ -27,6 +27,7 @@ import {
   EyeOff,
   Crown,
   ChevronRight,
+  HelpCircle,
 } from 'lucide-react'
 
 interface NavItem {
@@ -326,6 +327,18 @@ export function Navigation() {
                       <ChevronRight size={16} className="text-gray-300" />
                     </Link>
 
+                    <Link
+                      href="/support"
+                      onClick={() => setShowMenu(false)}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <HelpCircle size={18} className="text-blue-500" />
+                        <span className="text-gray-700">Hulp nodig?</span>
+                      </div>
+                      <ChevronRight size={16} className="text-gray-300" />
+                    </Link>
+
                     {!isPremium && (
                       <Link
                         href="/prijzen"
@@ -529,6 +542,13 @@ export function Navigation() {
                         <Settings size={20} className="text-gray-600" />
                       </div>
                       <span className="font-semibold text-gray-900">Instellingen</span>
+                    </Link>
+
+                    <Link href="/support" onClick={() => setShowMenu(false)} className="flex items-center gap-4 p-4 rounded-xl hover:bg-rose-50">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <HelpCircle size={20} className="text-blue-600" />
+                      </div>
+                      <span className="font-semibold text-gray-900">Hulp nodig?</span>
                     </Link>
 
                     <Link href="/prijzen" onClick={() => setShowMenu(false)} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50">

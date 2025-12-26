@@ -22,6 +22,10 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
     !pathname?.startsWith('/onboarding') &&
     !isAdminPage
 
+  // Only show chatbot on support/help pages to avoid overlap with bottom navigation
+  const chatbotPages = ['/support', '/settings', '/help', '/faq', '/contact']
+  const shouldShowChatbot = session && chatbotPages.some(page => pathname?.startsWith(page))
+
   // Don't show navigation on admin pages
   if (isAdminPage) {
     return (
@@ -46,8 +50,8 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       <CookieBanner />
       <InstallPrompt />
 
-      {/* Support Chatbot - Show for logged-in users */}
-      {session && <Chatbot />}
+      {/* Support Chatbot - Contextual display on help/support pages only */}
+      {shouldShowChatbot && <Chatbot />}
     </>
   )
 }
