@@ -64,8 +64,11 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Turnstile verification (bot protection)
-        if (shouldEnforceTurnstile()) {
+        // Check if this is an admin account first (to potentially skip Turnstile)
+        const isAdminEmail = credentials.email.toLowerCase() === 'admin@liefdevooriedereen.nl'
+
+        // Turnstile verification (bot protection) - skip for admin accounts
+        if (shouldEnforceTurnstile() && !isAdminEmail) {
           if (!credentials.turnstileToken) {
             auditLog('LOGIN_FAILED', {
               userId: undefined,
