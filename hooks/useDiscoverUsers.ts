@@ -51,13 +51,32 @@ export function useDiscoverUsers(
       const currentFilters = newFilters || filters
       const params = new URLSearchParams()
 
+      // Basic filters
       if (currentFilters.name) params.append('name', currentFilters.name)
       if (currentFilters.minAge) params.append('minAge', currentFilters.minAge.toString())
       if (currentFilters.maxAge) params.append('maxAge', currentFilters.maxAge.toString())
       if (currentFilters.gender) params.append('gender', currentFilters.gender)
       if (currentFilters.city) params.append('city', currentFilters.city)
+      if (currentFilters.postcode) params.append('postcode', currentFilters.postcode)
+      if (currentFilters.maxDistance) params.append('maxDistance', currentFilters.maxDistance.toString())
       if (currentFilters.page) params.append('page', currentFilters.page.toString())
       if (currentFilters.limit) params.append('limit', currentFilters.limit.toString())
+
+      // Advanced filters - arrays to comma-separated strings
+      if (currentFilters.smoking?.length) params.append('smoking', currentFilters.smoking.join(','))
+      if (currentFilters.drinking?.length) params.append('drinking', currentFilters.drinking.join(','))
+      if (currentFilters.children?.length) params.append('children', currentFilters.children.join(','))
+      if (currentFilters.minHeight) params.append('minHeight', currentFilters.minHeight.toString())
+      if (currentFilters.maxHeight) params.append('maxHeight', currentFilters.maxHeight.toString())
+      if (currentFilters.education?.length) params.append('education', currentFilters.education.join(','))
+      if (currentFilters.religion?.length) params.append('religion', currentFilters.religion.join(','))
+      if (currentFilters.languages?.length) params.append('languages', currentFilters.languages.join(','))
+      if (currentFilters.ethnicity?.length) params.append('ethnicity', currentFilters.ethnicity.join(','))
+      if (currentFilters.interests?.length) params.append('interests', currentFilters.interests.join(','))
+      if (currentFilters.sports?.length) params.append('sports', currentFilters.sports.join(','))
+      if (currentFilters.relationshipGoal?.length) params.append('relationshipGoal', currentFilters.relationshipGoal.join(','))
+      if (currentFilters.verifiedOnly) params.append('verifiedOnly', 'true')
+      if (currentFilters.onlineRecently) params.append('onlineRecently', 'true')
 
       const response = await fetch(`/api/discover?${params.toString()}`)
 

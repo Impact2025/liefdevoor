@@ -39,6 +39,7 @@ import {
   Shield,
   Sparkles,
 } from 'lucide-react'
+import { CompatibilityBadge } from '@/components/ui/CompatibilityBadge'
 import { hapticSuccess, hapticImpact, hapticHeavy, hapticSelection } from '@/lib/haptics'
 
 // ============================================================================
@@ -70,6 +71,21 @@ export interface DiscoverProfile {
   children?: string
   interests?: string[]
   voiceIntro?: string
+  // Compatibility data (WERELDKLASSE matching!)
+  compatibility?: number
+  compatibilityBreakdown?: {
+    overall: number
+    interests: number
+    bio: number
+    location: number
+    activity: number
+    personality: number
+    loveLanguage: number
+    lifestyle: number
+  }
+  matchReasons?: string[]
+  matchScore?: number
+  matchQuality?: 'excellent' | 'good' | 'fair'
 }
 
 export interface DiscoverProfileCardProps {
@@ -692,10 +708,14 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
 
           {/* User Info at Bottom - positioned above action buttons */}
           <div className="absolute bottom-24 left-0 right-0 px-6 pb-4 text-white z-10">
-            {/* Name & Age */}
+            {/* Name & Age + Compatibility Badge */}
             <div className="flex items-center gap-3 mb-1">
               <h2 className="text-3xl font-bold">{profile.name}</h2>
               <span className="text-2xl font-light">{profile.age}</span>
+              {/* WERELDKLASSE: Compatibility Badge */}
+              {profile.compatibility && profile.compatibility > 0 && (
+                <CompatibilityBadge score={profile.compatibility} size="md" showLabel={false} />
+              )}
             </div>
 
             {/* Location */}
@@ -734,6 +754,26 @@ const DiscoverProfileCardInner = memo(function DiscoverProfileCardInner({
                 Over {profile.name}
               </h3>
               <p className="text-gray-700 leading-relaxed text-lg">{profile.bio}</p>
+            </div>
+          )}
+
+          {/* WERELDKLASSE: Waarom jullie matchen */}
+          {profile.matchReasons && profile.matchReasons.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Heart size={20} className="text-rose-500" />
+                Waarom jullie matchen
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.matchReasons.map((reason, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-100"
+                  >
+                    {reason}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 

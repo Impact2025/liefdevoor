@@ -82,6 +82,84 @@ function buildDiscoverWhere(
     where.city = currentUserCity
   }
 
+  // ============================================
+  // ADVANCED FILTERS - Wereldklasse filtering
+  // ============================================
+
+  // Smoking filter
+  if (filters.smoking && filters.smoking.length > 0) {
+    where.smoking = { in: filters.smoking }
+  }
+
+  // Drinking filter
+  if (filters.drinking && filters.drinking.length > 0) {
+    where.drinking = { in: filters.drinking }
+  }
+
+  // Children filter
+  if (filters.children && filters.children.length > 0) {
+    where.children = { in: filters.children }
+  }
+
+  // Height filters
+  if (filters.minHeight || filters.maxHeight) {
+    where.height = {}
+    if (filters.minHeight) {
+      where.height.gte = filters.minHeight
+    }
+    if (filters.maxHeight) {
+      where.height.lte = filters.maxHeight
+    }
+  }
+
+  // Education filter (Premium)
+  if (filters.education && filters.education.length > 0) {
+    where.education = { in: filters.education }
+  }
+
+  // Religion filter (Premium)
+  if (filters.religion && filters.religion.length > 0) {
+    where.religion = { in: filters.religion }
+  }
+
+  // Ethnicity filter (Premium)
+  if (filters.ethnicity && filters.ethnicity.length > 0) {
+    where.ethnicity = { in: filters.ethnicity }
+  }
+
+  // Languages filter (Premium) - User must speak at least one of the selected languages
+  if (filters.languages && filters.languages.length > 0) {
+    where.languages = { hasSome: filters.languages }
+  }
+
+  // Sports filter - User must have at least one of the selected sports
+  if (filters.sports && filters.sports.length > 0) {
+    where.sports = { hasSome: filters.sports }
+  }
+
+  // Interests filter - Search in comma-separated interests string
+  if (filters.interests && filters.interests.length > 0) {
+    // For comma-separated string interests, use OR with contains
+    where.OR = where.OR || []
+    filters.interests.forEach(interest => {
+      (where.OR as Prisma.UserWhereInput[]).push({
+        interests: { contains: interest, mode: 'insensitive' }
+      })
+    })
+  }
+
+  // Verified only filter
+  if (filters.verifiedOnly) {
+    where.isVerified = true
+  }
+
+  // Online recently filter (last 24 hours)
+  if (filters.onlineRecently) {
+    const oneDayAgo = new Date()
+    oneDayAgo.setHours(oneDayAgo.getHours() - 24)
+    where.lastSeen = { gte: oneDayAgo }
+  }
+
   return where
 }
 
@@ -142,6 +220,14 @@ export async function GET(request: NextRequest) {
 
     // Parse filters and pagination
     const { searchParams } = new URL(request.url)
+
+    // Helper to parse array params (comma-separated or multiple params)
+    const parseArrayParam = (key: string): string[] | undefined => {
+      const value = searchParams.get(key)
+      if (!value) return undefined
+      return value.split(',').map(v => v.trim()).filter(Boolean)
+    }
+
     const filters: DiscoverFilters = {
       name: searchParams.get('name') || undefined,
       minAge: searchParams.get('minAge') ? parseInt(searchParams.get('minAge')!) : undefined,
@@ -150,6 +236,22 @@ export async function GET(request: NextRequest) {
       postcode: searchParams.get('postcode') || undefined,
       gender: searchParams.get('gender') as any,
       maxDistance: searchParams.get('maxDistance') ? parseInt(searchParams.get('maxDistance')!) : undefined,
+
+      // Advanced filters
+      smoking: parseArrayParam('smoking'),
+      drinking: parseArrayParam('drinking'),
+      children: parseArrayParam('children'),
+      minHeight: searchParams.get('minHeight') ? parseInt(searchParams.get('minHeight')!) : undefined,
+      maxHeight: searchParams.get('maxHeight') ? parseInt(searchParams.get('maxHeight')!) : undefined,
+      education: parseArrayParam('education'),
+      religion: parseArrayParam('religion'),
+      languages: parseArrayParam('languages'),
+      ethnicity: parseArrayParam('ethnicity'),
+      interests: parseArrayParam('interests'),
+      sports: parseArrayParam('sports'),
+      relationshipGoal: parseArrayParam('relationshipGoal'),
+      verifiedOnly: searchParams.get('verifiedOnly') === 'true',
+      onlineRecently: searchParams.get('onlineRecently') === 'true',
     }
 
     const { page, limit, offset } = parsePaginationParams(searchParams)
@@ -265,6 +367,11 @@ export async function GET(request: NextRequest) {
         drinking: true,
         smoking: true,
         children: true,
+        // Advanced profile fields
+        religion: true,
+        languages: true,
+        ethnicity: true,
+        sports: true,
         // PsychProfile for personality & love language matching
         psychProfile: true,
         photos: {

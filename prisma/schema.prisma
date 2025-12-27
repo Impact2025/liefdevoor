@@ -107,6 +107,12 @@ model User {
   interests     String?
   preferences   Json?
   profileImage  String?
+
+  // Advanced profile fields for filtering
+  religion      String?           // Geloof/religie
+  languages     String[]          // Talen die gebruiker spreekt
+  ethnicity     String?           // Afkomst/achtergrond
+  sports        String[]          // Specifieke sporten
   voiceIntro    String?
   role          Role      @default(USER)
   isVerified    Boolean   @default(false)
@@ -253,6 +259,11 @@ model User {
   @@index([onboardingStep])
   @@index([incognitoMode])
   @@index([passportCity])
+  @@index([religion])
+  @@index([ethnicity])
+  @@index([education])
+  @@index([smoking])
+  @@index([drinking])
 }
 
 // ============================================

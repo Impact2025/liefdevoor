@@ -24,10 +24,10 @@ import {
 import { DiscoverProfileCard } from '@/components/features/discover/DiscoverProfileCard'
 import { LocationIndicator } from '@/components/features/discover/LocationIndicator'
 import { BoostButton } from '@/components/features/boost/BoostButton'
+import { AdvancedFiltersModal, type AdvancedFilters } from '@/components/features/discover/AdvancedFiltersModal'
 import { useDiscoverUsers, usePost, useCurrentUser } from '@/hooks'
 import { usePassport } from '@/hooks/usePassport'
-import { Modal, Button, Input, Select, Alert } from '@/components/ui'
-import { Gender } from '@prisma/client'
+import { Modal, Button, Alert } from '@/components/ui'
 import type { DiscoverFilters, SwipeResult } from '@/lib/types'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
@@ -72,12 +72,13 @@ export default function DiscoverPage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingDismissed, setOnboardingDismissed] = useState(false)
   const [matchData, setMatchData] = useState<any>(null)
-  const [filters, setFilters] = useState<DiscoverFilters>({ minAge: 18, maxAge: 99 })
-  const { users, isLoading, error, refetch, setUsers } = useDiscoverUsers(filters)
+  const [filters, setFilters] = useState<AdvancedFilters>({ minAge: 18, maxAge: 99 })
+  const { users, isLoading, error, refetch, setUsers } = useDiscoverUsers(filters as DiscoverFilters)
   const [swipesRemaining, setSwipesRemaining] = useState<number | null>(null)
   const [isUnlimited, setIsUnlimited] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [canRewind, setCanRewind] = useState(false)
+  const [isPremium, setIsPremium] = useState(false)
   const [isRewinding, setIsRewinding] = useState(false)
   const [lastSwipedUser, setLastSwipedUser] = useState<any>(null)
 
@@ -113,6 +114,8 @@ export default function DiscoverPage() {
             }
           }
           setCanRewind(data.isPlus || data.isComplete)
+          // Set premium status for advanced filters
+          setIsPremium(data.isPlus || data.isComplete)
         }
       } catch (err) {
         console.error('Error fetching limits:', err)
@@ -258,6 +261,12 @@ export default function DiscoverPage() {
       smoking: user.smoking,
       children: user.children,
       voiceIntro: user.voiceIntro,
+      // Compatibility data (WERELDKLASSE matching!)
+      compatibility: user.compatibility,
+      compatibilityBreakdown: user.compatibilityBreakdown,
+      matchReasons: user.matchReasons,
+      matchScore: user.matchScore,
+      matchQuality: user.matchQuality,
     }
   }
 
@@ -301,14 +310,31 @@ export default function DiscoverPage() {
     setUsers(users.slice(1))
   }, [users, isSwipeLoading, swipePost, setUsers])
 
-  const applyFilters = () => {
-    refetch(filters)
+  const handleApplyFilters = (newFilters: AdvancedFilters) => {
+    setFilters(newFilters)
+    // Convert AdvancedFilters to API-compatible format
+    const apiFilters: DiscoverFilters = {
+      ...newFilters,
+      // Convert arrays to comma-separated strings for URL params
+      smoking: newFilters.smoking,
+      drinking: newFilters.drinking,
+      children: newFilters.children,
+      education: newFilters.education,
+      religion: newFilters.religion,
+      languages: newFilters.languages,
+      ethnicity: newFilters.ethnicity,
+      interests: newFilters.interests,
+      sports: newFilters.sports,
+      relationshipGoal: newFilters.relationshipGoal,
+    }
+    refetch(apiFilters)
     setShowFilters(false)
   }
 
   const clearFilters = () => {
-    setFilters({ minAge: 18, maxAge: 99 })
-    refetch({ minAge: 18, maxAge: 99 })
+    const defaultFilters: AdvancedFilters = { minAge: 18, maxAge: 99 }
+    setFilters(defaultFilters)
+    refetch(defaultFilters as DiscoverFilters)
     setShowFilters(false)
   }
 
@@ -512,89 +538,14 @@ export default function DiscoverPage() {
         </div>
       )}
 
-      {/* Filter Modal */}
-      <Modal isOpen={showFilters} onClose={() => setShowFilters(false)} title="Filters" size="md">
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Leeftijd</label>
-            <div className="flex items-center gap-4">
-              <Input
-                type="number"
-                value={filters.minAge || 18}
-                onChange={(e) => setFilters({ ...filters, minAge: parseInt(e.target.value) || 18 })}
-                min={18}
-                max={99}
-                className="text-center"
-              />
-              <span className="text-gray-400">tot</span>
-              <Input
-                type="number"
-                value={filters.maxAge || 99}
-                onChange={(e) => setFilters({ ...filters, maxAge: parseInt(e.target.value) || 99 })}
-                min={18}
-                max={99}
-                className="text-center"
-              />
-            </div>
-          </div>
-
-          <Select
-            label="Ik zoek"
-            value={filters.gender || ''}
-            onChange={(e) => setFilters({ ...filters, gender: e.target.value as Gender | undefined })}
-            fullWidth
-            options={[
-              { value: '', label: 'Iedereen' },
-              { value: Gender.MALE, label: 'Mannen' },
-              { value: Gender.FEMALE, label: 'Vrouwen' },
-            ]}
-          />
-
-          <Input
-            label="Zoek op naam"
-            value={filters.name || ''}
-            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-            placeholder="Bijv. Jan, Maria..."
-            fullWidth
-          />
-
-          <Input
-            label="Zoek in stad"
-            value={filters.city || ''}
-            onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-            placeholder="Bijv. Amsterdam, Rotterdam..."
-            fullWidth
-          />
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Maximale afstand: {filters.maxDistance || 100} km
-            </label>
-            <input
-              type="range"
-              min="5"
-              max="500"
-              step="5"
-              value={filters.maxDistance || 100}
-              onChange={(e) => setFilters({ ...filters, maxDistance: parseInt(e.target.value) })}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>5 km</span>
-              <span>500 km</span>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button variant="secondary" onClick={clearFilters} fullWidth>
-              Reset
-            </Button>
-            <Button variant="primary" onClick={applyFilters} fullWidth>
-              Toepassen
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      {/* Advanced Filters Modal - Wereldklasse filtering */}
+      <AdvancedFiltersModal
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        filters={filters}
+        onApply={handleApplyFilters}
+        isPremium={isPremium}
+      />
 
       {/* Match Modal */}
       <Modal isOpen={showMatchModal} onClose={() => setShowMatchModal(false)} title="" size="md">

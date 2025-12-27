@@ -465,6 +465,32 @@ export interface DiscoverFilters {
   maxDistance?: number
   page?: number
   limit?: number
+
+  // Lifestyle filters
+  smoking?: string[]
+  drinking?: string[]
+  children?: string[]
+
+  // Physical
+  minHeight?: number
+  maxHeight?: number
+
+  // Background (Premium)
+  education?: string[]
+  religion?: string[]
+  languages?: string[]
+  ethnicity?: string[]
+
+  // Interests
+  interests?: string[]
+  sports?: string[]
+
+  // Relationship
+  relationshipGoal?: string[]
+
+  // Other
+  verifiedOnly?: boolean
+  onlineRecently?: boolean
 }
 
 /**
