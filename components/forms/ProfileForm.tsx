@@ -85,10 +85,24 @@ export interface ProfileFormProps {
 }
 
 export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
+  // Parse birthDate into day/month/year
+  const parseBirthDate = (dateString?: string | null) => {
+    if (!dateString) return { day: '', month: '', year: '' }
+    const date = new Date(dateString)
+    return {
+      day: String(date.getDate()).padStart(2, '0'),
+      month: String(date.getMonth() + 1).padStart(2, '0'),
+      year: String(date.getFullYear())
+    }
+  }
+
   // Basic form data
   const [name, setName] = useState(initialData?.name || '')
   const [bio, setBio] = useState(initialData?.bio || '')
-  const [birthDate, setBirthDate] = useState(initialData?.birthDate || '')
+  const birthParts = parseBirthDate(initialData?.birthDate)
+  const [birthDay, setBirthDay] = useState(birthParts.day)
+  const [birthMonth, setBirthMonth] = useState(birthParts.month)
+  const [birthYear, setBirthYear] = useState(birthParts.year)
   const [gender, setGender] = useState<Gender | undefined>(initialData?.gender || undefined)
 
   // Lifestyle data
@@ -134,7 +148,10 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
     if (initialData) {
       setName(initialData.name || '')
       setBio(initialData.bio || '')
-      setBirthDate(initialData.birthDate || '')
+      const parts = parseBirthDate(initialData.birthDate)
+      setBirthDay(parts.day)
+      setBirthMonth(parts.month)
+      setBirthYear(parts.year)
       setGender(initialData.gender || undefined)
       setOccupation(initialData.occupation || '')
       setEducation(initialData.education || '')
@@ -214,6 +231,13 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
 
     if (!validateForm()) return
 
+    // Combine day/month/year into birthDate format (YYYY-MM-DD)
+    let birthDate: string | undefined = undefined
+    if (birthDay && birthMonth && birthYear) {
+      const date = new Date(parseInt(birthYear), parseInt(birthMonth) - 1, parseInt(birthDay))
+      birthDate = date.toISOString().split('T')[0]
+    }
+
     const preferences: UserPreferences = {
       interests: selectedInterests,
       genderPreference: lookingFor as Gender || undefined,
@@ -290,34 +314,79 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
           disabled={isLoading}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            id="birthDate"
-            type="date"
-            label="Geboortedatum"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            fullWidth
-            disabled={isLoading}
-            max={new Date(new Date().setFullYear(new Date().getFullYear() - 18))
-              .toISOString()
-              .split('T')[0]}
-          />
-
-          <Select
-            id="gender"
-            label="Geslacht"
-            value={gender}
-            onChange={(e) => setGender(e.target.value as Gender)}
-            fullWidth
-            disabled={isLoading}
-            options={[
-              { value: Gender.MALE, label: 'Man' },
-              { value: Gender.FEMALE, label: 'Vrouw' },
-              { value: Gender.NON_BINARY, label: 'Non-binair' },
-            ]}
-          />
+        {/* Geboortedatum - 3 losse velden (wereldklasse UX!) */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Geboortedatum
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Dag"
+                value={birthDay}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 2)
+                  setBirthDay(val)
+                }}
+                disabled={isLoading}
+                maxLength={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1 text-center">DD</p>
+            </div>
+            <div>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Maand"
+                value={birthMonth}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 2)
+                  setBirthMonth(val)
+                }}
+                disabled={isLoading}
+                maxLength={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1 text-center">MM</p>
+            </div>
+            <div>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Jaar"
+                value={birthYear}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4)
+                  setBirthYear(val)
+                }}
+                disabled={isLoading}
+                maxLength={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1 text-center">JJJJ</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Bijv. 15 - 06 - 1990 (Je moet minimaal 18 jaar zijn)
+          </p>
         </div>
+
+        <Select
+          id="gender"
+          label="Geslacht"
+          value={gender}
+          onChange={(e) => setGender(e.target.value as Gender)}
+          fullWidth
+          disabled={isLoading}
+          options={[
+            { value: Gender.MALE, label: 'Man' },
+            { value: Gender.FEMALE, label: 'Vrouw' },
+            { value: Gender.NON_BINARY, label: 'Non-binair' },
+          ]}
+        />
       </section>
 
       {/* === LIFESTYLE SECTION === */}
@@ -665,7 +734,10 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
             if (initialData) {
               setName(initialData.name || '')
               setBio(initialData.bio || '')
-              setBirthDate(initialData.birthDate || '')
+              const parts = parseBirthDate(initialData.birthDate)
+              setBirthDay(parts.day)
+              setBirthMonth(parts.month)
+              setBirthYear(parts.year)
               setGender(initialData.gender || undefined)
               setOccupation(initialData.occupation || '')
               setEducation(initialData.education || '')
