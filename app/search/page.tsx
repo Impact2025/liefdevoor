@@ -30,6 +30,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Button, Input, Select, Modal } from '@/components/ui'
+import { CompatibilityBadge } from '@/components/ui/CompatibilityBadge'
 import { usePost } from '@/hooks'
 import { Gender } from '@prisma/client'
 
@@ -44,6 +45,10 @@ interface SearchUser {
   isVerified: boolean
   lastActive: Date | null
   distance?: number
+  // Compatibility data
+  compatibility?: number
+  matchScore?: number
+  matchReasons?: string[]
 }
 
 interface SearchFilters {
@@ -465,23 +470,32 @@ export default function SearchPage() {
                           }`}
                         />
 
-                        {/* Verified Badge */}
+                        {/* Compatibility Badge */}
+                        {user.compatibility && user.compatibility > 0 && (
+                          <div className="absolute top-3 right-3">
+                            <CompatibilityBadge score={user.compatibility} size="sm" showLabel={false} />
+                          </div>
+                        )}
+
+                        {/* Verified Badge - positioned after online dot */}
                         {user.isVerified && (
-                          <div className="absolute top-3 right-3 bg-blue-500 text-white p-1.5 rounded-full">
-                            <Shield size={14} />
+                          <div className="absolute top-3 left-8 bg-blue-500 text-white p-1 rounded-full">
+                            <Shield size={12} />
                           </div>
                         )}
 
                         {/* User Info */}
                         <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                          <h3 className="font-bold text-lg truncate">
-                            {user.name}
-                            {user.birthDate && (
-                              <span className="font-normal">
-                                , {calculateAge(user.birthDate)}
-                              </span>
-                            )}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg truncate">
+                              {user.name}
+                              {user.birthDate && (
+                                <span className="font-normal">
+                                  , {calculateAge(user.birthDate)}
+                                </span>
+                              )}
+                            </h3>
+                          </div>
                           {user.city && (
                             <div className="flex items-center gap-1 text-sm text-white/80">
                               <MapPin size={12} />
