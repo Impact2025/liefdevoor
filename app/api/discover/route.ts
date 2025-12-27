@@ -6,6 +6,50 @@ import type { Prisma } from '@prisma/client'
 import { calculateCompatibility } from '@/lib/services/matching/compatibility-engine'
 
 /**
+ * Geocode a Dutch/Belgian postcode to coordinates
+ */
+async function geocodePostcode(postcode: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const cleanedPostcode = postcode.replace(/\s/g, '').toUpperCase()
+
+    // Determine country based on postcode format
+    const dutchRegex = /^[1-9][0-9]{3}[A-Z]{2}$/
+    const belgianRegex = /^[1-9][0-9]{3}$/
+
+    let country = 'nl'
+    if (belgianRegex.test(cleanedPostcode) && !dutchRegex.test(cleanedPostcode)) {
+      country = 'be'
+    }
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?` +
+      `postalcode=${cleanedPostcode}&` +
+      `country=${country}&` +
+      `format=json&` +
+      `limit=1`,
+      {
+        headers: {
+          'User-Agent': 'LiefdeVoorIedereen/1.0',
+        },
+      }
+    )
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    if (!data || data.length === 0) return null
+
+    return {
+      lat: parseFloat(data[0].lat),
+      lng: parseFloat(data[0].lon),
+    }
+  } catch (error) {
+    console.error('[Geocode] Error:', error)
+    return null
+  }
+}
+
+/**
  * Calculate distance between two points using Haversine formula
  */
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -41,12 +85,14 @@ function ageToBirthDateRange(minAge?: number, maxAge?: number) {
 
 /**
  * Build Prisma where clause from filters and preferences
+ * @param useDistanceFiltering - If true, skip postcode startsWith filter (distance filtering handles location)
  */
 function buildDiscoverWhere(
   excludeIds: string[],
   filters: DiscoverFilters,
   prefs: UserPreferences,
-  currentUserCity?: string | null
+  currentUserCity?: string | null,
+  useDistanceFiltering: boolean = false
 ): Prisma.UserWhereInput {
   const where: Prisma.UserWhereInput = {
     id: { notIn: excludeIds },
@@ -73,13 +119,18 @@ function buildDiscoverWhere(
     where.gender = prefs.genderPreference
   }
 
-  // Location filtering (postcode has priority over city)
-  if (filters.postcode) {
-    where.postcode = { startsWith: filters.postcode.replace(/\s/g, '').toUpperCase() }
-  } else if (filters.city) {
-    where.city = { contains: filters.city, mode: 'insensitive' }
-  } else if (currentUserCity && prefs.maxDistance && prefs.maxDistance < 50) {
-    where.city = currentUserCity
+  // Location filtering
+  // If useDistanceFiltering is true (postcode geocoded successfully), skip postcode/city filter
+  // Distance filtering in the main function will handle location
+  if (!useDistanceFiltering) {
+    if (filters.postcode) {
+      // Fallback: exact postcode match if geocoding failed
+      where.postcode = { startsWith: filters.postcode.replace(/\s/g, '').toUpperCase() }
+    } else if (filters.city) {
+      where.city = { contains: filters.city, mode: 'insensitive' }
+    } else if (currentUserCity && prefs.maxDistance && prefs.maxDistance < 50) {
+      where.city = currentUserCity
+    }
   }
 
   // ============================================
@@ -214,9 +265,9 @@ export async function GET(request: NextRequest) {
       new Date(currentUser.passportExpiresAt) > now
 
     // Use passport location if active, otherwise use real location
-    const effectiveLatitude = isPassportActive ? currentUser.passportLatitude : currentUser.latitude
-    const effectiveLongitude = isPassportActive ? currentUser.passportLongitude : currentUser.longitude
-    const effectiveCity = isPassportActive ? currentUser.passportCity : currentUser.city
+    let effectiveLatitude = isPassportActive ? currentUser.passportLatitude : currentUser.latitude
+    let effectiveLongitude = isPassportActive ? currentUser.passportLongitude : currentUser.longitude
+    let effectiveCity = isPassportActive ? currentUser.passportCity : currentUser.city
 
     // Parse filters and pagination
     const { searchParams } = new URL(request.url)
@@ -256,6 +307,23 @@ export async function GET(request: NextRequest) {
 
     const { page, limit, offset } = parsePaginationParams(searchParams)
 
+    // 🔍 POSTCODE SEARCH: When searching by postcode, geocode it for distance-based filtering
+    let searchPostcodeCoords: { lat: number; lng: number } | null = null
+    if (filters.postcode) {
+      console.log(`[Discover] Geocoding search postcode: ${filters.postcode}`)
+      searchPostcodeCoords = await geocodePostcode(filters.postcode)
+      if (searchPostcodeCoords) {
+        console.log(`[Discover] Postcode ${filters.postcode} → lat: ${searchPostcodeCoords.lat}, lng: ${searchPostcodeCoords.lng}`)
+        // Override effective location with search postcode coordinates
+        effectiveLatitude = searchPostcodeCoords.lat
+        effectiveLongitude = searchPostcodeCoords.lng
+        // Set a default maxDistance if not provided (50km radius from postcode)
+        if (!filters.maxDistance) {
+          filters.maxDistance = 50
+        }
+      }
+    }
+
     // Get excluded users with optimized UNION query
     const excludedUsers = await prisma.$queryRaw<Array<{ id: string }>>`
       SELECT "swipedId" as id FROM "Swipe" WHERE "swiperId" = ${currentUser.id}
@@ -272,7 +340,9 @@ export async function GET(request: NextRequest) {
     const excludeIds = [currentUser.id, ...excludedUsers.map(u => u.id)]
 
     // Build where clause using helper (use effective city from passport if active)
-    const where = buildDiscoverWhere(excludeIds, filters, prefs, effectiveCity)
+    // Use distance filtering if postcode was successfully geocoded
+    const useDistanceFiltering = searchPostcodeCoords !== null
+    const where = buildDiscoverWhere(excludeIds, filters, prefs, effectiveCity, useDistanceFiltering)
 
     // Filter out incognito users (they don't appear in discover)
     where.incognitoMode = false
