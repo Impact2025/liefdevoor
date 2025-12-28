@@ -248,6 +248,10 @@ export const rateLimiters = {
   register: (request: NextRequest) =>
     rateLimit(request, 'register', { maxRequests: 3, windowMs: 10 * 60 * 1000 }),
 
+  // Email Verification: 10 attempts per hour (protect against brute force)
+  emailVerify: (request: NextRequest) =>
+    rateLimit(request, 'email-verify', { maxRequests: 10, windowMs: 60 * 60 * 1000 }),
+
   // API general: 100 requests per minute
   api: (request: NextRequest) =>
     rateLimit(request, 'api', { maxRequests: 100, windowMs: 60 * 1000 }),

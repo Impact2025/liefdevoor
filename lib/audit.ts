@@ -20,6 +20,12 @@ export type AuditAction =
   | 'PASSWORD_RESET_FAILED'
   | 'PASSWORD_RESET_EMAIL_SENT'
   | 'PASSWORD_RESET_EMAIL_FAILED'
+  // Email Verification (World Class System)
+  | 'EMAIL_VERIFIED'
+  | 'EMAIL_VERIFICATION_FAILED'
+  | 'EMAIL_VERIFICATION_RATE_LIMITED'
+  | 'EMAIL_SCANNER_BLOCKED'
+  // Profile & User Management
   | 'PROFILE_UPDATE'
   | 'ADMIN_ACTION'
   | 'USER_BANNED'

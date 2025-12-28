@@ -36,7 +36,96 @@ export async function createVerificationToken(email: string): Promise<string> {
 }
 
 /**
+ * Validate a token WITHOUT consuming it (for preview/check)
+ * Used to show confirmation page before actual verification
+ */
+export async function validateToken(token: string): Promise<{
+  valid: boolean
+  message: string
+  email?: string
+  userName?: string
+  errorCode?: 'INVALID' | 'EXPIRED' | 'ALREADY_VERIFIED' | 'ERROR'
+}> {
+  try {
+    console.log('[ValidateToken] Checking token:', token?.substring(0, 10) + '...')
+
+    if (!token || token.length !== 64) {
+      return {
+        valid: false,
+        message: 'Ongeldige verificatie link. De link is niet compleet.',
+        errorCode: 'INVALID'
+      }
+    }
+
+    // Find the token
+    const verificationToken = await prisma.emailVerification.findUnique({
+      where: { token },
+    })
+
+    if (!verificationToken) {
+      // Check if user is already verified
+      const allTokens = await prisma.emailVerification.findMany()
+      console.log('[ValidateToken] Token not found. Total tokens in DB:', allTokens.length)
+
+      return {
+        valid: false,
+        message: 'Deze verificatie link is niet geldig. Mogelijk is je account al geverifieerd.',
+        errorCode: 'INVALID'
+      }
+    }
+
+    // Check if token has expired
+    if (verificationToken.expires < new Date()) {
+      console.log('[ValidateToken] Token expired:', {
+        expires: verificationToken.expires,
+        now: new Date()
+      })
+
+      return {
+        valid: false,
+        message: 'Deze verificatie link is verlopen. Vraag een nieuwe link aan.',
+        errorCode: 'EXPIRED',
+        email: verificationToken.email
+      }
+    }
+
+    // Check if user is already verified
+    const user = await prisma.user.findUnique({
+      where: { email: verificationToken.email },
+      select: { name: true, emailVerified: true, isVerified: true }
+    })
+
+    if (user?.emailVerified || user?.isVerified) {
+      console.log('[ValidateToken] User already verified')
+      return {
+        valid: false,
+        message: 'Je account is al geverifieerd. Je kunt direct inloggen.',
+        errorCode: 'ALREADY_VERIFIED',
+        email: verificationToken.email
+      }
+    }
+
+    console.log('[ValidateToken] Token is valid for:', verificationToken.email)
+
+    return {
+      valid: true,
+      message: 'Token is geldig',
+      email: verificationToken.email,
+      userName: user?.name || verificationToken.email.split('@')[0]
+    }
+  } catch (error) {
+    console.error('[ValidateToken] Error:', error)
+    return {
+      valid: false,
+      message: 'Er ging iets mis bij het controleren van de link.',
+      errorCode: 'ERROR'
+    }
+  }
+}
+
+/**
  * Verify a token and activate the user's account
+ * This actually CONSUMES the token (should only be called after user confirmation)
  */
 export async function verifyToken(token: string): Promise<{
   success: boolean
@@ -44,51 +133,19 @@ export async function verifyToken(token: string): Promise<{
   email?: string
 }> {
   try {
-    console.log('[VerifyToken] Received token:', token)
-    console.log('[VerifyToken] Token length:', token.length)
+    console.log('[VerifyToken] Attempting to verify token:', token?.substring(0, 10) + '...')
 
-    // Find the token
-    const verificationToken = await prisma.emailVerification.findUnique({
-      where: { token },
-    })
+    // First validate the token
+    const validation = await validateToken(token)
 
-    console.log('[VerifyToken] Token found in DB:', !!verificationToken)
-    if (verificationToken) {
-      console.log('[VerifyToken] Token details:', {
-        email: verificationToken.email,
-        expires: verificationToken.expires,
-        isExpired: verificationToken.expires < new Date()
-      })
-    }
-
-    if (!verificationToken) {
-      // Check if there are ANY tokens in the database for debugging
-      const allTokens = await prisma.emailVerification.findMany()
-      console.log('[VerifyToken] Total tokens in DB:', allTokens.length)
-      if (allTokens.length > 0) {
-        console.log('[VerifyToken] Sample token length from DB:', allTokens[0].token.length)
-      }
-
+    if (!validation.valid) {
       return {
         success: false,
-        message: 'Ongeldige verificatie link. Vraag een nieuwe link aan.',
+        message: validation.message
       }
     }
 
-    // Check if token has expired
-    if (verificationToken.expires < new Date()) {
-      // Delete expired token
-      await prisma.emailVerification.delete({
-        where: { token },
-      })
-
-      return {
-        success: false,
-        message: 'Deze verificatie link is verlopen. Vraag een nieuwe link aan.',
-      }
-    }
-
-    const email = verificationToken.email
+    const email = validation.email!
 
     // Update user to mark email as verified
     await prisma.user.update({
@@ -104,13 +161,15 @@ export async function verifyToken(token: string): Promise<{
       where: { token },
     })
 
+    console.log('[VerifyToken] Successfully verified:', email)
+
     return {
       success: true,
       message: 'Je email is geverifieerd! Je account is nu actief.',
       email,
     }
   } catch (error) {
-    console.error('[Verification] Error verifying token:', error)
+    console.error('[VerifyToken] Error:', error)
     return {
       success: false,
       message: 'Er ging iets mis bij het verifiëren. Probeer het opnieuw.',

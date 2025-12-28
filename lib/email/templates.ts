@@ -139,8 +139,8 @@ export function getVerificationEmailHtml(data: EmailVerificationData): string {
           <p style="margin: 0 0 8px; color: ${BRAND.textMuted}; font-size: 12px;">
             Werkt de knop niet? Kopieer deze link:
           </p>
-          <p style="margin: 0; color: ${BRAND.textColor}; font-size: 12px; word-break: break-all; line-height: 1.5;">
-            ${data.verificationUrl}
+          <p style="margin: 0; color: ${BRAND.textColor}; font-size: 12px; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.5;">
+            <a href="${data.verificationUrl}" style="color: ${BRAND.primaryColor}; text-decoration: underline;">${data.verificationUrl}</a>
           </p>
         </div>
       </td>
@@ -206,8 +206,8 @@ export function getPasswordResetEmailHtml(data: PasswordResetEmailData): string 
           <p style="margin: 0 0 8px; color: ${BRAND.textMuted}; font-size: 12px;">
             Werkt de knop niet? Kopieer deze link:
           </p>
-          <p style="margin: 0; color: ${BRAND.textColor}; font-size: 12px; word-break: break-all; line-height: 1.5;">
-            ${data.resetUrl}
+          <p style="margin: 0; color: ${BRAND.textColor}; font-size: 12px; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.5;">
+            <a href="${data.resetUrl}" style="color: ${BRAND.primaryColor}; text-decoration: underline;">${data.resetUrl}</a>
           </p>
         </div>
       </td>
