@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Heart, ShieldCheck, Users, MessageCircle, Bell, Check, Star, Sparkles, Lock, ArrowRight } from "lucide-react";
 import { useSession, signOut } from 'next-auth/react'
 import HowItWorksSection from '@/components/landing/HowItWorksSection'
+import DoelgroepGrid from '@/components/landing/DoelgroepGrid'
 import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
@@ -253,7 +254,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <p>Al <strong className="text-white">10.000+</strong> matches gemaakt</p>
+              <p><strong className="text-white">100% echte mensen.</strong> Geen nepprofielen.</p>
             </div>
           </div>
         </div>
@@ -264,22 +265,20 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-5xl font-black text-slate-800 mb-2">50K+</div>
-              <div className="text-slate-600 font-medium">Actieve leden</div>
+              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">Sinds 2009</div>
+              <div className="text-slate-600 font-medium">Al 15+ jaar ervaring</div>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-black text-slate-800 mb-2">10K+</div>
-              <div className="text-slate-600 font-medium">Succesvolle matches</div>
+              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">100% Veilig</div>
+              <div className="text-slate-600 font-medium">Handmatige controles</div>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-black text-slate-800 mb-2 flex items-center justify-center gap-1">
-                4.9 <Star className="w-8 h-8 text-amber-400 fill-amber-400" />
-              </div>
-              <div className="text-slate-600 font-medium">Beoordeling</div>
+              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">Persoonlijk</div>
+              <div className="text-slate-600 font-medium">Gewoon Nederlands contact</div>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-black text-slate-800 mb-2">100%</div>
-              <div className="text-slate-600 font-medium">Nederlands</div>
+              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">Inclusief</div>
+              <div className="text-slate-600 font-medium">Iedereen is welkom</div>
             </div>
           </div>
         </div>
@@ -342,6 +341,9 @@ export default function Home() {
 
       {/* How it Works - Bento Grid */}
       <HowItWorksSection />
+
+      {/* Doelgroep Grid - Speciale Communities */}
+      <DoelgroepGrid />
 
       {/* Testimonials - With Photos */}
       <section className="py-24 bg-white">
@@ -418,7 +420,7 @@ export default function Home() {
               Klaar om de liefde te vinden?
             </h2>
             <p className="text-xl text-rose-100 mb-10 max-w-2xl mx-auto">
-              Sluit je aan bij duizenden singles die hun match al vonden. Gratis aanmelden duurt maar 2 minuten.
+              Sluit je aan bij het platform dat al sinds 2009 mensen verbindt. Gratis aanmelden duurt maar 2 minuten.
             </p>
             <Link
               href="/register"
@@ -448,8 +450,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-            <div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center space-x-2 mb-5">
                 <Image
                   src="/images/LiefdevoorIedereen_logo.png"
@@ -470,6 +472,15 @@ export default function Home() {
                 <li><Link href="/discover" className="hover:text-white transition-colors">Ontdekken</Link></li>
                 <li><Link href="/matches" className="hover:text-white transition-colors">Matches</Link></li>
                 <li><Link href="/prijzen" className="hover:text-white transition-colors">Abonnementen</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Communities</h3>
+              <ul className="space-y-3 text-sm text-slate-400">
+                <li><Link href="/dating-met-autisme" className="hover:text-white transition-colors">Dating met Autisme</Link></li>
+                <li><Link href="/veilig-daten-lvb" className="hover:text-white transition-colors">Veilig Daten (LVB)</Link></li>
+                <li><Link href="/dating-voor-slechtzienden" className="hover:text-white transition-colors">Slechtzienden</Link></li>
+                <li><Link href="/dating-met-beperking" className="hover:text-white transition-colors">Fysieke Beperking</Link></li>
               </ul>
             </div>
             <div>
