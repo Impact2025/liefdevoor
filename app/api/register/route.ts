@@ -151,10 +151,13 @@ export async function POST(request: NextRequest) {
 
     // Create verification token
     const token = await createVerificationToken(user.email!)
+    console.log('[Register] Created verification token:', token)
+    console.log('[Register] Token length:', token.length)
 
     // Generate verification URL (remove trailing slash to prevent //)
     const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
     const verificationUrl = `${baseUrl}/api/auth/verify?token=${token}`
+    console.log('[Register] Verification URL:', verificationUrl)
 
     // Send verification email
     try {

@@ -525,6 +525,18 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Custom email verification table (separate from NextAuth's VerificationToken)
+model EmailVerification {
+  id         String   @id @default(cuid())
+  email      String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
 model Subscription {
   id              String    @id @default(cuid())
   userId          String

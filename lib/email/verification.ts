@@ -19,14 +19,14 @@ export async function createVerificationToken(email: string): Promise<string> {
   expires.setHours(expires.getHours() + 24)
 
   // Delete any existing tokens for this email
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: email },
+  await prisma.emailVerification.deleteMany({
+    where: { email },
   })
 
   // Create new token
-  await prisma.verificationToken.create({
+  await prisma.emailVerification.create({
     data: {
-      identifier: email,
+      email,
       token,
       expires,
     },
@@ -44,12 +44,31 @@ export async function verifyToken(token: string): Promise<{
   email?: string
 }> {
   try {
+    console.log('[VerifyToken] Received token:', token)
+    console.log('[VerifyToken] Token length:', token.length)
+
     // Find the token
-    const verificationToken = await prisma.verificationToken.findUnique({
+    const verificationToken = await prisma.emailVerification.findUnique({
       where: { token },
     })
 
+    console.log('[VerifyToken] Token found in DB:', !!verificationToken)
+    if (verificationToken) {
+      console.log('[VerifyToken] Token details:', {
+        email: verificationToken.email,
+        expires: verificationToken.expires,
+        isExpired: verificationToken.expires < new Date()
+      })
+    }
+
     if (!verificationToken) {
+      // Check if there are ANY tokens in the database for debugging
+      const allTokens = await prisma.emailVerification.findMany()
+      console.log('[VerifyToken] Total tokens in DB:', allTokens.length)
+      if (allTokens.length > 0) {
+        console.log('[VerifyToken] Sample token length from DB:', allTokens[0].token.length)
+      }
+
       return {
         success: false,
         message: 'Ongeldige verificatie link. Vraag een nieuwe link aan.',
@@ -59,7 +78,7 @@ export async function verifyToken(token: string): Promise<{
     // Check if token has expired
     if (verificationToken.expires < new Date()) {
       // Delete expired token
-      await prisma.verificationToken.delete({
+      await prisma.emailVerification.delete({
         where: { token },
       })
 
@@ -69,7 +88,7 @@ export async function verifyToken(token: string): Promise<{
       }
     }
 
-    const email = verificationToken.identifier
+    const email = verificationToken.email
 
     // Update user to mark email as verified
     await prisma.user.update({
@@ -81,7 +100,7 @@ export async function verifyToken(token: string): Promise<{
     })
 
     // Delete the used token
-    await prisma.verificationToken.delete({
+    await prisma.emailVerification.delete({
       where: { token },
     })
 

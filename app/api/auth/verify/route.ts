@@ -14,6 +14,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const token = searchParams.get('token')
 
+    console.log('[Verify API] Full URL:', request.url)
+    console.log('[Verify API] Token from query:', token)
+    console.log('[Verify API] Token length:', token?.length)
+
     if (!token) {
       return NextResponse.json(
         { error: 'Verificatie token is verplicht' },
