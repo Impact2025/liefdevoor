@@ -11,6 +11,7 @@ import { ContextualInstallPrompt } from '@/components/pwa/ContextualInstallPromp
 import { IOSPushPermissions } from '@/components/pwa/IOSPushPermissions'
 import { ToastProvider } from '@/components/ui/toast'
 import { analytics, identifyUser } from '@/lib/analytics'
+import { AccessibilityProvider } from '@/contexts/AccessibilityContext'
 
 // Analytics tracker component
 function AnalyticsTracker() {
@@ -57,17 +58,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <AdaptiveUIProvider>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <AnalyticsTracker />
-          <ToastProvider />
-          {children}
+          <AccessibilityProvider>
+            <AnalyticsTracker />
+            <ToastProvider />
+            {children}
 
-          {/* PWA Install & Update Prompts */}
-          <UpdatePrompt />
-          <InstallSuccess />
-          <ContextualInstallPrompt trigger="return_visit" delay={5000} />
-          <IOSPushPermissions />
-          <InstallPrompt delay={10000} />
-          <IOSInstallInstructions />
+            {/* PWA Install & Update Prompts */}
+            <UpdatePrompt />
+            <InstallSuccess />
+            <ContextualInstallPrompt trigger="return_visit" delay={5000} />
+            <IOSPushPermissions />
+            <InstallPrompt delay={10000} />
+            <IOSInstallInstructions />
+          </AccessibilityProvider>
         </SessionProvider>
       </QueryClientProvider>
     </AdaptiveUIProvider>

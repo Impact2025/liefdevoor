@@ -209,3 +209,136 @@
   .text-gradient { @apply bg-clip-text text-transparent; background-image: linear-gradient(135deg, #E91E63 0%, #F472B6 100%); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* =========================================
+   ACCESSIBILITY FEATURES - WERELDKLASSE
+   ========================================= */
+
+/* High Contrast Mode - WCAG AAA (7:1 ratio) */
+.high-contrast {
+  --color-bg: 255 255 255;
+  --color-text: 0 0 0;
+  --color-primary: 220 38 38; /* Darker rose for better contrast */
+}
+
+.high-contrast * {
+  border-color: #000 !important;
+  outline-color: #000 !important;
+}
+
+.high-contrast button,
+.high-contrast a {
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* Large Text Mode - 125% scaling */
+.large-text {
+  --adaptive-text-scale: 1.25;
+  line-height: 1.6 !important;
+  letter-spacing: 0.015em !important;
+}
+
+.large-text h1 { font-size: 3rem !important; }
+.large-text h2 { font-size: 2.25rem !important; }
+.large-text h3 { font-size: 1.875rem !important; }
+.large-text p, .large-text li, .large-text span { font-size: 1.25rem !important; }
+
+/* Large Targets Mode - Minimum 56px touch targets */
+.large-targets {
+  --adaptive-target-min: 56px;
+}
+
+.large-targets button,
+.large-targets a,
+.large-targets input,
+.large-targets select {
+  min-height: 56px !important;
+  min-width: 56px !important;
+  padding: 1rem 1.5rem !important;
+  font-size: 1.125rem !important;
+}
+
+.large-targets .icon {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* Vision Impaired Mode - Master toggle combining all visual aids */
+.vision-impaired {
+  --color-bg: 255 255 255;
+  --color-text: 0 0 0;
+}
+
+.vision-impaired * {
+  font-weight: 500 !important;
+}
+
+.vision-impaired img {
+  border: 3px solid #000 !important;
+}
+
+/* Color Blind Modes - Deuteranopia (green deficiency) */
+.colorblind-deuteranopia {
+  filter: url('#deuteranopia-filter');
+}
+
+/* Color Blind Modes - Protanopia (red deficiency) */
+.colorblind-protanopia {
+  filter: url('#protanopia-filter');
+}
+
+/* Color Blind Modes - Tritanopia (blue deficiency) */
+.colorblind-tritanopia {
+  filter: url('#tritanopia-filter');
+}
+
+/* Focus Indicators - Extra prominent for keyboard navigation */
+.vision-impaired *:focus,
+.large-targets *:focus {
+  outline: 4px solid #2563eb !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Screen Reader Only (visually hidden but accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to Content Link - For keyboard users */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+  font-weight: 600;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Reduced Motion - Respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

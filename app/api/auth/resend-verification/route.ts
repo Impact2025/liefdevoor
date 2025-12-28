@@ -1,77 +1,62 @@
 /**
- * Resend Verification Email API Route
- *
- * Allows users to request a new verification email
+ * Resend Verification Email API
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createVerificationToken, needsEmailVerification } from '@/lib/email/verification'
+import { createVerificationToken } from '@/lib/email/verification'
 import { sendEmail } from '@/lib/email/send'
 import { getVerificationEmailHtml, getVerificationEmailText } from '@/lib/email/templates'
+import { z } from 'zod'
+
+const resendSchema = z.object({
+  email: z.string().email(),
+})
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email } = body
+    const { email } = resendSchema.parse(body)
 
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is verplicht' },
-        { status: 400 }
-      )
-    }
-
-    // Check if user exists
     const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true, name: true, emailVerified: true },
+      where: { email: email.toLowerCase() },
+      select: { id: true, name: true, email: true, emailVerified: true }
     })
 
     if (!user) {
-      // Don't reveal if user exists or not (security)
       return NextResponse.json({
-        message: 'Als dit email adres bestaat, hebben we een verificatie email verstuurd.',
+        success: true,
+        message: 'Als dit email bestaat, is er een nieuwe link verstuurd.'
       })
     }
 
-    // Check if already verified
     if (user.emailVerified) {
-      return NextResponse.json(
-        { error: 'Dit email adres is al geverifieerd' },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        success: false,
+        error: { message: 'Email is al geverifieerd. Je kunt inloggen.' }
+      }, { status: 400 })
     }
 
-    // Create verification token
-    const token = await createVerificationToken(email)
-
-    // Generate verification URL
+    const token = await createVerificationToken(user.email!)
     const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
     const verificationUrl = `${baseUrl}/api/auth/verify?token=${token}`
 
-    // Send verification email
     await sendEmail({
-      to: email,
-      subject: 'Activeer je Liefde Voor Iedereen account',
-      html: getVerificationEmailHtml({
-        name: user.name || 'daar',
-        verificationUrl,
-      }),
-      text: getVerificationEmailText({
-        name: user.name || 'daar',
-        verificationUrl,
-      }),
+      to: user.email!,
+      subject: 'Activeer je account',
+      html: getVerificationEmailHtml({ name: user.name || 'daar', verificationUrl }),
+      text: getVerificationEmailText({ name: user.name || 'daar', verificationUrl }),
     })
 
     return NextResponse.json({
-      message: 'Verificatie email verstuurd! Check je inbox.',
+      success: true,
+      message: 'Nieuwe verificatie link verstuurd!'
     })
   } catch (error) {
-    console.error('[Resend Verification] Error:', error)
-    return NextResponse.json(
-      { error: 'Er ging iets mis bij het versturen van de email' },
-      { status: 500 }
-    )
+    console.error('[Resend] Error:', error)
+    return NextResponse.json({
+      success: false,
+      error: { message: 'Er ging iets mis' }
+    }, { status: 500 })
   }
 }

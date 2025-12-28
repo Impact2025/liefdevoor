@@ -261,24 +261,40 @@ export default function Home() {
       </section>
 
       {/* Stats Section - Upgraded */}
-      <section className="py-16 bg-stone-50 border-y border-slate-200">
+      <section className="py-12 md:py-16 bg-stone-50 border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div className="text-center">
-              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">Sinds 2009</div>
-              <div className="text-slate-600 font-medium">Al 15+ jaar ervaring</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 mb-1 leading-tight">
+                Sinds<br className="sm:hidden" /> 2009
+              </div>
+              <div className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2">
+                Al 15+ jaar ervaring
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">100% Veilig</div>
-              <div className="text-slate-600 font-medium">Handmatige controles</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 mb-1 leading-tight">
+                100%<br className="sm:hidden" /> Veilig
+              </div>
+              <div className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2">
+                Handmatige controles
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">Persoonlijk</div>
-              <div className="text-slate-600 font-medium">Gewoon Nederlands contact</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 mb-1 leading-tight">
+                Persoonlijk
+              </div>
+              <div className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2">
+                Gewoon Nederlands contact
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-4xl md:text-5xl font-black text-slate-800 mb-1">Inclusief</div>
-              <div className="text-slate-600 font-medium">Iedereen is welkom</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 mb-1 leading-tight">
+                Inclusief
+              </div>
+              <div className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2">
+                Iedereen is welkom
+              </div>
             </div>
           </div>
         </div>

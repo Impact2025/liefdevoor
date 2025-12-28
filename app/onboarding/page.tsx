@@ -16,6 +16,9 @@ import LoveLanguagesStep, { LoveLanguageData } from '@/components/onboarding/ste
 import DealbreakersStep, { DealbreakersData } from '@/components/onboarding/steps/DealbreakersStep';
 import FinishStep from '@/components/onboarding/steps/FinishStep';
 
+// Accessibility Welcome Screen
+import AccessibilityWelcome from '@/components/accessibility/AccessibilityWelcome';
+
 // Error Boundary & Analytics
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { trackOnboardingStep, trackOnboardingDropoff, trackOnboardingComplete } from '@/lib/analytics-events';
@@ -55,6 +58,8 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAccessibilityWelcome, setShowAccessibilityWelcome] = useState(false);
+  const [registrationSource, setRegistrationSource] = useState<string | null>(null);
 
   // A/B Testing
   const { variant: flowVariant, trackConversion } = useExperiment('onboarding_flow');
@@ -78,8 +83,18 @@ export default function OnboardingPage() {
             router.push('/discover');
             return;
           }
+
           // Set step from server or default to 1
           setCurrentStep(data.onboardingStep || 1);
+
+          // Check if user has accessibility source and is on step 1 (first time)
+          if (data.registrationSource && (data.onboardingStep === 1 || !data.onboardingStep)) {
+            setRegistrationSource(data.registrationSource);
+            // Show welcome screen for visueel and lvb sources
+            if (data.registrationSource === 'visueel' || data.registrationSource === 'lvb') {
+              setShowAccessibilityWelcome(true);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching onboarding status:', error);
@@ -329,6 +344,14 @@ export default function OnboardingPage() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Accessibility Welcome Screen - Show for visueel/lvb users on first visit */}
+      {showAccessibilityWelcome && (
+        <AccessibilityWelcome
+          source={registrationSource}
+          onDismiss={() => setShowAccessibilityWelcome(false)}
+        />
+      )}
     </div>
   );
 }

@@ -118,6 +118,9 @@ model User {
   isVerified    Boolean   @default(false)
   safetyScore   Int       @default(100)
   hasAcceptedTerms Boolean @default(false)
+
+  // Doelgroep tracking - Voor auto-enabling accessibility features
+  registrationSource String?  // 'visueel', 'autisme', 'lvb', 'beperking', etc.
   latitude      Float?
   longitude     Float?
   twoFactorSecret String?

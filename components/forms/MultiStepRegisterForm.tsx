@@ -12,7 +12,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Input, Button, Checkbox, Alert, Turnstile, useTurnstile } from '@/components/ui'
@@ -136,6 +136,9 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const source = searchParams?.get('source') // Track doelgroep source (e.g., 'visueel', 'autisme', 'lvb')
+
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState<FormData>({
@@ -316,6 +319,7 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       email: formData.email.toLowerCase().trim(),
       password: formData.password,
       turnstileToken: tokenToUse, // Turnstile verification token
+      source: source || undefined, // Track doelgroep source for auto-enabling accessibility
     })
   }
 

@@ -21,6 +21,7 @@ export async function GET() {
         isOnboarded: true,
         isLivenessVerified: true,
         voiceIntroUrl: true,
+        registrationSource: true, // For accessibility welcome screen
         psychProfile: {
           select: {
             introvertScale: true,
@@ -48,6 +49,7 @@ export async function GET() {
       isLivenessVerified: user.isLivenessVerified,
       hasVoiceIntro: !!user.voiceIntroUrl,
       hasPsychProfile: !!user.psychProfile,
+      registrationSource: user.registrationSource, // For accessibility welcome screen
     });
   } catch (error) {
     console.error('Error fetching onboarding status:', error);

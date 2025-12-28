@@ -34,6 +34,7 @@ const registerSchema = z.object({
   city: z.string().max(100).optional(),
   bio: z.string().max(500).optional(),
   turnstileToken: z.string().optional(), // Cloudflare Turnstile verification token
+  source: z.string().optional(), // Doelgroep source for auto-enabling accessibility features
 })
 
 export async function POST(request: NextRequest) {
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { name, email, password, birthDate, gender, city, bio } = validationResult.data
+    const { name, email, password, birthDate, gender, city, bio, source } = validationResult.data
 
     // Check for existing user
     const existingUser = await prisma.user.findUnique({
@@ -101,6 +102,29 @@ export async function POST(request: NextRequest) {
     // Hash password with 12 rounds
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Auto-enable accessibility features based on registration source
+    const getAccessibilityDefaults = (source?: string) => {
+      switch (source) {
+        case 'visueel': // Slechtzienden/Blinden
+          return {
+            visionImpairedMode: true,
+            extraHighContrast: true,
+            textToSpeech: true,
+            largeTextMode: true,
+            largeTargetsMode: true,
+          }
+        case 'lvb': // Licht Verstandelijke Beperking
+          return {
+            largeTextMode: true,
+            largeTargetsMode: true,
+          }
+        default:
+          return {}
+      }
+    }
+
+    const accessibilityDefaults = getAccessibilityDefaults(source)
+
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
@@ -111,6 +135,8 @@ export async function POST(request: NextRequest) {
         city: city || null,
         bio: bio || null,
         hasAcceptedTerms: true, // Accepted in multi-step form
+        registrationSource: source || null, // Track doelgroep
+        ...accessibilityDefaults, // Auto-enable accessibility features
       }
     })
 
