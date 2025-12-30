@@ -30,7 +30,7 @@ export default function Admin2FASetup() {
         setStatus(data)
       }
     } catch (error) {
-      console.error('Failed to check 2FA status:', error)
+      console.error('2FA status ophalen mislukt:', error)
     }
   }
 
@@ -47,10 +47,10 @@ export default function Admin2FASetup() {
         setSetupData(data)
       } else {
         const error = await response.json()
-        setError(error.error || 'Failed to setup 2FA')
+        setError(error.error || '2FA instellen mislukt')
       }
     } catch (error) {
-      setError('Failed to setup 2FA')
+      setError('2FA instellen mislukt')
       console.error('2FA setup error:', error)
     } finally {
       setLoading(false)
@@ -73,17 +73,16 @@ export default function Admin2FASetup() {
 
       if (response.ok) {
         const data = await response.json()
-        setSuccess(data.message)
+        setSuccess('2FA is succesvol geactiveerd!')
         setVerificationCode('')
         setSetupData(null)
-        // Refresh status
         await checkStatus()
       } else {
         const error = await response.json()
-        setError(error.error || 'Invalid verification code')
+        setError(error.error || 'Ongeldige verificatiecode')
       }
     } catch (error) {
-      setError('Failed to verify code')
+      setError('Verificatie mislukt')
       console.error('2FA verification error:', error)
     } finally {
       setVerifying(false)
@@ -91,7 +90,7 @@ export default function Admin2FASetup() {
   }
 
   const handleDisable = async () => {
-    if (!confirm('Are you sure you want to disable 2FA? This will make your account less secure.')) {
+    if (!confirm('Weet je zeker dat je 2FA wilt uitschakelen? Dit maakt je account minder veilig.')) {
       return
     }
 
@@ -105,15 +104,14 @@ export default function Admin2FASetup() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setSuccess(data.message)
+        setSuccess('2FA is uitgeschakeld')
         await checkStatus()
       } else {
         const error = await response.json()
-        setError(error.error || 'Failed to disable 2FA')
+        setError(error.error || '2FA uitschakelen mislukt')
       }
     } catch (error) {
-      setError('Failed to disable 2FA')
+      setError('2FA uitschakelen mislukt')
       console.error('2FA disable error:', error)
     } finally {
       setLoading(false)
@@ -124,14 +122,14 @@ export default function Admin2FASetup() {
     if (!setupData?.backupCodes) return
 
     const content = `Liefde Voor Iedereen - 2FA Backup Codes
-Generated: ${new Date().toLocaleString()}
+Aangemaakt: ${new Date().toLocaleString('nl-NL')}
 
-IMPORTANT: Store these codes in a safe place!
-Each code can only be used once.
+BELANGRIJK: Bewaar deze codes op een veilige plek!
+Elke code kan slechts één keer worden gebruikt.
 
 ${setupData.backupCodes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
 
-If you lose access to your authenticator app, you can use one of these codes to log in.
+Als je geen toegang meer hebt tot je authenticator app, kun je een van deze codes gebruiken om in te loggen.
 `
 
     const blob = new Blob([content], { type: 'text/plain' })
@@ -146,7 +144,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
   if (!status) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">Laden...</div>
       </div>
     )
   }
@@ -157,9 +155,9 @@ If you lose access to your authenticator app, you can use one of these codes to 
         {/* Header */}
         <div className="text-center mb-8">
           <Shield className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900">Two-Factor Authentication</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Tweefactorauthenticatie</h1>
           <p className="mt-2 text-gray-600">
-            Protect your admin account with an extra layer of security
+            Bescherm je admin account met een extra beveiligingslaag
           </p>
         </div>
 
@@ -181,19 +179,19 @@ If you lose access to your authenticator app, you can use one of these codes to 
         {/* Status Card */}
         {!setupData && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Status</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Huidige Status</h2>
 
             <div className="flex items-center justify-between py-3 border-b border-gray-200">
               <div className="flex items-center">
                 <Lock className="w-5 h-5 text-gray-400 mr-3" />
-                <span className="text-gray-700">2FA Setup</span>
+                <span className="text-gray-700">2FA Configuratie</span>
               </div>
               <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
                 status.isSetup
                   ? 'bg-green-100 text-green-800'
                   : 'bg-gray-100 text-gray-800'
               }`}>
-                {status.isSetup ? 'Configured' : 'Not Configured'}
+                {status.isSetup ? 'Geconfigureerd' : 'Niet geconfigureerd'}
               </span>
             </div>
 
@@ -207,7 +205,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
                   ? 'bg-green-100 text-green-800'
                   : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {status.isEnabled ? 'Enabled' : 'Disabled'}
+                {status.isEnabled ? 'Ingeschakeld' : 'Uitgeschakeld'}
               </span>
             </div>
 
@@ -219,7 +217,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
                   className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <Key className="w-5 h-5 mr-2" />
-                  {loading ? 'Setting up...' : 'Setup 2FA'}
+                  {loading ? 'Instellen...' : '2FA Instellen'}
                 </button>
               </div>
             )}
@@ -232,7 +230,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
                   className="w-full flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <AlertCircle className="w-5 h-5 mr-2" />
-                  {loading ? 'Disabling...' : 'Disable 2FA'}
+                  {loading ? 'Uitschakelen...' : '2FA Uitschakelen'}
                 </button>
               </div>
             )}
@@ -246,10 +244,10 @@ If you lose access to your authenticator app, you can use one of these codes to 
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <Smartphone className="w-6 h-6 mr-2 text-blue-600" />
-                Step 1: Scan QR Code
+                Stap 1: Scan de QR-code
               </h2>
               <p className="text-gray-600 mb-4">
-                Scan this QR code with your authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.)
+                Scan deze QR-code met je authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.)
               </p>
 
               <div className="flex justify-center mb-4">
@@ -257,7 +255,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-600 mb-2">Manual Entry Key:</p>
+                <p className="text-sm text-gray-600 mb-2">Handmatige invoer sleutel:</p>
                 <code className="block bg-white px-3 py-2 rounded border border-gray-200 text-sm font-mono break-all">
                   {setupData.secret}
                 </code>
@@ -268,10 +266,10 @@ If you lose access to your authenticator app, you can use one of these codes to 
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <Key className="w-6 h-6 mr-2 text-blue-600" />
-                Step 2: Verify Code
+                Stap 2: Verifieer de code
               </h2>
               <p className="text-gray-600 mb-4">
-                Enter the 6-digit code from your authenticator app to verify the setup:
+                Voer de 6-cijferige code in van je authenticator app om de installatie te bevestigen:
               </p>
 
               <div className="flex gap-3">
@@ -288,7 +286,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
                   disabled={verifying || verificationCode.length !== 6}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
                 >
-                  {verifying ? 'Verifying...' : 'Verify'}
+                  {verifying ? 'Verifiëren...' : 'Verifieer'}
                 </button>
               </div>
             </div>
@@ -297,16 +295,16 @@ If you lose access to your authenticator app, you can use one of these codes to 
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <Download className="w-6 h-6 mr-2 text-blue-600" />
-                Step 3: Save Backup Codes
+                Stap 3: Bewaar de backup codes
               </h2>
               <p className="text-gray-600 mb-4">
-                Save these backup codes in a safe place. You can use them to access your account if you lose your authenticator device.
+                Bewaar deze backup codes op een veilige plek. Je kunt ze gebruiken om toegang te krijgen tot je account als je je authenticator apparaat verliest.
               </p>
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-yellow-800 flex items-start">
                   <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Each code can only be used once. Download and store them securely!</span>
+                  <span>Elke code kan slechts één keer worden gebruikt. Download en bewaar ze veilig!</span>
                 </p>
               </div>
 
@@ -331,22 +329,22 @@ If you lose access to your authenticator app, you can use one of these codes to 
 
         {/* Info Card */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">What is Two-Factor Authentication?</h3>
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">Wat is tweefactorauthenticatie?</h3>
           <p className="text-blue-800 mb-3">
-            2FA adds an extra layer of security to your account by requiring both your password and a time-based code from your authenticator app.
+            2FA voegt een extra beveiligingslaag toe aan je account door zowel je wachtwoord als een tijdgebaseerde code van je authenticator app te vereisen.
           </p>
           <ul className="space-y-2 text-blue-800">
             <li className="flex items-start">
               <CheckCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-              <span>Protects against password theft</span>
+              <span>Beschermt tegen wachtwoorddiefstal</span>
             </li>
             <li className="flex items-start">
               <CheckCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-              <span>Industry-standard security (TOTP)</span>
+              <span>Industriestandaard beveiliging (TOTP)</span>
             </li>
             <li className="flex items-start">
               <CheckCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-              <span>Works offline with authenticator apps</span>
+              <span>Werkt offline met authenticator apps</span>
             </li>
           </ul>
         </div>
