@@ -13,7 +13,7 @@
 
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -192,12 +192,28 @@ export default function DiscoverPage() {
     enablePreload: true,
   })
 
-  // Sync profiles when users change
+  // Sync profiles when users change - ONLY on initial load or filter change
+  // We use a ref to track if we've already initialized
+  const hasInitializedRef = useRef(false)
+  const lastUsersLengthRef = useRef(0)
+
   useEffect(() => {
-    if (users.length > 0) {
+    // Only sync on initial load OR when users array grows (new fetch)
+    // Don't sync when it shrinks (that's handled by the hook internally)
+    if (users.length > 0 && (
+      !hasInitializedRef.current ||
+      users.length > lastUsersLengthRef.current
+    )) {
+      console.log('[Discover] Syncing profiles:', {
+        usersLength: users.length,
+        wasInitialized: hasInitializedRef.current,
+        lastLength: lastUsersLengthRef.current
+      })
       setProfiles(swipeProfiles)
+      hasInitializedRef.current = true
     }
-  }, [users, swipeProfiles, setProfiles])
+    lastUsersLengthRef.current = users.length
+  }, [users.length, swipeProfiles, setProfiles])
 
   // Fetch subscription/swipe limits
   useEffect(() => {

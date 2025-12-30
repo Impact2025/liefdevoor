@@ -193,7 +193,16 @@ const SwipeCardInner = memo(function SwipeCardInner({
   // ============================================================================
 
   useEffect(() => {
+    console.log('[SwipeCard] Exit animation effect:', {
+      isAnimating,
+      animationDirection,
+      isActive,
+      profileId: profile.id
+    })
+
     if (!isAnimating || !animationDirection || !isActive) return
+
+    console.log('[SwipeCard] Starting exit animation:', animationDirection)
 
     const exitDistance = window.innerWidth * 1.5
 
@@ -204,20 +213,29 @@ const SwipeCardInner = memo(function SwipeCardInner({
     if (animationDirection === 'left') {
       animate(x, -exitDistance, {
         ...exitConfig,
-        onComplete: onAnimationComplete,
+        onComplete: () => {
+          console.log('[SwipeCard] Exit animation complete: LEFT')
+          onAnimationComplete()
+        },
       })
     } else if (animationDirection === 'right') {
       animate(x, exitDistance, {
         ...exitConfig,
-        onComplete: onAnimationComplete,
+        onComplete: () => {
+          console.log('[SwipeCard] Exit animation complete: RIGHT')
+          onAnimationComplete()
+        },
       })
     } else if (animationDirection === 'up') {
       animate(y, -window.innerHeight, {
         ...exitConfig,
-        onComplete: onAnimationComplete,
+        onComplete: () => {
+          console.log('[SwipeCard] Exit animation complete: UP')
+          onAnimationComplete()
+        },
       })
     }
-  }, [isAnimating, animationDirection, isActive, x, y, prefersReducedMotion, onAnimationComplete])
+  }, [isAnimating, animationDirection, isActive, x, y, prefersReducedMotion, onAnimationComplete, profile.id])
 
   // ============================================================================
   // RESET ON PROFILE CHANGE
@@ -256,20 +274,34 @@ const SwipeCardInner = memo(function SwipeCardInner({
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      if (!isActive || isAnimating) return
+      console.log('[SwipeCard] handleDragEnd:', {
+        isActive,
+        isAnimating,
+        offset: info.offset,
+        velocity: info.velocity,
+        profileId: profile.id
+      })
+
+      if (!isActive || isAnimating) {
+        console.log('[SwipeCard] Drag ignored - not active or animating')
+        return
+      }
 
       const { offset, velocity } = info
 
       // Check if swipe threshold met
       if (Math.abs(offset.x) > SWIPE_THRESHOLD || Math.abs(velocity.x) > VELOCITY_THRESHOLD) {
+        console.log('[SwipeCard] Swipe detected:', offset.x > 0 ? 'RIGHT' : 'LEFT')
         if (offset.x > 0) {
           onSwipeRight()
         } else {
           onSwipeLeft()
         }
       } else if (offset.y < -SWIPE_THRESHOLD || velocity.y < -VELOCITY_THRESHOLD) {
+        console.log('[SwipeCard] Super Like detected')
         onSuperLike()
       } else {
+        console.log('[SwipeCard] Snap back - threshold not met')
         // Snap back to center
         if (prefersReducedMotion) {
           x.set(0)
@@ -280,7 +312,7 @@ const SwipeCardInner = memo(function SwipeCardInner({
         }
       }
     },
-    [isActive, isAnimating, onSwipeLeft, onSwipeRight, onSuperLike, x, y, prefersReducedMotion]
+    [isActive, isAnimating, onSwipeLeft, onSwipeRight, onSuperLike, x, y, prefersReducedMotion, profile.id]
   )
 
   const nextPhoto = useCallback(() => {
