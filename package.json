@@ -46,7 +46,7 @@
     "@types/papaparse": "^5.5.2",
     "@uploadthing/react": "^7.3.3",
     "@upstash/ratelimit": "^2.0.7",
-    "@upstash/redis": "^1.35.8",
+    "@upstash/redis": "^1.36.0",
     "bcryptjs": "^2.4.3",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.0",

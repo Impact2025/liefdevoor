@@ -70,7 +70,9 @@
       "Bash(git branch:*)",
       "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\matches\\\\[matchId]\\\\vibe-check\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\matches\\\\[matchId]\\\\vibe-check\")",
       "Bash(copy \"Doelgroepen & Landingsstrategie.docx\" temp_doc.zip)",
-      "Bash(if exist \"node_modules\\\\.prisma\" rmdir /s /q \"node_modules\\\\.prisma\")"
+      "Bash(if exist \"node_modules\\\\.prisma\" rmdir /s /q \"node_modules\\\\.prisma\")",
+      "Bash(nslookup:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

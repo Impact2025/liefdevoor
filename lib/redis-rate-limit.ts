@@ -1,15 +1,12 @@
 /**
- * Redis-Compatible Rate Limiting
+ * Rate Limiting with Upstash Redis (Serverless-friendly)
  *
- * This module provides rate limiting that works with Redis in production
- * and falls back to in-memory storage in development.
- *
- * To use Redis in production:
- * 1. npm install ioredis
- * 2. Set REDIS_URL in .env
+ * Uses HTTP-based Upstash Redis for rate limiting.
+ * No connection limits - perfect for Vercel serverless!
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getUpstash, cacheKeys, CACHE_TTL } from './upstash'
 
 // Rate limit configuration
 export interface RateLimitConfig {
@@ -29,72 +26,6 @@ export interface RateLimitResult {
 // In-memory store (fallback when Redis is not available)
 const memoryStore = new Map<string, { count: number; resetTime: number }>()
 
-// Redis client (lazy loaded)
-let redisClient: any = null
-let redisAvailable: boolean | null = null
-
-/**
- * Initialize Redis client if REDIS_URL is set
- * SECURITY: In production, Redis is REQUIRED - no fallback to memory store
- */
-async function getRedisClient(): Promise<any> {
-  if (redisAvailable === false) {
-    // In production, throw error instead of silently falling back
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('[RateLimit] Redis is required in production but not available')
-    }
-    return null
-  }
-  if (redisClient) return redisClient
-
-  const redisUrl = process.env.REDIS_URL
-
-  if (!redisUrl) {
-    // SECURITY: Production REQUIRES Redis - no silent fallback
-    if (process.env.NODE_ENV === 'production') {
-      redisAvailable = false
-      throw new Error('[RateLimit] REDIS_URL must be set in production - in-memory rate limiting is NOT secure for distributed systems')
-    }
-    redisAvailable = false
-    console.warn('[RateLimit] Development mode: using in-memory store (NOT for production)')
-    return null
-  }
-
-  try {
-    // Dynamic import to avoid issues if ioredis is not installed
-    const Redis = (await import('ioredis')).default
-    // @ts-ignore - ioredis accepts URL string as first argument
-    redisClient = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-      enableReadyCheck: true,
-      retryStrategy: (times: number) => {
-        if (times > 3) {
-          // After 3 retries, throw error in production
-          if (process.env.NODE_ENV === 'production') {
-            throw new Error('[RateLimit] Redis connection failed after 3 retries')
-          }
-          return null // Stop retrying in dev
-        }
-        return Math.min(times * 200, 2000) // Exponential backoff
-      },
-    })
-
-    await redisClient.ping()
-    redisAvailable = true
-    console.log('[RateLimit] Connected to Redis successfully')
-    return redisClient
-  } catch (error) {
-    redisAvailable = false
-    // SECURITY: In production, fail hard - don't allow unprotected requests
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(`[RateLimit] Redis connection failed in production: ${(error as Error).message}`)
-    }
-    console.warn('[RateLimit] Development mode: Redis not available, using in-memory store:', (error as Error).message)
-    return null
-  }
-}
-
 /**
  * Get client identifier from request
  */
@@ -112,7 +43,7 @@ export function getClientIdentifier(request: NextRequest): string {
 }
 
 /**
- * Rate limit using Redis (with in-memory fallback)
+ * Rate limit using Upstash Redis (with in-memory fallback for dev)
  */
 export async function rateLimit(
   request: NextRequest,
@@ -122,70 +53,71 @@ export async function rateLimit(
   const { windowMs, maxRequests, keyPrefix = 'rl' } = config
   const clientIP = getClientIdentifier(request)
   const key = `${keyPrefix}:${identifier}:${clientIP}`
+  const windowSeconds = Math.ceil(windowMs / 1000)
   const now = Date.now()
 
-  const redis = await getRedisClient()
+  const redis = getUpstash()
 
   if (redis) {
-    return rateLimitWithRedis(redis, key, windowMs, maxRequests, now)
+    return rateLimitWithUpstash(redis, key, windowSeconds, maxRequests)
   } else {
+    // Fallback to memory store in development
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('[RateLimit] Upstash not available in production!')
+    }
     return rateLimitWithMemory(key, windowMs, maxRequests, now)
   }
 }
 
 /**
- * Redis-based rate limiting using sliding window
+ * Upstash-based rate limiting using simple counter
  */
-async function rateLimitWithRedis(
-  redis: any,
+async function rateLimitWithUpstash(
+  redis: ReturnType<typeof getUpstash>,
   key: string,
-  windowMs: number,
-  maxRequests: number,
-  now: number
+  windowSeconds: number,
+  maxRequests: number
 ): Promise<RateLimitResult> {
-  const windowStart = now - windowMs
-
-  // Use Redis transaction for atomic operations
-  const multi = redis.multi()
-
-  // Remove old entries outside the window
-  multi.zremrangebyscore(key, 0, windowStart)
-
-  // Count current requests in window
-  multi.zcard(key)
-
-  // Add current request
-  multi.zadd(key, now, `${now}-${Math.random()}`)
-
-  // Set expiry on the key
-  multi.pexpire(key, windowMs)
-
-  const results = await multi.exec()
-  const currentCount = results[1][1] as number
-
-  if (currentCount >= maxRequests) {
-    // Get oldest entry to calculate retry time
-    const oldest = await redis.zrange(key, 0, 0, 'WITHSCORES')
-    const oldestTime = oldest.length > 1 ? parseInt(oldest[1]) : now
-    const resetIn = Math.max(0, oldestTime + windowMs - now)
-
-    return {
-      success: false,
-      remaining: 0,
-      resetIn,
-      retryAfter: Math.ceil(resetIn / 1000)
-    }
+  if (!redis) {
+    return { success: true, remaining: maxRequests, resetIn: windowSeconds * 1000 }
   }
 
-  return {
-    success: true,
-    remaining: maxRequests - currentCount - 1,
-    resetIn: windowMs
+  try {
+    // Increment counter
+    const count = await redis.incr(key)
+
+    // Set expiry on first request
+    if (count === 1) {
+      await redis.expire(key, windowSeconds)
+    }
+
+    // Get TTL for reset time
+    const ttl = await redis.ttl(key)
+    const resetIn = ttl > 0 ? ttl * 1000 : windowSeconds * 1000
+
+    if (count > maxRequests) {
+      return {
+        success: false,
+        remaining: 0,
+        resetIn,
+        retryAfter: Math.ceil(resetIn / 1000)
+      }
+    }
+
+    return {
+      success: true,
+      remaining: Math.max(0, maxRequests - count),
+      resetIn
+    }
+  } catch (error) {
+    console.error('[RateLimit] Upstash error:', error)
+    // Allow request on error to prevent blocking legitimate users
+    return { success: true, remaining: maxRequests, resetIn: windowSeconds * 1000 }
   }
 }
 
 /**
- * In-memory rate limiting (fallback)
+ * In-memory rate limiting (fallback for development)
  */
 function rateLimitWithMemory(
   key: string,
@@ -248,7 +180,7 @@ export const rateLimiters = {
   register: (request: NextRequest) =>
     rateLimit(request, 'register', { maxRequests: 3, windowMs: 10 * 60 * 1000 }),
 
-  // Email Verification: 10 attempts per hour (protect against brute force)
+  // Email Verification: 10 attempts per hour
   emailVerify: (request: NextRequest) =>
     rateLimit(request, 'email-verify', { maxRequests: 10, windowMs: 60 * 60 * 1000 }),
 
