@@ -4,9 +4,28 @@
  * Premium registration experience with logo and brand colors
  */
 
+import { Suspense } from 'react'
 import { MultiStepRegisterForm } from '@/components/forms/MultiStepRegisterForm'
 import Link from 'next/link'
 import Image from 'next/image'
+
+// Loading fallback for the form
+function FormSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="h-2 bg-slate-200 rounded w-full" />
+      <div className="text-center space-y-2">
+        <div className="h-4 bg-slate-200 rounded w-24 mx-auto" />
+        <div className="h-6 bg-slate-200 rounded w-32 mx-auto" />
+      </div>
+      <div className="space-y-4">
+        <div className="h-12 bg-slate-200 rounded" />
+        <div className="h-24 bg-slate-100 rounded" />
+        <div className="h-12 bg-slate-200 rounded" />
+      </div>
+    </div>
+  )
+}
 
 export default function RegisterPage() {
   return (
@@ -29,9 +48,11 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Register Form Card */}
+        {/* Register Form Card - Wrapped in Suspense for useSearchParams */}
         <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-10 border border-slate-100">
-          <MultiStepRegisterForm />
+          <Suspense fallback={<FormSkeleton />}>
+            <MultiStepRegisterForm />
+          </Suspense>
         </div>
 
         {/* Trust Indicators */}
