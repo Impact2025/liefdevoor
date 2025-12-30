@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { couponCreateSchema } from '@/lib/validations/admin-schemas'
-import { validateBody } from '@/lib/api-helpers'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
 
@@ -52,27 +50,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Zod validation
-    const validation = await validateBody(req, couponCreateSchema)
-    if (!validation.success) {
-      return NextResponse.json({
-        error: 'Validation failed',
-        field: validation.field,
-        message: validation.message
-      }, { status: 400 })
-    }
-
+    const body = await req.json()
     const {
       code,
       description,
-      discountType,
-      discountValue,
-      maxUses,
+      type,
+      value,
+      applicableTo,
+      applicablePlans,
+      minPurchaseAmount,
+      maxDiscountCap,
+      maxTotalUses,
       maxUsesPerUser,
-      expiresAt,
+      validFrom,
+      validUntil,
       isActive,
-      applicablePlans
-    } = validation.data
+      notes,
+    } = body
+
+    // Basic validation
+    if (!code || !type || value === undefined) {
+      return NextResponse.json({
+        error: 'Missing required fields: code, type, and value are required'
+      }, { status: 400 })
+    }
+
+    // Validate type
+    if (!['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_TRIAL'].includes(type)) {
+      return NextResponse.json({
+        error: 'Invalid type. Must be PERCENTAGE, FIXED_AMOUNT, or FREE_TRIAL'
+      }, { status: 400 })
+    }
+
+    // Validate percentage value
+    if (type === 'PERCENTAGE' && (value < 0 || value > 100)) {
+      return NextResponse.json({
+        error: 'Percentage must be between 0 and 100'
+      }, { status: 400 })
+    }
 
     // Rate limiting - 30 coupon creations per hour
     const rateLimit = await checkAdminRateLimit(session.user.id, 'coupon_create', 30, 3600)
@@ -82,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     // Check if code already exists
     const existingCoupon = await prisma.coupon.findUnique({
-      where: { code }
+      where: { code: code.toUpperCase() }
     })
 
     if (existingCoupon) {
@@ -95,17 +110,20 @@ export async function POST(req: NextRequest) {
     // Create coupon
     const coupon = await prisma.coupon.create({
       data: {
-        code,
-        description,
-        type: discountType,
-        value: discountValue,
-        applicableTo: 'SUBSCRIPTION', // Default
-        applicablePlans: applicablePlans ? JSON.stringify(applicablePlans) : null,
-        maxTotalUses: maxUses,
-        maxUsesPerUser,
-        validFrom: new Date(),
-        validUntil: expiresAt ? new Date(expiresAt) : null,
+        code: code.toUpperCase(),
+        description: description || null,
+        type,
+        value: parseFloat(value),
+        applicableTo: applicableTo || 'ALL',
+        applicablePlans: applicablePlans || null,
+        minPurchaseAmount: minPurchaseAmount ? parseFloat(minPurchaseAmount) : null,
+        maxDiscountCap: maxDiscountCap ? parseFloat(maxDiscountCap) : null,
+        maxTotalUses: maxTotalUses ? parseInt(maxTotalUses) : null,
+        maxUsesPerUser: maxUsesPerUser ? parseInt(maxUsesPerUser) : 1,
+        validFrom: validFrom ? new Date(validFrom) : new Date(),
+        validUntil: validUntil ? new Date(validUntil) : null,
         isActive: isActive ?? true,
+        notes: notes || null,
         createdBy: session.user.id
       }
     })
@@ -119,8 +137,8 @@ export async function POST(req: NextRequest) {
       details: {
         action: 'coupon_created',
         couponCode: code,
-        discountType,
-        discountValue
+        type,
+        value
       },
       success: true
     })
