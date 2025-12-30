@@ -36,3 +36,7 @@ export { useCompatibility, getCompatibilityColor, getCompatibilityLabel } from '
 
 // Onboarding
 export { useOnboardingGuard, useOnboardingPageGuard } from './useOnboardingGuard'
+
+// Swipe Stack - WERELDKLASSE swipe management
+export { useSwipeStack } from './useSwipeStack'
+export type { SwipeProfile, SwipeResult, SwipeAction, UseSwipeStackOptions, UseSwipeStackReturn } from './useSwipeStack'
