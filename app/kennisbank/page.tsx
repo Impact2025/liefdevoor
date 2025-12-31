@@ -284,7 +284,7 @@ export default function KennisbankPage() {
                     className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
                     style={{ backgroundColor: `${category.color}20` }}
                   >
-                    <Icon className="w-6 h-6" style={{ color: category.color }} />
+                    <span style={{ color: category.color }}><Icon className="w-6 h-6" /></span>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-rose-600 transition-colors">
                     {category.name}
