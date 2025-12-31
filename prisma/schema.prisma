@@ -62,6 +62,18 @@ enum AdminPermission {
   MANAGE_SETTINGS
   MANAGE_COUPONS
   ACCESS_HELPDESK
+
+  // Kennisbank (6)
+  CREATE_KB_ARTICLES
+  EDIT_KB_ARTICLES
+  DELETE_KB_ARTICLES
+  PUBLISH_KB_ARTICLES
+  MANAGE_KB_CATEGORIES
+  MANAGE_KB_TOOLS
+
+  // Professional Portal (2)
+  MANAGE_PROFESSIONALS
+  VERIFY_PROFESSIONALS
 }
 
 // Subscription Tiers - "Vriend van de Liefde" Model
@@ -245,6 +257,11 @@ model User {
 
   // 🎯 Dealbreakers & Preferences
   dealbreakers         UserDealbreaker?
+
+  // 📚 Kennisbank relaties
+  knowledgeBaseArticles KnowledgeBaseArticle[] @relation("KBArticleAuthor")
+  professionalAccount   ProfessionalAccount?
+  preferEasyRead        Boolean  @default(false) // Gebruiker wil Easy Read content zien
 
   @@index([gender])
   @@index([birthDate])
@@ -1687,5 +1704,382 @@ model ChatbotFAQUsage {
 
   @@index([conversationId])
   @@index([articleId])
+}
+
+// ============================================
+// 📚 MEGA KENNISBANK - Knowledge Base System
+// De Complete Dating Encyclopedie van Nederland
+// ============================================
+
+enum ArticleType {
+  STANDARD        // Regulier artikel
+  PILLAR          // Hoofd SEO pagina (cornerstone content)
+  GUIDE           // Uitgebreide gids / how-to
+  CHECKLIST       // Checklist format
+  GLOSSARY        // Begrippenlijst item
+  SUCCESS_STORY   // Succesverhaal
+  FAQ_ITEM        // FAQ item
+  TOOL_PAGE       // Interactieve tool pagina
+  PROFESSIONAL    // Voor professionals
+}
+
+enum TargetAudience {
+  GENERAL         // Iedereen
+  LVB             // Licht verstandelijke beperking
+  AUTISM          // Autisme spectrum
+  VISUAL_IMPAIRED // Visueel beperkt
+  HEARING_IMPAIRED // Auditief beperkt
+  SENIOR          // Senioren (50+)
+  PROFESSIONAL    // Professionals / begeleiders
+  LGBTQ           // LGBTQ+ gemeenschap
+}
+
+enum ReadingLevel {
+  EASY            // B1 niveau (Easy Read voor LVB)
+  STANDARD        // Standaard leesniveau
+  ADVANCED        // Meer technisch/diepgaand
+}
+
+enum ToolType {
+  QUIZ            // Persoonlijkheidstest, love language quiz
+  CALCULATOR      // Compatibiliteit calculator
+  CHECKER         // Scam checker, profiel checker
+  GENERATOR       // Bio generator, icebreaker generator
+  ASSESSMENT      // Relatie assessment
+  INTERACTIVE     // Interactieve oefening
+}
+
+enum ProfessionalType {
+  THERAPIST       // Relatietherapeut
+  COACH           // Dating/relatie coach
+  CARE_INSTITUTION // Zorginstelling (LVB, GGZ)
+  EDUCATION       // Onderwijsinstelling
+  HEALTHCARE      // GGZ, huisarts
+  GOVERNMENT      // Overheid (gemeente, etc.)
+  OTHER           // Overig
+}
+
+enum ProfessionalTier {
+  BASIC           // Gratis basis toegang
+  STANDARD        // Standaard features (€29/mnd)
+  PREMIUM         // Alle features + white-label (€99/mnd)
+}
+
+// Kennisbank hoofdcategorieën met hiërarchie
+model KnowledgeBaseCategory {
+  id                String   @id @default(cuid())
+  name              String   @db.VarChar(100)   // Engels
+  nameNl            String   @db.VarChar(100)   // Nederlands
+  slug              String   @unique
+  description       String?  @db.Text
+  descriptionNl     String?  @db.Text
+  icon              String?                     // Emoji of Lucide icon naam
+  color             String   @default("#E11D48") // Hex kleur voor UI
+  order             Int      @default(0)
+
+  // Hiërarchie voor subcategorieën
+  parentId          String?
+  parent            KnowledgeBaseCategory? @relation("KBCategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children          KnowledgeBaseCategory[] @relation("KBCategoryHierarchy")
+
+  // SEO metadata
+  metaTitle         String?  @db.VarChar(60)
+  metaDescription   String?  @db.VarChar(160)
+
+  // Status
+  isVisible         Boolean  @default(true)
+  isProfessionalOnly Boolean @default(false)  // Alleen voor professionals zichtbaar
+
+  // Relations
+  articles          KnowledgeBaseArticle[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([slug])
+  @@index([parentId])
+  @@index([order])
+  @@index([isVisible])
+}
+
+// Kennisbank artikelen - de kern van de content
+model KnowledgeBaseArticle {
+  id                String   @id @default(cuid())
+
+  // Core content (dual language)
+  title             String   @db.VarChar(200)
+  titleNl           String   @db.VarChar(200)
+  slug              String   @unique
+  content           String   @db.Text          // Engels (Markdown/HTML)
+  contentNl         String   @db.Text          // Nederlands
+
+  // Easy Read versie (LVB-vriendelijk) - toggle binnen artikel
+  contentEasyRead   String?  @db.Text          // Vereenvoudigde Nederlandse versie
+  hasEasyRead       Boolean  @default(false)
+
+  // Excerpts
+  excerpt           String?  @db.VarChar(500)
+  excerptNl         String?  @db.VarChar(500)
+
+  // Media
+  featuredImage     String?
+  featuredVideo     String?                    // YouTube embed URL
+  audioVersion      String?                    // URL naar audio versie (accessibility)
+
+  // Categorisatie
+  categoryId        String
+  category          KnowledgeBaseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Type artikel
+  articleType       ArticleType @default(STANDARD)
+
+  // SEO
+  keywords          String[]
+  metaTitle         String?  @db.VarChar(60)
+  metaDescription   String?  @db.VarChar(160)
+  canonicalUrl      String?
+
+  // Pillar/Cluster SEO structuur
+  isPillarPage      Boolean  @default(false)   // Is dit een pillar page?
+  pillarPageId      String?                    // Linkt naar pillar artikel (voor cluster artikelen)
+  pillarPage        KnowledgeBaseArticle? @relation("PillarCluster", fields: [pillarPageId], references: [id], onDelete: SetNull)
+  clusterArticles   KnowledgeBaseArticle[] @relation("PillarCluster")
+
+  // Doelgroep
+  targetAudience    TargetAudience[] @default([GENERAL])
+  readingLevel      ReadingLevel @default(STANDARD)
+
+  // Status & Publicatie
+  status            String   @default("DRAFT") // DRAFT, REVIEW, APPROVED, PUBLISHED, ARCHIVED
+  isPublished       Boolean  @default(false)
+  isFeatured        Boolean  @default(false)
+  publishedAt       DateTime?
+
+  // Author & Review
+  authorId          String
+  author            User     @relation("KBArticleAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  reviewedById      String?
+  lastReviewedAt    DateTime?
+
+  // Analytics
+  viewCount         Int      @default(0)
+  helpfulCount      Int      @default(0)
+  notHelpfulCount   Int      @default(0)
+  avgReadTimeSeconds Int?                      // Gemiddelde leestijd
+
+  // Relations
+  tools             KnowledgeBaseArticleTool[]
+  feedback          KnowledgeBaseFeedback[]
+  relatedFrom       KnowledgeBaseRelation[] @relation("KBRelationSource")
+  relatedTo         KnowledgeBaseRelation[] @relation("KBRelationTarget")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([articleType])
+  @@index([isPublished])
+  @@index([isPillarPage])
+  @@index([isPublished, publishedAt])
+  @@index([authorId])
+  @@index([viewCount])
+}
+
+// Gerelateerde artikelen (many-to-many)
+model KnowledgeBaseRelation {
+  id              String   @id @default(cuid())
+  sourceArticleId String
+  sourceArticle   KnowledgeBaseArticle @relation("KBRelationSource", fields: [sourceArticleId], references: [id], onDelete: Cascade)
+  targetArticleId String
+  targetArticle   KnowledgeBaseArticle @relation("KBRelationTarget", fields: [targetArticleId], references: [id], onDelete: Cascade)
+
+  relationType    String   @default("related") // related, see_also, prerequisite
+  order           Int      @default(0)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([sourceArticleId, targetArticleId])
+  @@index([sourceArticleId])
+  @@index([targetArticleId])
+}
+
+// Interactieve tools
+model KnowledgeBaseTool {
+  id                String   @id @default(cuid())
+  name              String   @db.VarChar(100)
+  nameNl            String   @db.VarChar(100)
+  slug              String   @unique
+  description       String?  @db.Text
+  descriptionNl     String?  @db.Text
+
+  // Type tool
+  toolType          ToolType
+
+  // Configuratie (JSON voor flexibiliteit)
+  config            Json     @default("{}")    // Tool-specifieke config
+
+  // Externe integratie (DatingAssistent.nl)
+  externalUrl       String?                    // Link naar externe tool
+  externalProvider  String?                    // "datingassistent", etc.
+  embedCode         String?  @db.Text          // Embed code voor externe tools
+  apiEndpoint       String?                    // Interne API endpoint
+
+  // Status
+  isActive          Boolean  @default(true)
+  requiresAuth      Boolean  @default(false)   // Login vereist?
+  subscriptionTier  SubscriptionTier?          // Minimum tier vereist (null = gratis)
+
+  // Analytics
+  usageCount        Int      @default(0)
+  completionRate    Float?                     // Percentage dat tool afmaakt
+  avgScore          Float?                     // Gemiddelde score (voor quizzen)
+
+  // Koppeling aan artikelen
+  articles          KnowledgeBaseArticleTool[]
+  results           KnowledgeBaseToolResult[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([slug])
+  @@index([toolType])
+  @@index([isActive])
+}
+
+// Many-to-many: Artikelen <-> Tools
+model KnowledgeBaseArticleTool {
+  id        String   @id @default(cuid())
+  articleId String
+  article   KnowledgeBaseArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  toolId    String
+  tool      KnowledgeBaseTool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  order     Int      @default(0)
+
+  @@unique([articleId, toolId])
+  @@index([articleId])
+  @@index([toolId])
+}
+
+// Tool resultaten opslaan (voor gebruikers)
+model KnowledgeBaseToolResult {
+  id          String   @id @default(cuid())
+  toolId      String
+  tool        KnowledgeBaseTool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  userId      String?                        // Optioneel voor anoniem gebruik
+
+  // Resultaat data
+  input       Json                           // Gebruiker input
+  output      Json                           // Tool output/resultaat
+  score       Float?                         // Score (voor quizzen)
+
+  // Sharing
+  shareToken  String?  @unique               // Voor delen van resultaten
+  isPublic    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([toolId])
+  @@index([userId])
+  @@index([shareToken])
+  @@index([createdAt])
+}
+
+// Artikel feedback ("Was dit nuttig?")
+model KnowledgeBaseFeedback {
+  id          String   @id @default(cuid())
+  articleId   String
+  article     KnowledgeBaseArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId      String?                        // Optioneel voor anoniem
+
+  isHelpful   Boolean
+  comment     String?  @db.Text              // Optionele toelichting
+
+  createdAt   DateTime @default(now())
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([isHelpful])
+}
+
+// ============================================
+// 👨‍⚕️ PROFESSIONAL PORTAL - B2B Features
+// Voor begeleiders, therapeuten, zorgorganisaties
+// ============================================
+
+model ProfessionalAccount {
+  id                String   @id @default(cuid())
+
+  // Koppeling aan User account
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Organisatie informatie
+  organizationName  String   @db.VarChar(200)
+  organizationType  ProfessionalType
+  kvkNumber         String?  @db.VarChar(8)    // KVK nummer
+  btwNumber         String?  @db.VarChar(14)   // BTW nummer
+
+  // Contact
+  websiteUrl        String?
+  phoneNumber       String?
+  address           String?  @db.Text
+
+  // Verificatie
+  isVerified        Boolean  @default(false)
+  verifiedAt        DateTime?
+  verificationDoc   String?                    // URL naar verificatie document
+  verifiedById      String?                    // Admin die verificatie deed
+
+  // Abonnement
+  professionalTier  ProfessionalTier @default(BASIC)
+  subscriptionEnd   DateTime?
+
+  // Features gebaseerd op tier
+  canAccessContent  Boolean  @default(true)    // Toegang tot pro content
+  canDownloadPdf    Boolean  @default(false)   // PDF downloads
+  canWhiteLabel     Boolean  @default(false)   // White-label content
+  clientLimit       Int      @default(0)       // Max clienten (0 = geen limiet)
+
+  // Team management
+  teamMembers       ProfessionalTeamMember[]
+
+  // Analytics
+  contentViews      Int      @default(0)
+  toolsUsed         Int      @default(0)
+  lastActiveAt      DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([organizationType])
+  @@index([isVerified])
+  @@index([professionalTier])
+}
+
+// Team members binnen een professional account
+model ProfessionalTeamMember {
+  id              String   @id @default(cuid())
+  professionalId  String
+  professional    ProfessionalAccount @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  // Member info
+  email           String
+  name            String
+  role            String?                      // Rol binnen organisatie
+
+  // Permissions
+  canEdit         Boolean  @default(false)     // Kan content bewerken
+  canInvite       Boolean  @default(false)     // Kan anderen uitnodigen
+
+  // Status
+  invitedAt       DateTime @default(now())
+  acceptedAt      DateTime?
+
+  @@unique([professionalId, email])
+  @@index([professionalId])
+  @@index([email])
 }
 

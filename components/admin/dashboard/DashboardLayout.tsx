@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { Users, Heart, Shield, BarChart3, Settings, Mail, Bell, FileText, Eye, Ticket } from 'lucide-react'
+import { Users, Heart, Shield, BarChart3, Settings, Mail, Bell, FileText, Eye, Ticket, BookOpen, Building2 } from 'lucide-react'
 
 export interface Tab {
   id: string
@@ -85,6 +85,27 @@ export default function DashboardLayout({
                 >
                   <Ticket className="w-5 h-5 mr-3 text-gray-400" />
                   Coupons
+                </Link>
+
+                {/* Divider */}
+                <div className="my-3 border-t border-gray-200" />
+
+                {/* Kennisbank - Externe pagina */}
+                <Link
+                  href="/admin/kennisbank"
+                  className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  <BookOpen className="w-5 h-5 mr-3 text-rose-500" />
+                  Kennisbank
+                </Link>
+
+                {/* Professionals - Externe pagina */}
+                <Link
+                  href="/admin/professionals"
+                  className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  <Building2 className="w-5 h-5 mr-3 text-indigo-500" />
+                  Professionals
                 </Link>
               </div>
             </nav>

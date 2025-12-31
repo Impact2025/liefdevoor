@@ -232,7 +232,7 @@ export async function sendUnansweredMessageReminders(): Promise<MatchReminderRes
 
   console.log(`[Engagement] Found ${messagesByRecipient.size} users with unanswered messages`)
 
-  for (const [recipientId, messages] of messagesByRecipient) {
+  for (const [recipientId, messages] of Array.from(messagesByRecipient.entries())) {
     try {
       const recipient = messages[0].match.user1Id === recipientId
         ? messages[0].match.user1

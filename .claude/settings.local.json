@@ -72,7 +72,16 @@
       "Bash(copy \"Doelgroepen & Landingsstrategie.docx\" temp_doc.zip)",
       "Bash(if exist \"node_modules\\\\.prisma\" rmdir /s /q \"node_modules\\\\.prisma\")",
       "Bash(nslookup:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npm run seed:*)",
+      "Bash(FIXED_AMOUNT\"\n- Inconsistentie tussen CREATE \\(POST\\) en UPDATE \\(PATCH\\) endpoints\n\nOplossing:\n- POST route aangepast om zelfde veldnamen te gebruiken als PATCH\n- Beide endpoints nu consistent: type, value, maxTotalUses, validUntil\n- Betere validatie en error messages toegevoegd\n- Zod schema dependency verwijderd voor meer flexibiliteit\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(xargs:*)",
+      "Bash(git -C D:/Datingsite2026 status)",
+      "Bash(git -C D:/Datingsite2026 add app/api/auth/check-email/route.ts)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: check-email API 405 error - add GET/OPTIONS handlers\n\n- Add OPTIONS handler for CORS preflight requests\n- Add GET handler as fallback for query parameter usage\n- POST handler unchanged\n- Fixes ''Method Not Allowed'' error on registration page\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C D:/Datingsite2026 push)",
+      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\admin\\\\kennisbank\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\admin\\\\kennisbank\")",
+      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\kennisbank\\\\tools\\\\compatibility-quiz\" mkdir \"D:\\\\datingsite2026\\\\app\\\\kennisbank\\\\tools\\\\compatibility-quiz\")"
     ],
     "deny": [],
     "ask": []

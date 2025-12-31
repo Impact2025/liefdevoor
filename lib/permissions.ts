@@ -232,6 +232,14 @@ export function getPermissionLabel(permission: AdminPermission): string {
     MANAGE_SETTINGS: 'Manage Settings',
     MANAGE_COUPONS: 'Manage Coupons',
     ACCESS_HELPDESK: 'Access Helpdesk',
+    CREATE_KB_ARTICLES: 'Create Knowledge Base Articles',
+    EDIT_KB_ARTICLES: 'Edit Knowledge Base Articles',
+    DELETE_KB_ARTICLES: 'Delete Knowledge Base Articles',
+    PUBLISH_KB_ARTICLES: 'Publish Knowledge Base Articles',
+    MANAGE_KB_CATEGORIES: 'Manage Knowledge Base Categories',
+    MANAGE_KB_TOOLS: 'Manage Knowledge Base Tools',
+    MANAGE_PROFESSIONALS: 'Manage Professionals',
+    VERIFY_PROFESSIONALS: 'Verify Professionals',
   }
 
   return labels[permission] || permission
