@@ -69,7 +69,7 @@
     "react-tinder-card": "^1.6.4",
     "sonner": "^2.0.7",
     "speakeasy": "^2.0.0",
-    "tailwind-merge": "^2.2.1",
+    "tailwind-merge": "^3.4.0",
     "uploadthing": "^7.7.4",
     "web-push": "^3.6.7",
     "web-vitals": "^5.1.0",
