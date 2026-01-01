@@ -17,6 +17,7 @@ import { signIn } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Input, Button, Checkbox, Alert, Turnstile, useTurnstile } from '@/components/ui'
 import { usePost } from '@/hooks'
+import { VisualConsentFlow } from '@/components/consent/VisualConsentFlow'
 import {
   Check,
   X,
@@ -138,6 +139,10 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
   const router = useRouter()
   const searchParams = useSearchParams()
   const source = searchParams?.get('source') // Track doelgroep source (e.g., 'visueel', 'autisme', 'lvb')
+
+  // LVB Mode: Show visual consent first
+  const isLVBSource = source === 'lvb'
+  const [hasAcceptedLVBConsent, setHasAcceptedLVBConsent] = useState(false)
 
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
@@ -392,6 +397,20 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
 
   // Parse API error for display
   const parsedError = apiError ? getErrorMessage(apiError.message) : null
+
+  // LVB Mode: Show visual consent first before registration
+  if (isLVBSource && !hasAcceptedLVBConsent) {
+    return (
+      <VisualConsentFlow
+        type="registration"
+        onAccept={() => setHasAcceptedLVBConsent(true)}
+        onDecline={() => {
+          // Redirect back to LVB landing page
+          router.push('/doelgroepen/veilig-daten-lvb')
+        }}
+      />
+    )
+  }
 
   return (
     <div className="w-full max-w-md mx-auto">

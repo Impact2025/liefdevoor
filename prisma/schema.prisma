@@ -183,6 +183,22 @@ model User {
   largeTextMode      Boolean         @default(false) // Grote tekst modus
   largeTargetsMode   Boolean         @default(false) // Grote knoppen modus
 
+  // 🧠 LVB Mode - Licht Verstandelijke Beperking
+  lvbMode               Boolean       @default(false) // LVB modus actief
+  preferSimpleLanguage  Boolean       @default(false) // Eenvoudige taal preference
+  dailyMessageLimit     Int?                          // Bescherming tegen impulsiviteit (null = onbeperkt)
+  messageCooldownSeconds Int          @default(0)     // Cooldown tussen berichten (0 = geen cooldown)
+  lastMessageSentAt     DateTime?                     // Tijdstip laatste bericht (voor cooldown)
+
+  // 👥 Guardian/Begeleider Systeem
+  guardianEmail         String?                       // Email van begeleider/ouder
+  guardianName          String?                       // Naam van begeleider
+  guardianEnabled       Boolean       @default(false) // Is begeleider actief?
+  guardianConfirmed     Boolean       @default(false) // Heeft begeleider bevestigd?
+  guardianConfirmToken  String?                       // Token voor email bevestiging
+  guardianLastNotified  DateTime?                     // Laatste notificatie verzonden
+  guardianAlerts        GuardianAlert[]               // Relatie naar alerts
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -284,6 +300,31 @@ model User {
   @@index([education])
   @@index([smoking])
   @@index([drinking])
+}
+
+// ============================================
+// 👥 GUARDIAN ALERT - Begeleider notificaties
+// ============================================
+
+enum GuardianAlertType {
+  WEEKLY_SUMMARY    // Wekelijkse samenvatting
+  SAFETY_FLAG       // Veiligheidswaarschuwing getriggerd
+  NEW_MATCH         // Nieuwe match gemaakt
+  PROFILE_CHANGE    // Significante profielwijziging
+}
+
+model GuardianAlert {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      GuardianAlertType
+  content   Json              // Samenvatting data (geen chat inhoud!)
+  sentAt    DateTime?         // Wanneer email verzonden
+  createdAt DateTime          @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 // ============================================

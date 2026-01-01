@@ -91,7 +91,12 @@
       "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: Icon style prop type error in kennisbank page\n\nWrap Icon in span with style prop instead of passing style directly to Icon component\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C D:/Datingsite2026 remote -v)",
       "WebFetch(domain:www.liefdevooriedereen.nl)",
-      "Bash(git -C D:/Datingsite2026 add -A)"
+      "Bash(git -C D:/Datingsite2026 add -A)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nWereldklasse Kennisbank Upgrade\n\nNieuwe Features:\n- Quiz resultaten opslaan in database \\(KnowledgeBaseToolResult\\)\n- Social sharing voor quiz resultaten \\(Twitter, Facebook, LinkedIn, Email\\)\n- Hechtingsstijl Quiz \\(Attachment Style Assessment\\)\n  - 12 wetenschappelijk onderbouwde vragen\n  - 4 hechtingsstijlen: Veilig, Angstig, Vermijdend, Angstig-Vermijdend\n  - Disclaimer scherm met educatieve info\n  - Groeitips en professionele hulp suggesties\n- \"Mijn Resultaten\" pagina voor quiz geschiedenis\n- Gedeelde resultaten pagina \\(/kennisbank/tools/result/[token]\\)\n- Confetti animaties bij quiz voltooiing\n- Vergelijking met gemiddelden in Liefdetaal Quiz\n- Tips voor jezelf en je partner\n\nVerbeterde Love Language Quiz:\n- Resultaten opslaan naar database\n- Social sharing knoppen\n- Animated progress bars\n- Secundaire liefdetaal weergave\n- Link naar gerelateerde artikelen\n\nAPI Routes:\n- POST /api/kennisbank/tools/results - Quiz resultaat opslaan\n- GET /api/kennisbank/tools/results - Gebruiker''s quiz geschiedenis\n- GET /api/kennisbank/tools/results/[token] - Gedeeld resultaat ophalen\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C D:/Datingsite2026 add app/kennisbank/[category]/page.tsx)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: Subcategorie navigatie in kennisbank\n\n- useSearchParams toegevoegd voor sub parameter\n- Actieve subcategorie highlight\n- \"Alle artikelen\" optie in sidebar\n- Subcategorie naam in header\n- \"Terug naar\" link wanneer in subcategorie\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\kennisbank\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\kennisbank\")",
+      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\user\\\\guardian\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\user\\\\guardian\")"
     ],
     "deny": [],
     "ask": []

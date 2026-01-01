@@ -4,8 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-// Schema for accessibility updates
+// Schema for accessibility updates (including LVB mode)
 const accessibilitySchema = z.object({
+  // Vision Impaired
   visionImpairedMode: z.boolean().optional(),
   extraHighContrast: z.boolean().optional(),
   textToSpeech: z.boolean().optional(),
@@ -13,6 +14,13 @@ const accessibilitySchema = z.object({
   colorBlindMode: z.string().nullable().optional(),
   largeTextMode: z.boolean().optional(),
   largeTargetsMode: z.boolean().optional(),
+
+  // LVB Mode
+  lvbMode: z.boolean().optional(),
+  preferSimpleLanguage: z.boolean().optional(),
+  preferEasyRead: z.boolean().optional(),
+  dailyMessageLimit: z.number().nullable().optional(),
+  messageCooldownSeconds: z.number().optional(),
 })
 
 // GET /api/user/accessibility - Fetch user's accessibility settings
@@ -30,6 +38,7 @@ export async function GET(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
+        // Vision Impaired
         visionImpairedMode: true,
         extraHighContrast: true,
         textToSpeech: true,
@@ -38,6 +47,18 @@ export async function GET(request: NextRequest) {
         largeTextMode: true,
         largeTargetsMode: true,
         registrationSource: true,
+
+        // LVB Mode
+        lvbMode: true,
+        preferSimpleLanguage: true,
+        preferEasyRead: true,
+        dailyMessageLimit: true,
+        messageCooldownSeconds: true,
+
+        // Guardian
+        guardianEnabled: true,
+        guardianConfirmed: true,
+        guardianName: true,
       }
     })
 
@@ -90,6 +111,7 @@ export async function PATCH(request: NextRequest) {
       where: { id: session.user.id },
       data: updates,
       select: {
+        // Vision Impaired
         visionImpairedMode: true,
         extraHighContrast: true,
         textToSpeech: true,
@@ -98,6 +120,18 @@ export async function PATCH(request: NextRequest) {
         largeTextMode: true,
         largeTargetsMode: true,
         registrationSource: true,
+
+        // LVB Mode
+        lvbMode: true,
+        preferSimpleLanguage: true,
+        preferEasyRead: true,
+        dailyMessageLimit: true,
+        messageCooldownSeconds: true,
+
+        // Guardian
+        guardianEnabled: true,
+        guardianConfirmed: true,
+        guardianName: true,
       }
     })
 

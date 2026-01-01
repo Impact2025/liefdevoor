@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { sendMessageNotification } from '@/lib/email/notification-service'
 import { sendMessageNotification as sendMessagePush } from '@/lib/services/push/push-notifications'
 import { analyzeMessageSafety, isSpammingMessages } from '@/lib/ai/safetySentinel'
+import { checkLVBMessageSafety, updateLastMessageSent } from '@/lib/safety/lvbSafetyMode'
 import type { Message } from '@/lib/types'
 
 interface SendMessageRequest {
@@ -13,6 +14,7 @@ interface SendMessageRequest {
   gifUrl?: string | null
   imageUrl?: string | null
   videoUrl?: string | null
+  lvbConfirmed?: boolean // User confirmed after LVB safety warning
 }
 
 /**
@@ -52,6 +54,26 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
     throw new Error('Je stuurt te veel berichten. Wacht even.')
   }
 
+  // LVB Safety Mode: Extra bescherming voor LVB gebruikers
+  if (content) {
+    const lvbSafetyResult = await checkLVBMessageSafety(userId, content)
+
+    // Blocked by cooldown or daily limit
+    if (!lvbSafetyResult.allowed) {
+      throw new Error(lvbSafetyResult.warningMessage || 'Bericht kan nu niet worden verstuurd')
+    }
+
+    // Requires confirmation but user hasn't confirmed
+    if (lvbSafetyResult.requiresConfirmation && !data.lvbConfirmed) {
+      // Return special response for frontend to show warning modal
+      const error = new Error('LVB_CONFIRMATION_REQUIRED') as Error & {
+        lvbWarning: typeof lvbSafetyResult
+      }
+      error.lvbWarning = lvbSafetyResult
+      throw error
+    }
+  }
+
   // Safety Sentinel: Analyze message content for threats/scams
   if (content) {
     const safetyAnalysis = await analyzeMessageSafety(content, userId)
@@ -86,6 +108,11 @@ async function sendMessage(userId: string, data: SendMessageRequest): Promise<Me
         },
       },
     },
+  })
+
+  // Update last message timestamp for LVB cooldown tracking (non-blocking)
+  updateLastMessageSent(userId).catch(err => {
+    console.error('[LVB Safety] Failed to update last message timestamp:', err)
   })
 
   // Send email notification to the recipient (non-blocking)
@@ -159,6 +186,22 @@ export async function POST(request: NextRequest) {
 
     return successResponse({ message })
   } catch (error) {
+    // Handle LVB confirmation required - return structured warning for frontend
+    if (error instanceof Error && error.message === 'LVB_CONFIRMATION_REQUIRED') {
+      const lvbError = error as Error & { lvbWarning?: { warningType?: string; warningMessage?: string; detectionResult?: unknown } }
+      return Response.json(
+        {
+          success: false,
+          lvbConfirmationRequired: true,
+          warning: {
+            type: lvbError.lvbWarning?.warningType || 'generic',
+            message: lvbError.lvbWarning?.warningMessage || 'Let op! Dit bericht bevat gevoelige informatie.',
+            detections: lvbError.lvbWarning?.detectionResult,
+          },
+        },
+        { status: 428 } // Precondition Required - indicates confirmation needed
+      )
+    }
     return handleApiError(error)
   }
 }

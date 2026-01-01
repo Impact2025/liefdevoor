@@ -10,12 +10,15 @@
  * - Large Targets Mode (grotere knoppen)
  * - Text-to-Speech
  * - Color Blind Modes
+ * - LVB Mode (Licht Verstandelijke Beperking)
+ * - Guardian/Begeleider systeem
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 
 export interface AccessibilitySettings {
+  // Vision Impaired
   visionImpairedMode: boolean
   extraHighContrast: boolean
   textToSpeech: boolean
@@ -24,6 +27,18 @@ export interface AccessibilitySettings {
   largeTextMode: boolean
   largeTargetsMode: boolean
   registrationSource: string | null
+
+  // LVB Mode - Licht Verstandelijke Beperking
+  lvbMode: boolean
+  preferSimpleLanguage: boolean
+  preferEasyRead: boolean
+  dailyMessageLimit: number | null
+  messageCooldownSeconds: number
+
+  // Guardian/Begeleider
+  guardianEnabled: boolean
+  guardianConfirmed: boolean
+  guardianName: string | null
 }
 
 interface AccessibilityContextType {
@@ -31,11 +46,14 @@ interface AccessibilityContextType {
   isLoading: boolean
   updateSettings: (updates: Partial<AccessibilitySettings>) => Promise<void>
   speak: (text: string) => void
+  speakForced: (text: string) => void // Spreekt altijd, ook zonder textToSpeech aan
   stopSpeaking: () => void
   isSpeaking: boolean
+  isLVBMode: boolean // Handige shortcut
 }
 
 const defaultSettings: AccessibilitySettings = {
+  // Vision Impaired
   visionImpairedMode: false,
   extraHighContrast: false,
   textToSpeech: false,
@@ -44,6 +62,18 @@ const defaultSettings: AccessibilitySettings = {
   largeTextMode: false,
   largeTargetsMode: false,
   registrationSource: null,
+
+  // LVB Mode
+  lvbMode: false,
+  preferSimpleLanguage: false,
+  preferEasyRead: false,
+  dailyMessageLimit: null,
+  messageCooldownSeconds: 0,
+
+  // Guardian
+  guardianEnabled: false,
+  guardianConfirmed: false,
+  guardianName: null,
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined)
@@ -126,6 +156,18 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
       root.classList.remove('vision-impaired')
       root.removeAttribute('data-accessibility-mode')
     }
+
+    // LVB Mode - Licht Verstandelijke Beperking
+    if (settings.lvbMode) {
+      root.classList.add('lvb-mode')
+      root.setAttribute('data-lvb-mode', 'true')
+      // LVB Mode enables these by default
+      root.classList.add('large-text', 'large-targets')
+      root.style.fontSize = '125%'
+    } else {
+      root.classList.remove('lvb-mode')
+      root.removeAttribute('data-lvb-mode')
+    }
   }, [settings])
 
   // Update settings via API
@@ -151,7 +193,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 
   // Text-to-Speech functionality
   const speak = useCallback((text: string) => {
-    if (!settings.textToSpeech) return
+    if (!settings.textToSpeech && !settings.lvbMode) return
 
     // Cancel any ongoing speech
     if (window.speechSynthesis.speaking) {
@@ -160,7 +202,8 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'nl-NL'
-    utterance.rate = 0.9 // Slightly slower for clarity
+    // LVB mode uses slower speech rate for better comprehension
+    utterance.rate = settings.lvbMode ? 0.8 : 0.9
     utterance.pitch = 1
 
     utterance.onstart = () => setIsSpeaking(true)
@@ -168,20 +211,44 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     utterance.onerror = () => setIsSpeaking(false)
 
     window.speechSynthesis.speak(utterance)
-  }, [settings.textToSpeech])
+  }, [settings.textToSpeech, settings.lvbMode])
+
+  // speakForced - Always speaks regardless of settings (for explicit audio buttons)
+  const speakForced = useCallback((text: string) => {
+    // Cancel any ongoing speech
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel()
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'nl-NL'
+    utterance.rate = settings.lvbMode ? 0.8 : 0.9
+    utterance.pitch = 1
+
+    utterance.onstart = () => setIsSpeaking(true)
+    utterance.onend = () => setIsSpeaking(false)
+    utterance.onerror = () => setIsSpeaking(false)
+
+    window.speechSynthesis.speak(utterance)
+  }, [settings.lvbMode])
 
   const stopSpeaking = useCallback(() => {
     window.speechSynthesis.cancel()
     setIsSpeaking(false)
   }, [])
 
+  // Convenience property for LVB mode check
+  const isLVBMode = settings.lvbMode || settings.registrationSource === 'lvb'
+
   const value: AccessibilityContextType = {
     settings,
     isLoading,
     updateSettings,
     speak,
+    speakForced,
     stopSpeaking,
     isSpeaking,
+    isLVBMode,
   }
 
   return (
