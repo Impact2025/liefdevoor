@@ -12,3 +12,11 @@ export { default as EasyReadToggle } from './EasyReadToggle'
 export { default as LoveLanguageQuiz } from './tools/LoveLanguageQuiz'
 export { default as CompatibilityQuiz } from './tools/CompatibilityQuiz'
 export { default as DatingReadinessQuiz } from './tools/DatingReadinessQuiz'
+export { default as AttachmentStyleQuiz } from './tools/AttachmentStyleQuiz'
+
+// Safety Tools
+export { default as ScamChecker } from './tools/ScamChecker'
+export { default as RedFlagChecklist } from './tools/RedFlagChecklist'
+
+// Communication Tools
+export { default as IcebreakerGenerator } from './tools/IcebreakerGenerator'

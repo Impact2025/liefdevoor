@@ -81,7 +81,17 @@
       "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: check-email API 405 error - add GET/OPTIONS handlers\n\n- Add OPTIONS handler for CORS preflight requests\n- Add GET handler as fallback for query parameter usage\n- POST handler unchanged\n- Fixes ''Method Not Allowed'' error on registration page\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C D:/Datingsite2026 push)",
       "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\api\\\\admin\\\\kennisbank\" mkdir \"D:\\\\datingsite2026\\\\app\\\\api\\\\admin\\\\kennisbank\")",
-      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\kennisbank\\\\tools\\\\compatibility-quiz\" mkdir \"D:\\\\datingsite2026\\\\app\\\\kennisbank\\\\tools\\\\compatibility-quiz\")"
+      "Bash(if not exist \"D:\\\\datingsite2026\\\\app\\\\kennisbank\\\\tools\\\\compatibility-quiz\" mkdir \"D:\\\\datingsite2026\\\\app\\\\kennisbank\\\\tools\\\\compatibility-quiz\")",
+      "Bash(git -C D:/Datingsite2026 diff app/kennisbank/[category]/page.tsx)",
+      "Bash(git -C D:/Datingsite2026 show HEAD:app/kennisbank/[category]/page.tsx)",
+      "Bash(git -C D:/Datingsite2026 log --oneline -5)",
+      "Bash(git -C D:/Datingsite2026 show 9a4ef70 --stat)",
+      "Bash(git -C D:/Datingsite2026 fetch origin)",
+      "Bash(git -C D:/Datingsite2026 add app/kennisbank/page.tsx)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: Icon style prop type error in kennisbank page\n\nWrap Icon in span with style prop instead of passing style directly to Icon component\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C D:/Datingsite2026 remote -v)",
+      "WebFetch(domain:www.liefdevooriedereen.nl)",
+      "Bash(git -C D:/Datingsite2026 add -A)"
     ],
     "deny": [],
     "ask": []
