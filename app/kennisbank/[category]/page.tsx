@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import {
   Shield,
   Heart,
@@ -173,7 +173,9 @@ type ArticleType = 'all' | 'PILLAR' | 'GUIDE' | 'CHECKLIST' | 'STANDARD'
 
 export default function CategoryPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const categorySlug = params?.category as string
+  const selectedSub = searchParams?.get('sub') || null
 
   const [articles, setArticles] = useState(mockArticles)
   const [isLoading, setIsLoading] = useState(false)
@@ -183,6 +185,11 @@ export default function CategoryPage() {
 
   const category = categoryConfig[categorySlug]
   const subs = subcategories[categorySlug] || []
+
+  // Get selected subcategory name for display
+  const selectedSubName = selectedSub
+    ? subs.find(s => s.slug === selectedSub)?.name
+    : null
 
   // Filter articles based on search and filters
   const filteredArticles = articles.filter(article => {
@@ -241,13 +248,23 @@ export default function CategoryPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {category.nameNl}
+                {selectedSubName ? selectedSubName : category.nameNl}
               </h1>
+              {selectedSubName && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Link
+                    href={`/kennisbank/${categorySlug}`}
+                    className="text-sm text-rose-600 hover:text-rose-700"
+                  >
+                    ← Terug naar {category.nameNl}
+                  </Link>
+                </div>
+              )}
               <p className="text-lg text-gray-600 max-w-2xl">
                 {category.description}
               </p>
               <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
-                <span>{articles.length} artikelen</span>
+                <span>{filteredArticles.length} artikelen</span>
                 <span>•</span>
                 <span>{subs.length} subcategorieën</span>
               </div>
@@ -266,11 +283,29 @@ export default function CategoryPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
                 <h2 className="font-semibold text-gray-900 mb-3">Subcategorieën</h2>
                 <ul className="space-y-1">
+                  {/* Show all option */}
+                  <li>
+                    <Link
+                      href={`/kennisbank/${categorySlug}`}
+                      className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
+                        !selectedSub
+                          ? 'bg-rose-50 text-rose-700 font-medium'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      <span>Alle artikelen</span>
+                      <span className="text-xs text-gray-400">{articles.length}</span>
+                    </Link>
+                  </li>
                   {subs.map((sub) => (
                     <li key={sub.slug}>
                       <Link
                         href={`/kennisbank/${categorySlug}?sub=${sub.slug}`}
-                        className="flex items-center justify-between py-2 px-3 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
+                          selectedSub === sub.slug
+                            ? 'bg-rose-50 text-rose-700 font-medium'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
                       >
                         <span>{sub.name}</span>
                         <span className="text-xs text-gray-400">{sub.count}</span>
