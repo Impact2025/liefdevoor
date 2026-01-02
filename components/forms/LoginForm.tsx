@@ -27,6 +27,9 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showResendVerification, setShowResendVerification] = useState(false)
+  const [resendingVerification, setResendingVerification] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   // Turnstile state voor bot protection
   const {
@@ -87,7 +90,17 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       })
 
       if (result?.error) {
-        setError('Ongeldige inloggegevens. Controleer je email en wachtwoord.')
+        // Check for specific error types
+        if (result.error.includes('EMAIL_NOT_VERIFIED')) {
+          setError('Je email is nog niet geverifieerd. Activeer je account via de link in je email.')
+          setShowResendVerification(true)
+        } else if (result.error.includes('geblokkeerd')) {
+          setError(result.error)
+        } else if (result.error.includes('Te veel inlogpogingen')) {
+          setError(result.error)
+        } else {
+          setError('Ongeldige inloggegevens. Controleer je email en wachtwoord.')
+        }
         resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
       } else if (result?.ok) {
         onSuccess?.()
@@ -126,13 +139,60 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
+    // Reset verification state when email changes
+    if (field === 'email') {
+      setShowResendVerification(false)
+      setResendSuccess(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!formData.email) return
+
+    setResendingVerification(true)
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      })
+
+      if (response.ok) {
+        setResendSuccess(true)
+        setShowResendVerification(false)
+        setError(null)
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Kon verificatie email niet versturen.')
+      }
+    } catch {
+      setError('Er ging iets mis. Probeer het opnieuw.')
+    } finally {
+      setResendingVerification(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {resendSuccess && (
+        <Alert variant="success" onClose={() => setResendSuccess(false)}>
+          Verificatie email verstuurd! Check je inbox (en spam folder).
+        </Alert>
+      )}
+
       {error && (
-        <Alert variant="error" onClose={() => setError(null)}>
+        <Alert variant="error" onClose={() => { setError(null); setShowResendVerification(false); }}>
           {error}
+          {showResendVerification && (
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resendingVerification}
+              className="mt-2 block w-full text-center text-sm font-medium text-rose-700 hover:text-rose-800 underline"
+            >
+              {resendingVerification ? 'Versturen...' : 'Verificatie email opnieuw versturen'}
+            </button>
+          )}
         </Alert>
       )}
 

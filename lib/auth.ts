@@ -108,6 +108,8 @@ export const authOptions: NextAuthOptions = {
             profileComplete: true,
             onboardingStep: true,
             isOnboarded: true,
+            emailVerified: true,
+            isVerified: true,
           }
         })
         if (!user || !user.passwordHash) {
@@ -136,6 +138,17 @@ export const authOptions: NextAuthOptions = {
             success: false
           })
           return null
+        }
+
+        // Check if email is verified (skip for admin accounts)
+        const isAdmin = user.role === 'ADMIN'
+        if (!isAdmin && !user.emailVerified && !user.isVerified) {
+          auditLog('LOGIN_FAILED', {
+            userId: user.id,
+            details: { reason: 'email_not_verified' },
+            success: false
+          })
+          throw new Error('EMAIL_NOT_VERIFIED')
         }
 
         // Reset rate limit on successful login
