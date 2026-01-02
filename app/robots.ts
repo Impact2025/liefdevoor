@@ -2,7 +2,7 @@
  * Robots.txt - Next.js 14 App Router
  *
  * Automatically generates robots.txt for search engine crawlers
- * URL: https://liefdevooriederen.nl/robots.txt
+ * URL: https://www.liefdevooriedereen.nl/robots.txt
  *
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots
  */
@@ -10,7 +10,7 @@
 import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://liefdevooriederen.nl'
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.liefdevooriedereen.nl'
 
   return {
     rules: [

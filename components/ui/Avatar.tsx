@@ -80,7 +80,7 @@ export function Avatar({
           alt={alt}
           fill
           className={`object-cover ${shapeClass}`}
-          sizes={sizeClasses[size]}
+          sizes={size === 'xs' ? '24px' : size === 'sm' ? '32px' : size === 'md' ? '40px' : size === 'lg' ? '48px' : size === 'xl' ? '64px' : '96px'}
         />
       ) : (
         <div

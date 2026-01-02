@@ -181,9 +181,10 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/LiefdevoorLiedereen_datingsite.png"
-            alt="Een gelukkig koppel dat lacht in een café"
+            alt="Een gelukkig koppel dat lacht in een cafe"
             fill
             priority
+            sizes="100vw"
             className="object-cover"
             style={{ objectPosition: "center center" }}
           />
@@ -405,7 +406,9 @@ export default function Home() {
                     src={testimonial.image}
                     alt={testimonial.name}
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover"
+                    loading="lazy"
                   />
                 </div>
                 <div className="p-6">

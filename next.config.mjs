@@ -160,6 +160,12 @@ const nextConfig = {
       { protocol: "https", hostname: "ui-avatars.com" },
     ],
     formats: ['image/avif', 'image/webp'],
+    // Optimized device sizes for LCP (prioritize mobile-first)
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    // Common image sizes for avatars, thumbnails, cards
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // Minimize layout shift with proper placeholder
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
 
   // Security headers

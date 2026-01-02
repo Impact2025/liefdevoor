@@ -2,7 +2,7 @@
  * Sitemap - Next.js 14 App Router
  *
  * Automatically generates sitemap.xml for search engines
- * Updates: https://liefdevooriederen.nl/sitemap.xml
+ * URL: https://www.liefdevooriedereen.nl/sitemap.xml
  *
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
  */
@@ -11,11 +11,12 @@ import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://liefdevooriederen.nl'
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.liefdevooriedereen.nl'
 
   // Fetch kennisbank categories
   let kennisbankCategories: any[] = []
   let kennisbankArticles: any[] = []
+  let blogPosts: any[] = []
 
   try {
     kennisbankCategories = await prisma.knowledgeBaseCategory.findMany({
@@ -34,8 +35,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
     // Filter out professional-only articles
     kennisbankArticles = kennisbankArticles.filter(a => !a.category.isProfessionalOnly)
+
+    // Fetch published blog posts
+    blogPosts = await prisma.post.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+    })
   } catch (error) {
-    console.error('Error fetching kennisbank for sitemap:', error)
+    console.error('Error fetching content for sitemap:', error)
   }
 
   // Build kennisbank category URLs
@@ -52,6 +59,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: article.updatedAt,
     changeFrequency: 'monthly' as const,
     priority: article.isPillarPage ? 0.9 : 0.7,
+  }))
+
+  // Build blog post URLs
+  const blogPostUrls = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: post.updatedAt,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
   }))
 
   return [
@@ -156,12 +171,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/professionals/aanmelden`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+
+    // Support Pages
+    {
+      url: `${baseUrl}/support`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/support/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
 
     // Dynamic Kennisbank Categories
     ...categoryUrls,
 
     // Dynamic Kennisbank Articles
     ...articleUrls,
+
+    // Dynamic Blog Posts
+    ...blogPostUrls,
 
     // Note: Authenticated pages (discover, matches, chat, etc.) are excluded
     // as they require login and shouldn't be indexed

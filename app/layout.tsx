@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 // Base URL for canonical links and OG images
-const baseUrl = process.env.NEXTAUTH_URL || 'https://liefdevooriederen.nl'
+const baseUrl = process.env.NEXTAUTH_URL || 'https://www.liefdevooriedereen.nl'
 
 export const metadata: Metadata = {
   title: {
@@ -158,7 +158,7 @@ export default function RootLayout({
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Support',
-      email: 'support@liefdevooriederen.nl',
+      email: 'support@liefdevooriedereen.nl',
       availableLanguage: 'Dutch',
     },
   }

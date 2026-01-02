@@ -171,6 +171,7 @@ export default function PhotosStep() {
                 src={photo.url}
                 alt={`Foto ${index + 1}`}
                 fill
+                sizes="(max-width: 768px) 33vw, 200px"
                 className="object-cover"
                 unoptimized
               />

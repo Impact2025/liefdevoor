@@ -138,6 +138,7 @@ export function StoriesCarousel({ onAddStory }: StoriesCarouselProps) {
                   src={myStories[0].mediaUrl}
                   alt="Mijn story"
                   fill
+                  sizes="64px"
                   className="object-cover"
                 />
               ) : (
@@ -175,6 +176,7 @@ export function StoriesCarousel({ onAddStory }: StoriesCarouselProps) {
                     src={storyUser.user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(storyUser.user.name || 'U')}&size=64&background=C34C60&color=fff`}
                     alt={storyUser.user.name || 'Story'}
                     fill
+                    sizes="64px"
                     className="object-cover"
                   />
                   {storyUser.stories[0]?.mediaType === 'VIDEO' && (

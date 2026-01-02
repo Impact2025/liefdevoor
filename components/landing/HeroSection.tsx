@@ -16,6 +16,7 @@ export default function HeroSection() {
           alt="Een gelukkig koppel dat lacht"
           fill
           priority
+          sizes="100vw"
           className="object-cover"
           style={{ objectPosition: "60% center" }}
         />
