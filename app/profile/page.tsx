@@ -450,18 +450,12 @@ export default function ProfilePage() {
                   <p className="text-gray-500">Profiel gegevens laden...</p>
                 </div>
               ) : (
-                <>
-                  {/* Debug info */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
-                    <strong>Debug:</strong> User geladen, ProfileForm wordt gerenderd
-                  </div>
-                  <ProfileForm
-                    initialData={user}
-                    onSuccess={(updatedProfile) => {
-                      refetch()
-                    }}
-                  />
-                </>
+                <ProfileForm
+                  initialData={user}
+                  onSuccess={(updatedProfile) => {
+                    refetch()
+                  }}
+                />
               )}
             </div>
           </div>
