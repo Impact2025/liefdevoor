@@ -45,6 +45,12 @@ function SubscriptionSuccessContent() {
       try {
         // If no order_id, try to find user's most recent subscription
         if (!orderId) {
+          // Wait for session to load before showing error
+          if (!session) {
+            // Still loading session, keep checking status
+            return
+          }
+
           if (!session?.user?.id) {
             setStatus('error')
             setMessage('Geen order ID gevonden. Log in om je betaling te controleren.')
