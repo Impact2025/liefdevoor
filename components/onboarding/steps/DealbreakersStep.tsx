@@ -183,7 +183,7 @@ export default function DealbreakersStep({ onComplete, onSkip }: DealbreakersSte
           className="bg-white rounded-2xl p-4 border border-slate-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-5 h-5 text-slate-500" />
+            <MapPin className="w-5 h-5 text-teal-600" />
             <span className="font-medium text-slate-700">Maximum afstand</span>
           </div>
           <div className="grid grid-cols-5 gap-2">

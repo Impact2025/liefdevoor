@@ -64,10 +64,10 @@ const loveLanguages: LoveLanguage[] = [
 ];
 
 const colorClasses: Record<string, { bg: string; border: string; text: string }> = {
-  blue: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-600' },
-  purple: { bg: 'bg-purple-50', border: 'border-purple-500', text: 'text-purple-600' },
+  blue: { bg: 'bg-teal-50', border: 'border-teal-500', text: 'text-teal-600' },
+  purple: { bg: 'bg-rose-50', border: 'border-rose-500', text: 'text-rose-600' },
   rose: { bg: 'bg-rose-50', border: 'border-rose-500', text: 'text-rose-600' },
-  emerald: { bg: 'bg-emerald-50', border: 'border-emerald-500', text: 'text-emerald-600' },
+  emerald: { bg: 'bg-teal-50', border: 'border-teal-600', text: 'text-teal-700' },
   amber: { bg: 'bg-amber-50', border: 'border-amber-500', text: 'text-amber-600' },
 };
 
@@ -128,9 +128,9 @@ export default function LoveLanguagesStep({ onComplete, onSkip }: LoveLanguagesS
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="w-14 h-14 mx-auto mb-3 rounded-full bg-pink-100 flex items-center justify-center"
+          className="w-14 h-14 mx-auto mb-3 rounded-full bg-rose-100 flex items-center justify-center"
         >
-          <Heart className="w-7 h-7 text-pink-500" />
+          <Heart className="w-7 h-7 text-rose-500" />
         </motion.div>
         <h2 className="text-2xl font-bold text-slate-900">Love Languages</h2>
         <p className="text-slate-600 mt-1 text-sm">
@@ -220,7 +220,7 @@ export default function LoveLanguagesStep({ onComplete, onSkip }: LoveLanguagesS
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-rose-50 to-purple-50 p-4 rounded-xl border border-rose-100 mb-4"
+          className="bg-gradient-to-r from-rose-50 to-teal-50 p-4 rounded-xl border border-rose-100 mb-4"
         >
           <p className="text-sm text-slate-600">
             <span className="font-semibold text-rose-600">💡 Insight:</span> Je voelt je het meest geliefd door{' '}

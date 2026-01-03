@@ -104,7 +104,7 @@ export default function LifestyleStep({ onComplete, onSkip, initialData }: Lifes
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="w-14 h-14 mx-auto mb-3 rounded-full bg-emerald-100 flex items-center justify-center"
+          className="w-14 h-14 mx-auto mb-3 rounded-full bg-teal-100 flex items-center justify-center"
         >
           <span className="text-2xl">🌿</span>
         </motion.div>
@@ -124,7 +124,7 @@ export default function LifestyleStep({ onComplete, onSkip, initialData }: Lifes
           className="bg-white rounded-2xl p-4 border border-slate-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Ruler className="w-5 h-5 text-slate-500" />
+            <Ruler className="w-5 h-5 text-teal-600" />
             <span className="font-medium text-slate-700">Lengte</span>
             <span className="ml-auto text-lg font-bold text-rose-500">{height} cm</span>
           </div>
@@ -150,7 +150,7 @@ export default function LifestyleStep({ onComplete, onSkip, initialData }: Lifes
           className="bg-white rounded-2xl p-4 border border-slate-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Cigarette className="w-5 h-5 text-slate-500" />
+            <Cigarette className="w-5 h-5 text-teal-600" />
             <span className="font-medium text-slate-700">Roken</span>
           </div>
           <div className="flex gap-2">
@@ -173,7 +173,7 @@ export default function LifestyleStep({ onComplete, onSkip, initialData }: Lifes
           className="bg-white rounded-2xl p-4 border border-slate-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Wine className="w-5 h-5 text-slate-500" />
+            <Wine className="w-5 h-5 text-teal-600" />
             <span className="font-medium text-slate-700">Alcohol</span>
           </div>
           <div className="flex gap-2">
@@ -196,7 +196,7 @@ export default function LifestyleStep({ onComplete, onSkip, initialData }: Lifes
           className="bg-white rounded-2xl p-4 border border-slate-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Baby className="w-5 h-5 text-slate-500" />
+            <Baby className="w-5 h-5 text-teal-600" />
             <span className="font-medium text-slate-700">Kinderen</span>
           </div>
           <div className="grid grid-cols-2 gap-2">

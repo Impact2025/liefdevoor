@@ -35,7 +35,7 @@ const goalOptions: GoalOption[] = [
     description: 'Klaar voor de volgende stap',
     emoji: '💍',
     icon: Sparkles,
-    color: 'purple',
+    color: 'teal',
   },
   {
     value: 'casual',
@@ -62,11 +62,11 @@ const colorClasses = {
     text: 'text-rose-600',
     icon: 'text-rose-500',
   },
-  purple: {
-    bg: 'bg-purple-50',
-    border: 'border-purple-500',
-    text: 'text-purple-600',
-    icon: 'text-purple-500',
+  teal: {
+    bg: 'bg-teal-50',
+    border: 'border-teal-500',
+    text: 'text-teal-600',
+    icon: 'text-teal-500',
   },
   amber: {
     bg: 'bg-amber-50',

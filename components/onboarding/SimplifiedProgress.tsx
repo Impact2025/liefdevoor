@@ -74,7 +74,7 @@ export function SimplifiedProgress({
           {isLVBMode && (
             <button
               onClick={handleAudioClick}
-              className="p-2 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
+              className="p-2 bg-teal-100 text-teal-700 rounded-full hover:bg-teal-200 transition-colors"
               aria-label="Lees stap voor"
             >
               <Volume2 className="w-5 h-5" />
@@ -122,9 +122,9 @@ export function SimplifiedProgress({
                   w-14 h-14 rounded-full font-bold text-xl
                   transition-colors duration-300
                   ${isCompleted
-                    ? 'bg-emerald-500 text-white'
+                    ? 'bg-teal-600 text-white'
                     : isCurrent
-                      ? 'bg-purple-600 text-white ring-4 ring-purple-200'
+                      ? 'bg-rose-500 text-white ring-4 ring-rose-200'
                       : 'bg-slate-200 text-slate-400'
                   }
                 `}
@@ -146,7 +146,7 @@ export function SimplifiedProgress({
                 {/* Pulse animation for current step */}
                 {isCurrent && (
                   <motion.div
-                    className="absolute inset-0 rounded-full bg-purple-600"
+                    className="absolute inset-0 rounded-full bg-rose-500"
                     initial={{ opacity: 0.5, scale: 1 }}
                     animate={{ opacity: 0, scale: 1.5 }}
                     transition={{
@@ -163,7 +163,7 @@ export function SimplifiedProgress({
                 <div className="flex-1 h-1 mx-2">
                   <motion.div
                     className={`h-full rounded-full ${
-                      isCompleted ? 'bg-emerald-500' : 'bg-slate-200'
+                      isCompleted ? 'bg-teal-600' : 'bg-slate-200'
                     }`}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
@@ -181,7 +181,7 @@ export function SimplifiedProgress({
       <div className="mt-4 md:hidden">
         <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-purple-600 rounded-full"
+            className="h-full bg-rose-500 rounded-full"
             initial={{ width: 0 }}
             animate={{
               width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%`

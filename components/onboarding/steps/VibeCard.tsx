@@ -124,7 +124,7 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="w-24 h-24 bg-purple-600 rounded-full flex items-center justify-center mb-6"
+          className="w-24 h-24 bg-teal-600 rounded-full flex items-center justify-center mb-6"
         >
           <Check className="w-12 h-12 text-white" />
         </motion.div>
@@ -146,9 +146,9 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3"
+          className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3"
         >
-          <Sparkles className="w-8 h-8 text-purple-600" />
+          <Sparkles className="w-8 h-8 text-rose-500" />
         </motion.div>
         <h2 className="text-2xl font-bold text-slate-900 mb-1">
           This or That?
@@ -162,7 +162,7 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
       <div className="mb-6">
         <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-purple-600 rounded-full"
+            className="h-full bg-rose-500 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3 }}
@@ -196,7 +196,7 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
             >
               {/* Left Swipe Indicator */}
               <motion.div
-                className="absolute top-4 left-4 px-4 py-2 bg-purple-600 text-white font-bold rounded-xl flex items-center gap-2"
+                className="absolute top-4 left-4 px-4 py-2 bg-rose-500 text-white font-bold rounded-xl flex items-center gap-2"
                 style={{ opacity: leftOpacity }}
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -205,7 +205,7 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
 
               {/* Right Swipe Indicator */}
               <motion.div
-                className="absolute top-4 right-4 px-4 py-2 bg-purple-600 text-white font-bold rounded-xl flex items-center gap-2"
+                className="absolute top-4 right-4 px-4 py-2 bg-teal-600 text-white font-bold rounded-xl flex items-center gap-2"
                 style={{ opacity: rightOpacity }}
               >
                 {currentQuestion.optionB.emoji}
@@ -217,7 +217,7 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
                 {/* Option A */}
                 <motion.button
                   onClick={() => handleAnswer('A')}
-                  className="w-full p-5 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl border-2 border-purple-200 transition-all"
+                  className="w-full p-5 bg-gradient-to-r from-rose-50 to-rose-100 hover:from-rose-100 hover:to-rose-200 rounded-2xl border-2 border-rose-200 transition-all"
                   whileTap={{ scale: 0.98 }}
                 >
                   <span className="text-4xl mb-2 block">{currentQuestion.optionA.emoji}</span>
@@ -236,7 +236,7 @@ export default function VibeCard({ onComplete }: VibeCardProps) {
                 {/* Option B */}
                 <motion.button
                   onClick={() => handleAnswer('B')}
-                  className="w-full p-5 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl border-2 border-purple-200 transition-all"
+                  className="w-full p-5 bg-gradient-to-r from-teal-50 to-teal-100 hover:from-teal-100 hover:to-teal-200 rounded-2xl border-2 border-teal-200 transition-all"
                   whileTap={{ scale: 0.98 }}
                 >
                   <span className="text-4xl mb-2 block">{currentQuestion.optionB.emoji}</span>

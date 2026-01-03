@@ -197,11 +197,11 @@ export default function OnboardingPage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="w-10 h-10 text-white fill-white" />
             </div>
           </motion.div>
-          <Loader2 className="w-6 h-6 text-purple-600 animate-spin mx-auto mb-3" />
+          <Loader2 className="w-6 h-6 text-rose-500 animate-spin mx-auto mb-3" />
           <p className="text-slate-600">Even geduld...</p>
         </div>
       </div>
@@ -230,7 +230,7 @@ export default function OnboardingPage() {
             {/* Background track */}
             <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-purple-600 rounded-full"
+                className="h-full bg-rose-500 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
                 <div
                   key={step.id}
                   className={`text-xs font-medium transition-colors ${
-                    currentStep >= step.id ? 'text-purple-600' : 'text-slate-400'
+                    currentStep >= step.id ? 'text-rose-600' : 'text-slate-400'
                   }`}
                 >
                   {step.name}
