@@ -91,6 +91,42 @@ export interface UserProfile {
   createdAt: Date
   updatedAt: Date
   photos?: Photo[]
+  // Psychological profile
+  psychProfile?: PsychProfileData | null
+  // Dealbreakers/filters
+  dealbreakers?: DealbreakersData | null
+}
+
+/**
+ * Psychological profile data
+ */
+export interface PsychProfileData {
+  relationshipGoal?: string | null
+  introvertScale?: number | null
+  emotionalScale?: number | null
+  spontaneityScale?: number | null
+  adventureScale?: number | null
+  conflictStyle?: string | null
+  communicationStyle?: string | null
+  loveLangWords?: number | null
+  loveLangTime?: number | null
+  loveLangGifts?: number | null
+  loveLangActs?: number | null
+  loveLangTouch?: number | null
+}
+
+/**
+ * User dealbreakers/filters
+ */
+export interface DealbreakersData {
+  mustNotSmoke?: boolean | null
+  mustNotDrink?: boolean | null
+  mustWantChildren?: boolean | null
+  mustNotHaveChildren?: boolean | null
+  mustBeVerified?: boolean | null
+  maxDistance?: number | null
+  minHeight?: number | null
+  maxHeight?: number | null
 }
 
 /**

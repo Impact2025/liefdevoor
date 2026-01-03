@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { requireAuth, successResponse, handleApiError, validationError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
-import type { UserProfile, UserPreferences } from '@/lib/types'
-import type { Gender } from '@prisma/client'
+import type { UserProfile, UserPreferences, PsychProfileData, DealbreakersData } from '@/lib/types'
+import type { Gender, ConflictStyle } from '@prisma/client'
 
 // Geocode postcode to lat/lng
 async function geocodePostcode(postcode: string): Promise<{ lat: number; lng: number } | null> {
@@ -86,6 +86,34 @@ export async function GET() {
           select: { id: true, url: true, order: true },
           orderBy: { order: 'asc' },
         },
+        psychProfile: {
+          select: {
+            relationshipGoal: true,
+            introvertScale: true,
+            emotionalScale: true,
+            spontaneityScale: true,
+            adventureScale: true,
+            conflictStyle: true,
+            communicationStyle: true,
+            loveLangWords: true,
+            loveLangTime: true,
+            loveLangGifts: true,
+            loveLangActs: true,
+            loveLangTouch: true,
+          },
+        },
+        dealbreakers: {
+          select: {
+            mustNotSmoke: true,
+            mustNotDrink: true,
+            mustWantChildren: true,
+            mustNotHaveChildren: true,
+            mustBeVerified: true,
+            maxDistance: true,
+            minHeight: true,
+            maxHeight: true,
+          },
+        },
       },
     })
 
@@ -98,6 +126,8 @@ export async function GET() {
       ...profile,
       preferences: profile.preferences || null,
       birthDate: profile.birthDate ? profile.birthDate.toISOString().split('T')[0] : null,
+      psychProfile: profile.psychProfile || null,
+      dealbreakers: profile.dealbreakers || null,
     }
 
     return successResponse({ profile: formattedProfile })
@@ -124,6 +154,10 @@ interface ProfileUpdateData {
   drinking?: string | null
   smoking?: string | null
   children?: string | null
+  // Psychological profile
+  psychProfile?: PsychProfileData | null
+  // Dealbreakers
+  dealbreakers?: DealbreakersData | null
 }
 
 /**
@@ -174,7 +208,8 @@ function validateProfileUpdate(data: ProfileUpdateData): string | null {
 async function updateProfile(userId: string, data: ProfileUpdateData): Promise<UserProfile> {
   const {
     name, bio, birthDate, gender, city, postcode, interests, preferences, latitude, longitude,
-    occupation, education, height, drinking, smoking, children
+    occupation, education, height, drinking, smoking, children,
+    psychProfile, dealbreakers
   } = data
 
   // Use provided coordinates or geocode from postcode
@@ -215,6 +250,75 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
     updateData.longitude = coordinates.lng
   }
 
+  // Update PsychProfile if provided
+  if (psychProfile !== undefined && psychProfile !== null) {
+    const validConflictStyles: ConflictStyle[] = ['AVOIDING', 'ACCOMMODATING', 'COMPETING', 'COMPROMISING', 'COLLABORATING']
+    const conflictStyleEnum = psychProfile.conflictStyle && validConflictStyles.includes(psychProfile.conflictStyle as ConflictStyle)
+      ? (psychProfile.conflictStyle as ConflictStyle)
+      : null
+
+    await prisma.psychProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
+        relationshipGoal: psychProfile.relationshipGoal || null,
+        introvertScale: psychProfile.introvertScale || null,
+        emotionalScale: psychProfile.emotionalScale || null,
+        spontaneityScale: psychProfile.spontaneityScale || null,
+        adventureScale: psychProfile.adventureScale || null,
+        conflictStyle: conflictStyleEnum,
+        communicationStyle: psychProfile.communicationStyle || null,
+        loveLangWords: psychProfile.loveLangWords || null,
+        loveLangTime: psychProfile.loveLangTime || null,
+        loveLangGifts: psychProfile.loveLangGifts || null,
+        loveLangActs: psychProfile.loveLangActs || null,
+        loveLangTouch: psychProfile.loveLangTouch || null,
+      },
+      update: {
+        relationshipGoal: psychProfile.relationshipGoal || null,
+        introvertScale: psychProfile.introvertScale || null,
+        emotionalScale: psychProfile.emotionalScale || null,
+        spontaneityScale: psychProfile.spontaneityScale || null,
+        adventureScale: psychProfile.adventureScale || null,
+        conflictStyle: conflictStyleEnum,
+        communicationStyle: psychProfile.communicationStyle || null,
+        loveLangWords: psychProfile.loveLangWords || null,
+        loveLangTime: psychProfile.loveLangTime || null,
+        loveLangGifts: psychProfile.loveLangGifts || null,
+        loveLangActs: psychProfile.loveLangActs || null,
+        loveLangTouch: psychProfile.loveLangTouch || null,
+      },
+    })
+  }
+
+  // Update Dealbreakers if provided
+  if (dealbreakers !== undefined && dealbreakers !== null) {
+    await prisma.userDealbreaker.upsert({
+      where: { userId },
+      create: {
+        userId,
+        mustNotSmoke: dealbreakers.mustNotSmoke || null,
+        mustNotDrink: dealbreakers.mustNotDrink || null,
+        mustWantChildren: dealbreakers.mustWantChildren || null,
+        mustNotHaveChildren: dealbreakers.mustNotHaveChildren || null,
+        mustBeVerified: dealbreakers.mustBeVerified || null,
+        maxDistance: dealbreakers.maxDistance || null,
+        minHeight: dealbreakers.minHeight || null,
+        maxHeight: dealbreakers.maxHeight || null,
+      },
+      update: {
+        mustNotSmoke: dealbreakers.mustNotSmoke || null,
+        mustNotDrink: dealbreakers.mustNotDrink || null,
+        mustWantChildren: dealbreakers.mustWantChildren || null,
+        mustNotHaveChildren: dealbreakers.mustNotHaveChildren || null,
+        mustBeVerified: dealbreakers.mustBeVerified || null,
+        maxDistance: dealbreakers.maxDistance || null,
+        minHeight: dealbreakers.minHeight || null,
+        maxHeight: dealbreakers.maxHeight || null,
+      },
+    })
+  }
+
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: updateData,
@@ -246,6 +350,35 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
       drinking: true,
       smoking: true,
       children: true,
+      // Relations
+      psychProfile: {
+        select: {
+          relationshipGoal: true,
+          introvertScale: true,
+          emotionalScale: true,
+          spontaneityScale: true,
+          adventureScale: true,
+          conflictStyle: true,
+          communicationStyle: true,
+          loveLangWords: true,
+          loveLangTime: true,
+          loveLangGifts: true,
+          loveLangActs: true,
+          loveLangTouch: true,
+        },
+      },
+      dealbreakers: {
+        select: {
+          mustNotSmoke: true,
+          mustNotDrink: true,
+          mustWantChildren: true,
+          mustNotHaveChildren: true,
+          mustBeVerified: true,
+          maxDistance: true,
+          minHeight: true,
+          maxHeight: true,
+        },
+      },
     },
   })
 
@@ -253,6 +386,8 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
     ...updatedUser,
     preferences: updatedUser.preferences || null,
     birthDate: updatedUser.birthDate ? updatedUser.birthDate.toISOString().split('T')[0] : null,
+    psychProfile: updatedUser.psychProfile || null,
+    dealbreakers: updatedUser.dealbreakers || null,
   } as UserProfile
 }
 
