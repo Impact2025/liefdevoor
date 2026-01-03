@@ -114,7 +114,6 @@ export function Turnstile({
         retry: 'auto',
         'retry-interval': 3000, // Snellere retry
         'refresh-expired': 'auto',
-        'refresh-timeout': 'auto',
         language: 'nl',
         execution: 'render', // Start verificatie direct bij render
         callback: (token: string) => {
