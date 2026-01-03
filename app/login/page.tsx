@@ -40,9 +40,17 @@ function LoginContent() {
 
         {/* Success Messages */}
         {verified && (
-          <Alert variant="success" className="mb-6">
-            Je email is geverifieerd! Je kunt nu inloggen.
-          </Alert>
+          <>
+            <Alert variant="success" className="mb-4">
+              Je email is geverifieerd! Je kunt nu inloggen.
+            </Alert>
+            {/* Hint for email app browser users */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-amber-800">
+                <strong>Tip:</strong> Problemen met inloggen? Open deze pagina in je normale browser (Chrome/Safari) via het menu-icoontje rechtsboven.
+              </p>
+            </div>
+          </>
         )}
 
         {registered && (
