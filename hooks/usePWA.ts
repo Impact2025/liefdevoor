@@ -114,10 +114,26 @@ export function usePWA(): UsePWAReturn {
   }, [deferredPrompt])
 
   const updateApp = useCallback(() => {
-    if (registration?.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+    if (!registration?.waiting) {
+      console.warn('[PWA] No waiting service worker found')
+      // Force reload anyway in case there's a new version
       window.location.reload()
+      return
     }
+
+    console.log('[PWA] Sending SKIP_WAITING message to service worker')
+
+    // Listen for controlling service worker change
+    let refreshing = false
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return
+      refreshing = true
+      console.log('[PWA] Controller changed, reloading page...')
+      window.location.reload()
+    })
+
+    // Send message to waiting service worker
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' })
   }, [registration])
 
   // Track PWA events to analytics

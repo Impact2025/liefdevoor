@@ -8,9 +8,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { RefreshCw, X } from 'lucide-react'
 import { usePWA } from '@/hooks'
+import { useState } from 'react'
 
 export function UpdatePrompt() {
   const { isUpdateAvailable, updateApp } = usePWA()
+  const [isUpdating, setIsUpdating] = useState(false)
 
   if (!isUpdateAvailable) return null
 
@@ -45,12 +47,14 @@ export function UpdatePrompt() {
                     })
                   }
                 }}
-                className="flex-1 px-4 py-2.5 text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
+                disabled={isUpdating}
+                className="flex-1 px-4 py-2.5 text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Later
               </button>
               <button
                 onClick={() => {
+                  setIsUpdating(true)
                   // Track update
                   if (window.gtag) {
                     window.gtag('event', 'pwa_updated', {
@@ -59,10 +63,11 @@ export function UpdatePrompt() {
                   }
                   updateApp()
                 }}
-                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                disabled={isUpdating}
+                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed"
               >
-                <RefreshCw className="w-4 h-4" />
-                Nu Updaten
+                <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+                {isUpdating ? 'Updaten...' : 'Nu Updaten'}
               </button>
             </div>
           </div>

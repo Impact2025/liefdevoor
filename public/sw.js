@@ -19,6 +19,16 @@ const STATIC_ASSETS = [
   '/manifest.json',
 ];
 
+// Message event - handle client messages
+self.addEventListener('message', (event) => {
+  console.log('[SW] Message received:', event.data);
+
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] SKIP_WAITING message received, activating new service worker...');
+    self.skipWaiting();
+  }
+});
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
@@ -28,7 +38,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(STATIC_ASSETS);
     })
   );
-  self.skipWaiting();
+  // Don't auto-skip waiting, let user decide via update prompt
 });
 
 // Activate event - clean old caches
