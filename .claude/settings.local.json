@@ -113,7 +113,18 @@
       "Bash(set PORT=9000)",
       "WebFetch(domain:www.datingassistent.nl)",
       "WebSearch",
-      "WebFetch(domain:www.datingguru.nl)"
+      "WebFetch(domain:www.datingguru.nl)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFeature updates: Onboarding, Profile Generator, UI improvements\n\nNieuwe features:\n- Profile Generator in onboarding flow\n- OpenGraph en Twitter image support\n- AI-powered profile generation API\n\nOnboarding verbeteringen:\n- Alle steps geüpdatet en geoptimaliseerd\n- Betere UX voor age preference, bio, birthdate\n- Gender, location, looking for steps verbeterd\n- Photos upload flow geoptimaliseerd\n\nDiscover & Swipe updates:\n- Swipe stack hook verbeteringen\n- Discover users hook optimalisaties\n- API route updates voor photos en swipe\n\nUI/UX verbeteringen:\n- Layout content updates\n- Navigation improvements\n- Provider optimalisaties\n- Safety page updates\n- Pricing page updates\n- Profile page updates\n\nDatabase:\n- Prisma schema updates\n- Seed data improvements\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C D:/Datingsite2026 add hooks/useSwipeStack.ts)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"Fix: TypeScript error - add message property to SwipeResult interface\")",
+      "Bash(git -C D:/Datingsite2026 add components/pwa/UpdatePrompt.tsx hooks/usePWA.ts public/sw.js)",
+      "Bash(git -C D:/Datingsite2026 diff --staged)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: PWA Update knop werkte niet - SKIP_WAITING implementatie\n\nPROBLEEM:\n- Klikken op \"Nu Updaten\" deed niets\n- Service worker had geen message event listener\n- Update process was niet user-friendly\n\nOPLOSSING:\n1. Service Worker \\(public/sw.js\\):\n   - Message event listener toegevoegd voor SKIP_WAITING\n   - Verwijderd: automatisch skipWaiting\\(\\) tijdens install\n   - Nu wacht service worker op user actie via update prompt\n\n2. usePWA Hook \\(hooks/usePWA.ts\\):\n   - Luistert naar controllerchange event voor reload\n   - Fallback: force reload als geen waiting SW\n   - Betere logging voor debugging\n   - Voorkomt dubbele reload met refreshing flag\n\n3. UpdatePrompt Component \\(components/pwa/UpdatePrompt.tsx\\):\n   - Loading state toegevoegd tijdens update\n   - \"Nu Updaten\" knop toont \"Updaten...\" + spinning icon\n   - Disable beide knoppen tijdens update proces\n   - Betere UX feedback voor gebruiker\n\nFLOW:\n1. User klikt \"Nu Updaten\"\n2. UpdatePrompt toont loading state\n3. postMessage naar waiting service worker\n4. SW ontvangt SKIP_WAITING message\n5. SW roept skipWaiting\\(\\) aan\n6. controllerchange event fired\n7. Page reload met nieuwe versie\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C D:/Datingsite2026 diff app/subscription/success/page.tsx)",
+      "Bash(git -C D:/Datingsite2026 diff .claude/settings.local.json)",
+      "Bash(git -C D:/Datingsite2026 add app/subscription/success/page.tsx)",
+      "Bash(git -C D:/Datingsite2026 commit -m \"$\\(cat <<''EOF''\nFix: Wait for session before showing error on subscription success page\n\nPrevents premature error message when session is still loading\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(if exist \"D:\\\\datingsite2026\\\\node_modules\\\\.prisma\" rmdir /s /q \"D:\\\\datingsite2026\\\\node_modules\\\\.prisma\")"
     ],
     "deny": [],
     "ask": []

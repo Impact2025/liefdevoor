@@ -80,17 +80,14 @@ export function Turnstile({
     }
   }, [])
 
-  // Auto-bypass in development mode
+  // Auto-bypass in development mode - instant
   useEffect(() => {
     if (isDevelopment) {
-      // Simulate async token generation
-      const timer = setTimeout(() => {
-        if (mountedRef.current) {
-          onSuccessRef.current('dev-bypass-token')
-          setStatus('verified')
-        }
-      }, 100)
-      return () => clearTimeout(timer)
+      // Instant token generation in dev mode
+      if (mountedRef.current) {
+        onSuccessRef.current('dev-bypass-token')
+        setStatus('verified')
+      }
     }
   }, [isDevelopment])
 
@@ -115,9 +112,11 @@ export function Turnstile({
         // Token wordt automatisch gegenereerd op achtergrond
         appearance: 'interaction-only',
         retry: 'auto',
-        'retry-interval': 5000,
+        'retry-interval': 3000, // Snellere retry
         'refresh-expired': 'auto',
+        'refresh-timeout': 'auto',
         language: 'nl',
+        execution: 'render', // Start verificatie direct bij render
         callback: (token: string) => {
           console.log('[Turnstile] Token ontvangen:', token.substring(0, 20) + '...')
           if (mountedRef.current) {

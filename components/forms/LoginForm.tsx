@@ -26,6 +26,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
   })
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showResendVerification, setShowResendVerification] = useState(false)
   const [resendingVerification, setResendingVerification] = useState(false)
@@ -67,21 +68,21 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
     setIsLoading(true)
 
-    // Wacht automatisch op Turnstile token als nog niet klaar
-    let tokenToUse = turnstileToken
-    if (!tokenToUse && process.env.NODE_ENV !== 'development') {
-      setIsWaitingForVerification(true)
-      tokenToUse = await waitForToken(10000) // Max 10 seconden wachten
-      setIsWaitingForVerification(false)
-
-      if (!tokenToUse) {
-        setError('Beveiligingsverificatie duurde te lang. Probeer opnieuw.')
-        setIsLoading(false)
-        return
-      }
-    }
-
     try {
+      // Wacht automatisch op Turnstile token als nog niet klaar
+      let tokenToUse = turnstileToken
+      if (!tokenToUse && process.env.NODE_ENV !== 'development') {
+        setIsWaitingForVerification(true)
+        tokenToUse = await waitForToken(5000) // Max 5 seconden wachten (sneller)
+        setIsWaitingForVerification(false)
+
+        if (!tokenToUse) {
+          setError('Beveiligingsverificatie duurde te lang. Probeer opnieuw.')
+          setIsLoading(false)
+          return
+        }
+      }
+
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -102,30 +103,57 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
           setError('Ongeldige inloggegevens. Controleer je email en wachtwoord.')
         }
         resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
-      } else if (result?.ok) {
+        setIsLoading(false)
+        return
+      }
+
+      if (result?.ok) {
         onSuccess?.()
 
         // Get fresh session to check profileComplete status and role
-        const session = await getSession()
+        // Retry mechanism for session loading (prevents race conditions)
+        let session = null
+        let retries = 0
+        const maxRetries = 5 // More retries for reliability
+
+        while (!session && retries < maxRetries) {
+          session = await getSession()
+          if (!session && retries < maxRetries - 1) {
+            // Wait 200ms before retry (sneller)
+            await new Promise(resolve => setTimeout(resolve, 200))
+          }
+          retries++
+        }
+
+        if (!session?.user) {
+          console.error('Session not loaded after retries')
+          // Fallback: gebruik default routing
+          router.push(callbackUrl)
+          router.refresh()
+          return
+        }
 
         // Admins skip onboarding and go directly to admin dashboard
-        const isAdmin = session?.user?.role === 'ADMIN'
+        const isAdmin = session.user.role === 'ADMIN'
         const isAdminRoute = callbackUrl.startsWith('/admin')
 
+        let targetUrl: string
         if (isAdmin) {
           // Admins always go to admin dashboard unless explicitly going to another admin route
-          router.push(isAdminRoute ? callbackUrl : '/admin/dashboard')
-        } else if (session?.user?.profileComplete) {
-          router.push(callbackUrl)
+          targetUrl = isAdminRoute ? callbackUrl : '/admin/dashboard'
+        } else if (session.user.profileComplete) {
+          targetUrl = callbackUrl
         } else {
-          router.push('/onboarding')
+          targetUrl = '/onboarding'
         }
-        router.refresh()
+
+        // Use window.location for more reliable navigation (prevents race conditions)
+        window.location.href = targetUrl
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Er is een fout opgetreden. Probeer het opnieuw.')
       resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
-    } finally {
       setIsLoading(false)
     }
   }
@@ -275,8 +303,9 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         fullWidth
         isLoading={isLoading}
         size="lg"
+        disabled={isLoading}
       >
-        {isWaitingForVerification ? 'Beveiliging controleren...' : 'Inloggen'}
+        {isWaitingForVerification ? 'Beveiliging controleren...' : isLoading ? 'Inloggen...' : 'Inloggen'}
       </Button>
 
       {/* Social Login Divider */}
@@ -297,8 +326,12 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         variant="secondary"
         fullWidth
         size="lg"
-        onClick={() => signIn('google', { callbackUrl })}
-        disabled={isLoading}
+        onClick={() => {
+          setIsGoogleLoading(true)
+          signIn('google', { callbackUrl })
+        }}
+        disabled={isLoading || isGoogleLoading}
+        isLoading={isGoogleLoading}
         className="border-2 border-gray-200 hover:border-gray-300 bg-white"
       >
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

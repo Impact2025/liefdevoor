@@ -22,6 +22,9 @@ interface Photo {
   order: number
 }
 
+// Placeholder image for failed photo loads (SVG base64)
+const PHOTO_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkZvdG8gbmlldCBiZXNjaGlrYmFhcjwvdGV4dD48L3N2Zz4='
+
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -247,6 +250,13 @@ export default function ProfilePage() {
                     <div key={photo.id} className="relative aspect-square group">
                       <img
                         src={photo.url}
+                        onError={(e) => {
+                          const target = e.currentTarget
+                          if (target.src !== PHOTO_PLACEHOLDER) {
+                            console.error('Failed to load photo:', photo.url)
+                            target.src = PHOTO_PLACEHOLDER
+                          }
+                        }}
                         alt="Profile photo"
                         className={`w-full h-full object-cover rounded-lg ${
                           user?.profileImage === photo.url ? 'ring-4 ring-purple-500' : ''
