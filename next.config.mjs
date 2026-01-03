@@ -61,9 +61,9 @@ const cspHeader = `
   default-src 'self';
   script-src ${scriptSrc};
   style-src ${styleSrc};
-  img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://liefdevooriederen.nl;
+  img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://www.liefdevooriedereen.nl https://liefdevooriedereen.nl;
   font-src 'self' data:;
-  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriederen.nl;
+  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl;
   frame-ancestors 'self';
   frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com;
   form-action 'self';

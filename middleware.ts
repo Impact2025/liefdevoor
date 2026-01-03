@@ -43,7 +43,10 @@ async function middleware(request: NextRequest) {
     let rateLimit
 
     // Choose rate limiter based on endpoint
-    if (pathname.includes('/auth/') || pathname.includes('/register')) {
+    // Email verification should be more lenient (uses api rate limiter)
+    if (pathname.includes('/auth/verify')) {
+      rateLimit = await rateLimiters.api(request)  // 100/min instead of 5/min
+    } else if (pathname.includes('/auth/') || pathname.includes('/register')) {
       rateLimit = await rateLimiters.auth(request)
     } else if (pathname.includes('/ai/')) {
       rateLimit = await rateLimiters.ai(request)
