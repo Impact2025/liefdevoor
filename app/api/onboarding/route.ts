@@ -5,47 +5,47 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 // Validation schemas per step
+// Based on frontend STEPS configuration (app/onboarding/page.tsx)
 const stepSchemas = {
-  // Step 1: Welcome - mode selectie
+  // Step 1: Leeftijd (Birthdate)
   1: z.object({
-    onboardingMode: z.enum(['SIMPLE', 'STANDARD', 'ADVANCED']),
-  }),
-  // Step 3: Rules accepted
-  3: z.object({
-    rulesAccepted: z.literal(true),
-  }),
-  // Step 4: Gender
-  4: z.object({
-    gender: z.enum(['MALE', 'FEMALE', 'NON_BINARY']),
-  }),
-  // Step 5: Birthdate
-  5: z.object({
     birthDate: z.string().transform((val) => new Date(val)),
   }),
-  // Step 6: Location
-  6: z.object({
-    postcode: z.string().min(4).max(10),
-    city: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
+  // Step 2: Gender
+  2: z.object({
+    gender: z.enum(['MALE', 'FEMALE', 'NON_BINARY']),
   }),
-  // Step 7: Looking for
-  7: z.object({
+  // Step 3: Zoekt (Looking for)
+  3: z.object({
     lookingFor: z.enum(['MALE', 'FEMALE', 'BOTH']),
   }),
-  // Step 8: Age preference
-  8: z.object({
+  // Step 4: Locatie (Location) ✅ FIXED
+  4: z.object({
+    postcode: z.string().optional(),
+    city: z.string().min(1),
+    latitude: z.number(),
+    longitude: z.number(),
+  }),
+  // Step 5: Foto's - handled by separate upload endpoint
+  // Step 6: Stem (Voice) - handled by separate upload endpoint
+  // Step 7: Doel (Relationship Goal)
+  7: z.object({
+    relationshipGoal: z.string().optional(),
+  }),
+  // Step 8: Vibe - stored as JSON
+  // Step 9: Lifestyle - stored as JSON
+  // Step 10: Liefde (Love Languages) - stored as JSON
+  // Step 11: Voorkeur (Age Preference)
+  11: z.object({
     minAgePreference: z.number().min(18).max(99),
     maxAgePreference: z.number().min(18).max(99),
   }),
-  // Step 10: Bio
-  10: z.object({
+  // Step 12: Filters (Dealbreakers) - stored as JSON
+  // Step 13: AI Bio (Profile Generator)
+  13: z.object({
     bio: z.string().min(10).max(500),
   }),
-  // Step 11: Interests
-  11: z.object({
-    interests: z.string().max(500),
-  }),
+  // Step 14: Klaar (Finish) - no data to validate
 };
 
 // Check if profile is complete
