@@ -2,25 +2,75 @@
  * Email Verification Confirmation Page
  *
  * Clean design matching login page style
- * Shows BEFORE actually verifying - prevents email scanners from consuming tokens
+ * Validates token on load, then shows confirm button
+ * Direct link from email (no API redirect needed)
  */
 
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import { Button, Alert } from '@/components/ui'
+
+type ValidationState = 'loading' | 'valid' | 'invalid' | 'expired' | 'already_verified' | 'error'
 
 function ConfirmVerificationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [isVerifying, setIsVerifying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [validationState, setValidationState] = useState<ValidationState>('loading')
+  const [email, setEmail] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
 
   const token = searchParams.get('token')
-  const email = searchParams.get('email')
-  const name = searchParams.get('name')
+  // Fallback to URL params if API hasn't loaded yet
+  const urlEmail = searchParams.get('email')
+  const urlName = searchParams.get('name')
+
+  // Validate token on mount
+  useEffect(() => {
+    if (!token) {
+      setValidationState('invalid')
+      setError('Ongeldige verificatie link - geen token gevonden')
+      return
+    }
+
+    const validateTokenOnLoad = async () => {
+      try {
+        const response = await fetch(`/api/auth/verify-status?token=${token}`)
+        const data = await response.json()
+
+        if (data.valid) {
+          setValidationState('valid')
+          setEmail(data.email || urlEmail)
+          setUserName(data.userName || urlName)
+        } else {
+          // Map error codes to states
+          switch (data.errorCode) {
+            case 'EXPIRED':
+              setValidationState('expired')
+              setEmail(data.email)
+              break
+            case 'ALREADY_VERIFIED':
+              setValidationState('already_verified')
+              setEmail(data.email)
+              break
+            default:
+              setValidationState('invalid')
+          }
+          setError(data.message)
+        }
+      } catch (err) {
+        console.error('[Verify] Validation error:', err)
+        setValidationState('error')
+        setError('Kon de link niet valideren. Probeer het opnieuw.')
+      }
+    }
+
+    validateTokenOnLoad()
+  }, [token, urlEmail, urlName])
 
   const handleConfirm = async () => {
     if (!token) {
@@ -55,6 +105,149 @@ function ConfirmVerificationContent() {
     }
   }
 
+  const handleResend = async () => {
+    if (!email) return
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setError(null)
+        alert('Nieuwe verificatie link verstuurd! Check je email.')
+      }
+    } catch (err) {
+      console.error('[Resend] Error:', err)
+    }
+  }
+
+  // Loading state
+  if (validationState === 'loading') {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LiefdevoorIedereen_logo.png"
+              alt="Liefde Voor Iedereen"
+              width={280}
+              height={80}
+              priority
+              className="h-16 sm:h-20 w-auto"
+            />
+          </div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+            <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-slate-600">Verificatie link controleren...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Error states
+  if (validationState === 'invalid' || validationState === 'error') {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LiefdevoorIedereen_logo.png"
+              alt="Liefde Voor Iedereen"
+              width={280}
+              height={80}
+              priority
+              className="h-16 sm:h-20 w-auto"
+            />
+          </div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100 text-center">
+            <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Ongeldige link</h2>
+            <p className="text-slate-600 mb-6">{error || 'Deze verificatie link is niet geldig.'}</p>
+            <Button variant="secondary" fullWidth onClick={() => router.push('/login')}>
+              Naar inloggen
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Expired state
+  if (validationState === 'expired') {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LiefdevoorIedereen_logo.png"
+              alt="Liefde Voor Iedereen"
+              width={280}
+              height={80}
+              priority
+              className="h-16 sm:h-20 w-auto"
+            />
+          </div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100 text-center">
+            <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Link verlopen</h2>
+            <p className="text-slate-600 mb-6">Deze verificatie link is verlopen. Vraag een nieuwe aan.</p>
+            {email && (
+              <p className="text-sm text-slate-500 mb-4">{email}</p>
+            )}
+            <Button variant="primary" fullWidth onClick={handleResend}>
+              Nieuwe link aanvragen
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Already verified state
+  if (validationState === 'already_verified') {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LiefdevoorIedereen_logo.png"
+              alt="Liefde Voor Iedereen"
+              width={280}
+              height={80}
+              priority
+              className="h-16 sm:h-20 w-auto"
+            />
+          </div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100 text-center">
+            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Al geverifieerd!</h2>
+            <p className="text-slate-600 mb-6">Je account is al geactiveerd. Je kunt direct inloggen.</p>
+            <Button variant="primary" fullWidth onClick={() => router.push('/login')}>
+              Naar inloggen
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Valid state - show confirm button
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md">
@@ -78,7 +271,7 @@ function ConfirmVerificationContent() {
         {/* Verification Card */}
         <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
           <h2 className="text-2xl font-bold text-slate-900 mb-2 text-center">
-            Welkom{name ? `, ${name}` : ''}!
+            Welkom{userName ? `, ${userName}` : ''}!
           </h2>
           <p className="text-slate-600 text-sm text-center mb-6">
             Klik op de knop om je account te activeren

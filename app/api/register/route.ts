@@ -156,7 +156,8 @@ export async function POST(request: NextRequest) {
 
     // Generate verification URL (remove trailing slash to prevent //)
     const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
-    const verificationUrl = `${baseUrl}/api/auth/verify?token=${token}`
+    // Direct link to confirmation page (avoids redirect issues in email app browsers)
+    const verificationUrl = `${baseUrl}/verify-email/confirm?token=${token}`
     console.log('[Register] Verification URL:', verificationUrl)
 
     // Send verification email

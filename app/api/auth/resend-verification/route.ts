@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
 
     const token = await createVerificationToken(user.email!)
     const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
-    const verificationUrl = `${baseUrl}/api/auth/verify?token=${token}`
+    // Direct link to confirmation page (avoids redirect issues in email app browsers)
+    const verificationUrl = `${baseUrl}/verify-email/confirm?token=${token}`
 
     await sendEmail({
       to: user.email!,
