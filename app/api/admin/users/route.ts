@@ -6,7 +6,7 @@ import { auditLogImmediate, getClientInfo } from '@/lib/audit'
 import { userActionSchema, userSearchSchema } from '@/lib/validations/admin-schemas'
 import { validateBody, validateQuery } from '@/lib/api-helpers'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
-import { getRedis } from '@/lib/redis'
+import { getUpstash } from '@/lib/upstash'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,18 +29,18 @@ export async function GET(request: NextRequest) {
     const { page, limit, search, role, isVerified } = validation.data
     const skip = (page - 1) * limit
 
-    // Check Redis cache first (5 min TTL)
+    // Check Upstash cache first (5 min TTL)
     const cacheKey = `admin:users:${page}:${limit}:${search}:${role}:${isVerified}`
-    const redis = getRedis()
+    const upstash = getUpstash()
 
-    if (redis) {
+    if (upstash) {
       try {
-        const cached = await redis.get(cacheKey)
+        const cached = await upstash.get(cacheKey)
         if (cached) {
-          return NextResponse.json(JSON.parse(cached))
+          return NextResponse.json(cached)
         }
       } catch (error) {
-        console.warn('[Cache] Redis get failed:', error)
+        console.warn('[Cache] Upstash get failed:', error)
       }
     }
 
@@ -101,11 +101,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Cache response for 5 minutes
-    if (redis) {
+    if (upstash) {
       try {
-        await redis.setex(cacheKey, 300, JSON.stringify(response))
+        await upstash.setex(cacheKey, 300, JSON.stringify(response))
       } catch (error) {
-        console.warn('[Cache] Redis set failed:', error)
+        console.warn('[Cache] Upstash set failed:', error)
       }
     }
 
@@ -204,18 +204,8 @@ export async function PATCH(request: NextRequest) {
       success: true
     })
 
-    // Invalidate cache
-    const redis = getRedis()
-    if (redis) {
-      try {
-        const keys = await redis.keys('admin:users:*')
-        if (keys.length > 0) {
-          await redis.del(...keys)
-        }
-      } catch (error) {
-        console.warn('[Cache] Failed to invalidate:', error)
-      }
-    }
+    // Note: Upstash REST API doesn't support KEYS command (inefficient)
+    // Cache will auto-expire after 5 minutes TTL
 
     return NextResponse.json({
       success: true,

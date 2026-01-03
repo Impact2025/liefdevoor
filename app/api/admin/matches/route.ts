@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getRedis } from '@/lib/redis'
+import { getUpstash } from '@/lib/upstash'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,19 +18,19 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Check Redis cache first (5 min TTL)
+    // Check Upstash cache first (5 min TTL)
     const cacheKey = `admin:matches:${page}:${limit}`
-    const redis = getRedis()
+    const upstash = getUpstash()
 
-    if (redis) {
+    if (upstash) {
       try {
-        const cached = await redis.get(cacheKey)
+        const cached = await upstash.get(cacheKey)
         if (cached) {
           console.log('[Matches] Cache HIT - returning cached matches')
-          return NextResponse.json(JSON.parse(cached))
+          return NextResponse.json(cached)
         }
       } catch (error) {
-        console.warn('[Cache] Redis get failed:', error)
+        console.warn('[Cache] Upstash get failed:', error)
       }
     }
 
@@ -105,12 +105,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Cache response for 5 minutes
-    if (redis) {
+    if (upstash) {
       try {
-        await redis.setex(cacheKey, 300, JSON.stringify(response))
+        await upstash.setex(cacheKey, 300, JSON.stringify(response))
         console.log('[Matches] Cached matches for 5 minutes')
       } catch (error) {
-        console.warn('[Cache] Redis set failed:', error)
+        console.warn('[Cache] Upstash set failed:', error)
       }
     }
 

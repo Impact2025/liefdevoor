@@ -11,7 +11,7 @@ import { prisma } from '@/lib/prisma'
 import { bulkUserActionSchema, validateBody } from '@/lib/validations/admin-schemas'
 import { checkAdminRateLimit, rateLimitErrorResponse } from '@/lib/rate-limit-admin'
 import { auditLogImmediate, getClientInfo } from '@/lib/audit'
-import { getRedis } from '@/lib/redis'
+import { getUpstash } from '@/lib/upstash'
 import { requirePermission, AdminPermission } from '@/lib/permissions'
 
 export async function POST(request: NextRequest) {
@@ -140,19 +140,14 @@ export async function POST(request: NextRequest) {
       success: true
     })
 
-    // Invalidate cache
-    const redis = getRedis()
-    if (redis) {
-      const cacheKeys = [
-        'admin:users:*',
-        'admin:dashboard:stats'
-      ]
-
-      for (const pattern of cacheKeys) {
-        const keys = await redis.keys(pattern)
-        if (keys.length > 0) {
-          await redis.del(...keys)
-        }
+    // Invalidate cache (specific keys only - Upstash doesn't support KEYS pattern matching)
+    const upstash = getUpstash()
+    if (upstash) {
+      try {
+        await upstash.del('admin:dashboard:stats')
+        // Note: admin:users cache will auto-expire after 5 minutes TTL
+      } catch (error) {
+        console.warn('[Cache] Invalidation failed:', error)
       }
     }
 

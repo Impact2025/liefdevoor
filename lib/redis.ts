@@ -40,10 +40,17 @@ export function getRedis(): Redis | null {
 
   try {
     redisClient = new Redis(url, {
-      maxRetriesPerRequest: 3,
-      lazyConnect: false,
+      // Serverless-friendly settings
+      maxRetriesPerRequest: null, // Don't block requests waiting for Redis
+      enableOfflineQueue: false, // Don't queue commands when disconnected
+      connectTimeout: 10000, // 10s connection timeout
+      commandTimeout: 5000, // 5s command timeout
+      keepAlive: 30000, // Keep connection alive for 30s
+      lazyConnect: true, // Only connect when needed
       enableReadyCheck: true,
       retryStrategy: (times) => Math.min(times * 100, 3000),
+      autoResubscribe: false, // Don't auto-resubscribe in serverless
+      autoResendUnfulfilledCommands: false,
     })
 
     redisClient.on('error', (err) => {
@@ -53,6 +60,24 @@ export function getRedis(): Redis | null {
     redisClient.on('connect', () => {
       console.log('[Redis] Connected successfully')
     })
+
+    // Gracefully disconnect idle connections
+    if (process.env.VERCEL) {
+      const IDLE_TIMEOUT = 30000 // 30 seconds
+      let idleTimer: NodeJS.Timeout
+
+      const resetIdleTimer = () => {
+        clearTimeout(idleTimer)
+        idleTimer = setTimeout(() => {
+          if (redisClient) {
+            redisClient.disconnect(false)
+            redisClient = null
+          }
+        }, IDLE_TIMEOUT)
+      }
+
+      redisClient.on('ready', resetIdleTimer)
+    }
 
     return redisClient
   } catch (error) {
@@ -71,13 +96,22 @@ export function getPubSub(): { publisher: Redis | null; subscriber: Redis | null
   const url = process.env.REDIS_URL
   if (!url) return { publisher: null, subscriber: null }
 
+  const redisConfig = {
+    maxRetriesPerRequest: null,
+    enableOfflineQueue: false,
+    connectTimeout: 10000,
+    commandTimeout: 5000,
+    lazyConnect: true,
+    retryStrategy: (times: number) => Math.min(times * 100, 3000),
+  }
+
   if (!publisher) {
-    publisher = new Redis(url)
+    publisher = new Redis(url, redisConfig)
     publisher.on('error', (err) => console.error('[Redis Pub] Error:', err.message))
   }
 
   if (!subscriber) {
-    subscriber = new Redis(url)
+    subscriber = new Redis(url, redisConfig)
     subscriber.on('error', (err) => console.error('[Redis Sub] Error:', err.message))
   }
 

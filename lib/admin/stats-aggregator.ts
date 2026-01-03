@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
-import { getRedis } from '@/lib/redis'
+import { getUpstash } from '@/lib/upstash'
 import { unstable_cache } from 'next/cache'
 
 export interface DashboardStats {
@@ -279,18 +279,18 @@ async function fetchGrowthData(): Promise<{ usersLastWeek: number[], matchesLast
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
   const cacheKey = 'admin:dashboard:stats'
-  const redis = getRedis()
+  const upstash = getUpstash()
 
-  // Try Redis cache first
-  if (redis) {
+  // Try Upstash cache first
+  if (upstash) {
     try {
-      const cached = await redis.get(cacheKey)
+      const cached = await upstash.get<DashboardStats>(cacheKey)
       if (cached) {
         console.log('[Stats] Cache HIT - returning cached stats')
-        return JSON.parse(cached)
+        return cached
       }
     } catch (error) {
-      console.warn('[Stats] Redis get failed:', error)
+      console.warn('[Stats] Upstash get failed:', error)
     }
   }
 
@@ -308,12 +308,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   // Cache for 60 seconds
-  if (redis) {
+  if (upstash) {
     try {
-      await redis.setex(cacheKey, 60, JSON.stringify(stats))
+      await upstash.setex(cacheKey, 60, JSON.stringify(stats))
       console.log('[Stats] Cached stats for 60 seconds')
     } catch (error) {
-      console.warn('[Stats] Redis set failed:', error)
+      console.warn('[Stats] Upstash set failed:', error)
     }
   }
 
@@ -325,10 +325,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
  * Call this when data changes that affects stats
  */
 export async function invalidateStatsCache(): Promise<void> {
-  const redis = getRedis()
-  if (redis) {
+  const upstash = getUpstash()
+  if (upstash) {
     try {
-      await redis.del('admin:dashboard:stats')
+      await upstash.del('admin:dashboard:stats')
       console.log('[Stats] Cache invalidated')
     } catch (error) {
       console.warn('[Stats] Failed to invalidate cache:', error)
