@@ -56,7 +56,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Perform swipe operation
+    // 🎭 SHOWCASE CHECK - Swipes op showcase profielen worden NIET opgeslagen
+    const swipedUser = await prisma.user.findUnique({
+      where: { id: swipedId },
+      select: { isShowcase: true, name: true },
+    })
+
+    if (swipedUser?.isShowcase) {
+      console.log(`[Swipe] 🎭 Showcase swipe detected - ${isLike ? 'LIKE' : 'PASS'} on showcase profile, not saving`)
+      // Return success but don't actually save the swipe or create a match
+      // This gives the user a normal UX experience without polluting the database
+      const updatedSwipeCheck = await canSwipe(user.id)
+      const updatedSuperLikeCheck = await canSuperLike(user.id)
+
+      return successResponse({
+        success: true,
+        isMatch: false,
+        isShowcase: true, // Let frontend know this was a showcase profile
+        limits: {
+          swipesRemaining: updatedSwipeCheck.remaining,
+          superLikesRemaining: updatedSuperLikeCheck.remaining,
+        }
+      })
+    }
+
+    // Perform swipe operation (only for real profiles)
     const result = await performSwipe(user.id, swipedId, isLike, isSuperLike)
 
     // Add remaining swipes/superlikes to response

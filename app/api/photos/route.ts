@@ -25,7 +25,14 @@ export async function GET() {
       orderBy: { order: 'asc' }
     });
 
-    return NextResponse.json({ photos });
+    // Return with no-cache headers to prevent stale data
+    return NextResponse.json({ photos }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
   } catch (error) {
     console.error('Error fetching photos:', error);
     return NextResponse.json({ error: 'Failed to fetch photos' }, { status: 500 });

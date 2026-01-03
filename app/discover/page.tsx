@@ -25,6 +25,9 @@ import {
   Crown,
   RotateCcw,
   Keyboard,
+  Users,
+  MapPin,
+  Share2,
 } from 'lucide-react'
 import { SwipeCard } from '@/components/features/discover/SwipeCard'
 import { LocationIndicator } from '@/components/features/discover/LocationIndicator'
@@ -79,7 +82,7 @@ export default function DiscoverPage() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(false)
   const [matchData, setMatchData] = useState<any>(null)
   const [filters, setFilters] = useState<AdvancedFilters>({ minAge: 18, maxAge: 99 })
-  const { users, isLoading, error, refetch } = useDiscoverUsers(filters as DiscoverFilters)
+  const { users, isLoading, error, refetch, showcase } = useDiscoverUsers(filters as DiscoverFilters)
   const [swipesRemaining, setSwipesRemaining] = useState<number | null>(null)
   const [isUnlimited, setIsUnlimited] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
@@ -432,36 +435,97 @@ export default function DiscoverPage() {
                   onSkip={() => setShowBonusBooster(false)}
                 />
               ) : (
-                <div className="text-center px-8">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-xl p-4 overflow-hidden">
-                    <Image
-                      src="/images/LiefdevoorIedereen_logo.png"
-                      alt="Liefde voor Iedereen"
-                      width={96}
-                      height={96}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Geen profielen meer</h3>
-                  <p className="text-gray-400 mb-6">
-                    Je hebt alle profielen in je omgeving gezien. Beantwoord een paar vragen voor betere matches!
-                  </p>
-                  <div className="flex gap-3 justify-center flex-wrap">
-                    <Button variant="primary" onClick={() => setShowBonusBooster(true)}>
-                      Vragen beantwoorden
-                    </Button>
-                    <Button variant="secondary" onClick={clearFilters}>
-                      Reset filters
-                    </Button>
-                    <Button variant="secondary" onClick={() => refetch()}>
-                      Vernieuwen
-                    </Button>
-                  </div>
+                <div className="text-center px-8 max-w-md">
+                  {/* 🎭 VERBETERDE EMPTY STATE - Meerdere scenarios */}
+
+                  {/* Scenario 1: Early adopter - geen echte profielen EN geen showcase */}
+                  {!showcase?.enabled && (
+                    <>
+                      <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-100 to-rose-200 rounded-full flex items-center justify-center shadow-xl">
+                        <Users className="w-12 h-12 text-rose-500" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-3">
+                        Je bent een van de eersten!
+                      </h3>
+                      <p className="text-gray-400 mb-6 leading-relaxed">
+                        Welkom bij Liefde voor Iedereen! We zijn net gelanceerd en bouwen onze community op.
+                        Nodig vrienden uit en kom snel terug voor nieuwe matches!
+                      </p>
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            if (navigator.share) {
+                              navigator.share({
+                                title: 'Liefde voor Iedereen',
+                                text: 'Ik heb me aangemeld bij Liefde voor Iedereen - een dating app voor iedereen! Meld je ook aan.',
+                                url: 'https://www.liefdevooriedereen.nl',
+                              })
+                            } else {
+                              window.open('https://wa.me/?text=Ik%20heb%20me%20aangemeld%20bij%20Liefde%20voor%20Iedereen%20-%20een%20dating%20app%20voor%20iedereen!%20Meld%20je%20ook%20aan.%20https://www.liefdevooriedereen.nl', '_blank')
+                            }
+                          }}
+                        >
+                          <Share2 size={16} className="mr-2" />
+                          Deel met vrienden
+                        </Button>
+                        <Button variant="secondary" onClick={() => setShowFilters(true)}>
+                          <MapPin size={16} className="mr-2" />
+                          Pas zoekgebied aan
+                        </Button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Scenario 2: Filters te streng - er waren profielen maar alle geswiped */}
+                  {showcase?.enabled && showcase.realProfileCount === 0 && (
+                    <>
+                      <div className="w-24 h-24 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-xl p-4 overflow-hidden">
+                        <Image
+                          src="/images/LiefdevoorIedereen_logo.png"
+                          alt="Liefde voor Iedereen"
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-3">Alle profielen bekeken!</h3>
+                      <p className="text-gray-400 mb-6 leading-relaxed">
+                        Je hebt alle profielen in je omgeving gezien. Pas je filters aan of kom later terug voor nieuwe matches!
+                      </p>
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        <Button variant="primary" onClick={() => setShowBonusBooster(true)}>
+                          <Sparkles size={16} className="mr-2" />
+                          Verbeter je profiel
+                        </Button>
+                        <Button variant="secondary" onClick={clearFilters}>
+                          Reset filters
+                        </Button>
+                        <Button variant="secondary" onClick={() => refetch()}>
+                          Vernieuwen
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </motion.div>
           ) : (
             <div className="relative h-full">
+              {/* 🎭 SHOWCASE BANNER - Subtiele notificatie wanneer voorbeeldprofielen actief zijn */}
+              {showcase?.enabled && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute top-0 left-0 right-0 z-30 flex justify-center pt-2"
+                >
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/90 to-orange-500/90 backdrop-blur-sm text-white rounded-full text-sm shadow-lg">
+                    <Sparkles size={14} />
+                    <span className="font-medium">Ontdek voorbeeldprofielen terwijl we groeien!</span>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Card Stack - WERELDKLASSE: No more AnimatePresence conflicts! */}
               {currentProfile && (
                 <SwipeCard

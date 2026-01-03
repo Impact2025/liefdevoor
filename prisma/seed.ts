@@ -17,6 +17,81 @@ interface DemoUser {
   bio: string
   interests: string
   profileImage?: string
+  isShowcase?: boolean // Showcase profielen worden getoond aan nieuwe users
+}
+
+// Realistische Nederlandse foto URLs van randomuser.me (meer diverse, realistische foto's)
+// Fallback naar UI Avatars als backup
+const SHOWCASE_PHOTOS = {
+  FEMALE: [
+    'https://randomuser.me/api/portraits/women/1.jpg',
+    'https://randomuser.me/api/portraits/women/2.jpg',
+    'https://randomuser.me/api/portraits/women/3.jpg',
+    'https://randomuser.me/api/portraits/women/4.jpg',
+    'https://randomuser.me/api/portraits/women/5.jpg',
+    'https://randomuser.me/api/portraits/women/6.jpg',
+    'https://randomuser.me/api/portraits/women/7.jpg',
+    'https://randomuser.me/api/portraits/women/8.jpg',
+    'https://randomuser.me/api/portraits/women/9.jpg',
+    'https://randomuser.me/api/portraits/women/10.jpg',
+    'https://randomuser.me/api/portraits/women/11.jpg',
+    'https://randomuser.me/api/portraits/women/12.jpg',
+    'https://randomuser.me/api/portraits/women/13.jpg',
+    'https://randomuser.me/api/portraits/women/14.jpg',
+    'https://randomuser.me/api/portraits/women/15.jpg',
+    'https://randomuser.me/api/portraits/women/16.jpg',
+    'https://randomuser.me/api/portraits/women/17.jpg',
+    'https://randomuser.me/api/portraits/women/18.jpg',
+    'https://randomuser.me/api/portraits/women/19.jpg',
+    'https://randomuser.me/api/portraits/women/20.jpg',
+    'https://randomuser.me/api/portraits/women/21.jpg',
+    'https://randomuser.me/api/portraits/women/22.jpg',
+    'https://randomuser.me/api/portraits/women/23.jpg',
+    'https://randomuser.me/api/portraits/women/24.jpg',
+    'https://randomuser.me/api/portraits/women/25.jpg',
+  ],
+  MALE: [
+    'https://randomuser.me/api/portraits/men/1.jpg',
+    'https://randomuser.me/api/portraits/men/2.jpg',
+    'https://randomuser.me/api/portraits/men/3.jpg',
+    'https://randomuser.me/api/portraits/men/4.jpg',
+    'https://randomuser.me/api/portraits/men/5.jpg',
+    'https://randomuser.me/api/portraits/men/6.jpg',
+    'https://randomuser.me/api/portraits/men/7.jpg',
+    'https://randomuser.me/api/portraits/men/8.jpg',
+    'https://randomuser.me/api/portraits/men/9.jpg',
+    'https://randomuser.me/api/portraits/men/10.jpg',
+    'https://randomuser.me/api/portraits/men/11.jpg',
+    'https://randomuser.me/api/portraits/men/12.jpg',
+    'https://randomuser.me/api/portraits/men/13.jpg',
+    'https://randomuser.me/api/portraits/men/14.jpg',
+    'https://randomuser.me/api/portraits/men/15.jpg',
+    'https://randomuser.me/api/portraits/men/16.jpg',
+    'https://randomuser.me/api/portraits/men/17.jpg',
+    'https://randomuser.me/api/portraits/men/18.jpg',
+    'https://randomuser.me/api/portraits/men/19.jpg',
+    'https://randomuser.me/api/portraits/men/20.jpg',
+    'https://randomuser.me/api/portraits/men/21.jpg',
+    'https://randomuser.me/api/portraits/men/22.jpg',
+    'https://randomuser.me/api/portraits/men/23.jpg',
+    'https://randomuser.me/api/portraits/men/24.jpg',
+    'https://randomuser.me/api/portraits/men/25.jpg',
+  ],
+}
+
+let femalePhotoIndex = 0
+let malePhotoIndex = 0
+
+function getShowcasePhoto(gender: Gender): string {
+  if (gender === Gender.FEMALE) {
+    const photo = SHOWCASE_PHOTOS.FEMALE[femalePhotoIndex % SHOWCASE_PHOTOS.FEMALE.length]
+    femalePhotoIndex++
+    return photo
+  } else {
+    const photo = SHOWCASE_PHOTOS.MALE[malePhotoIndex % SHOWCASE_PHOTOS.MALE.length]
+    malePhotoIndex++
+    return photo
+  }
 }
 
 const demoUsers: DemoUser[] = [
@@ -696,47 +771,81 @@ const demoUsers: DemoUser[] = [
 
 async function main() {
   console.log('🌱 Starting seed...')
+  console.log('🎭 Creating SHOWCASE profiles for new users...')
 
   // Hash the demo password once
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12)
 
-  // Create demo users
+  // Reset photo indices
+  femalePhotoIndex = 0
+  malePhotoIndex = 0
+
+  // Create demo users as SHOWCASE profiles
   for (const userData of demoUsers) {
+    // Use randomuser.me photos for more realistic look
+    const showcasePhoto = getShowcasePhoto(userData.gender)
+
     const user = await prisma.user.upsert({
       where: { email: userData.email },
-      update: {},
+      update: {
+        // Update existing users to be showcase profiles
+        isShowcase: true,
+        profileImage: showcasePhoto,
+        isVerified: true,
+        lastSeen: new Date(), // Make them appear "recently active"
+      },
       create: {
-        ...userData,
+        name: userData.name,
+        email: userData.email,
+        gender: userData.gender,
+        birthDate: userData.birthDate,
+        city: userData.city,
+        postcode: userData.postcode,
+        latitude: userData.latitude,
+        longitude: userData.longitude,
+        bio: userData.bio,
+        interests: userData.interests,
+        profileImage: showcasePhoto,
         passwordHash,
         emailVerified: new Date(),
         isVerified: true,
         hasAcceptedTerms: true,
         safetyScore: 100,
         role: 'USER',
+        isShowcase: true, // 🎭 Mark as showcase profile!
+        lastSeen: new Date(), // Make them appear "recently active"
+        isOnboarded: true,
+        profileComplete: true,
       },
     })
 
-    console.log(`✅ Created/verified user: ${user.name} (${user.email})`)
+    console.log(`✅ Created showcase user: ${user.name} (${user.email}) - 🎭 isShowcase: true`)
 
-    // Add profile photo
-    if (userData.profileImage) {
-      const existingPhoto = await prisma.photo.findFirst({
-        where: { userId: user.id },
+    // Add profile photo to Photos table
+    const existingPhoto = await prisma.photo.findFirst({
+      where: { userId: user.id },
+    })
+
+    if (!existingPhoto) {
+      await prisma.photo.create({
+        data: {
+          userId: user.id,
+          url: showcasePhoto,
+          order: 0,
+        },
       })
-
-      if (!existingPhoto) {
-        await prisma.photo.create({
-          data: {
-            userId: user.id,
-            url: userData.profileImage,
-            order: 0,
-          },
-        })
-      }
+    } else {
+      // Update existing photo
+      await prisma.photo.update({
+        where: { id: existingPhoto.id },
+        data: { url: showcasePhoto },
+      })
     }
   }
 
   console.log('\n🎉 Seed completed successfully!')
+  console.log(`\n🎭 Created ${demoUsers.length} SHOWCASE profiles!`)
+  console.log('   These profiles will appear to new users when no real matches are available.')
   console.log('\n📝 Demo Account Credentials:')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log('Password for ALL accounts: Demo123!')

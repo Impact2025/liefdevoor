@@ -6,11 +6,133 @@
 
 'use client'
 
-import { Shield, AlertTriangle, Lock, Eye, Heart, Phone, MessageCircle, Ban, Flag } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Shield, AlertTriangle, Lock, Eye, Heart, Phone, MessageCircle, Ban, Flag, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+
+interface MatchUser {
+  id: string
+  name: string
+  profileImage: string | null
+}
 
 export default function SafetyCenterPage() {
   const router = useRouter()
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [showBlockModal, setShowBlockModal] = useState(false)
+  const [matches, setMatches] = useState<MatchUser[]>([])
+  const [selectedUser, setSelectedUser] = useState<MatchUser | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isLoadingMatches, setIsLoadingMatches] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportDescription, setReportDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+
+  const REPORT_REASONS = [
+    { value: 'inappropriate_photos', label: 'Ongepaste foto\'s' },
+    { value: 'harassment', label: 'Intimidatie of lastigvallen' },
+    { value: 'fake_profile', label: 'Nep profiel' },
+    { value: 'spam', label: 'Spam of scam' },
+    { value: 'underage', label: 'Minderjarig' },
+    { value: 'hate_speech', label: 'Haatzaaien' },
+    { value: 'violence', label: 'Geweld of gevaar' },
+    { value: 'other', label: 'Anders' },
+  ]
+
+  useEffect(() => {
+    if (showReportModal || showBlockModal) {
+      loadMatches()
+    }
+  }, [showReportModal, showBlockModal])
+
+  const loadMatches = async () => {
+    setIsLoadingMatches(true)
+    try {
+      const response = await fetch('/api/matches')
+      if (response.ok) {
+        const data = await response.json()
+        const users: MatchUser[] = data.matches.map((match: any) => ({
+          id: match.otherUser.id,
+          name: match.otherUser.name,
+          profileImage: match.otherUser.profileImage,
+        }))
+        setMatches(users)
+      }
+    } catch (error) {
+      console.error('Failed to load matches:', error)
+    } finally {
+      setIsLoadingMatches(false)
+    }
+  }
+
+  const handleReport = async () => {
+    if (!selectedUser || !reportReason) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/safety/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportedId: selectedUser.id,
+          reason: reportReason,
+          description: reportDescription,
+        }),
+      })
+
+      if (response.ok) {
+        setSuccessMessage('Rapportage ontvangen. We nemen dit serieus en zullen het onderzoeken.')
+        setTimeout(() => {
+          setShowReportModal(false)
+          setSelectedUser(null)
+          setReportReason('')
+          setReportDescription('')
+          setSuccessMessage('')
+        }, 2000)
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Er ging iets mis')
+      }
+    } catch (error) {
+      alert('Er ging iets mis bij het rapporteren')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleBlock = async () => {
+    if (!selectedUser) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/safety/block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blockedId: selectedUser.id }),
+      })
+
+      if (response.ok) {
+        setSuccessMessage('Gebruiker geblokkeerd. Je zult elkaar niet meer zien.')
+        setTimeout(() => {
+          setShowBlockModal(false)
+          setSelectedUser(null)
+          setSuccessMessage('')
+        }, 1500)
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Er ging iets mis')
+      }
+    } catch (error) {
+      alert('Er ging iets mis bij het blokkeren')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const filteredMatches = matches.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -37,15 +159,295 @@ export default function SafetyCenterPage() {
               title="Rapporteer een gebruiker"
               description="Meld ongepast gedrag"
               color="orange"
+              onClick={() => setShowReportModal(true)}
             />
             <ActionCard
               icon={<Ban />}
               title="Blokkeer een gebruiker"
               description="Stop contact permanent"
               color="red"
+              onClick={() => setShowBlockModal(true)}
             />
           </div>
         </div>
+
+        {/* Report Modal */}
+        {showReportModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {successMessage ? (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                    <Flag className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Bedankt voor je rapportage</h3>
+                  <p className="text-gray-600">{successMessage}</p>
+                </div>
+              ) : !selectedUser ? (
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Rapporteer een gebruiker</h2>
+                    <button
+                      onClick={() => setShowReportModal(false)}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Zoek een match..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-rose-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Matches List */}
+                  {isLoadingMatches ? (
+                    <div className="text-center py-8 text-gray-500">Laden...</div>
+                  ) : filteredMatches.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      {matches.length === 0 ? 'Je hebt nog geen matches' : 'Geen matches gevonden'}
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {filteredMatches.map((user) => (
+                        <button
+                          key={user.id}
+                          onClick={() => setSelectedUser(user)}
+                          className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors text-left border-2 border-gray-100 hover:border-gray-200"
+                        >
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt={user.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="font-medium text-gray-900">{user.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Rapporteer {selectedUser.name}</h2>
+                    <button
+                      onClick={() => {
+                        setSelectedUser(null)
+                        setReportReason('')
+                        setReportDescription('')
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-amber-900">
+                          Waarom rapporteer je {selectedUser.name}?
+                        </p>
+                        <p className="text-xs text-amber-700 mt-1">
+                          Valse rapportages kunnen leiden tot schorsing van je account.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Reden *</label>
+                      <div className="space-y-2">
+                        {REPORT_REASONS.map((reason) => (
+                          <label
+                            key={reason.value}
+                            className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                              reportReason === reason.value
+                                ? 'border-rose-500 bg-rose-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="reason"
+                              value={reason.value}
+                              checked={reportReason === reason.value}
+                              onChange={(e) => setReportReason(e.target.value)}
+                              className="w-4 h-4 text-rose-600"
+                            />
+                            <span className="text-sm font-medium text-gray-900">{reason.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Extra details (optioneel)
+                      </label>
+                      <textarea
+                        value={reportDescription}
+                        onChange={(e) => setReportDescription(e.target.value)}
+                        placeholder="Beschrijf wat er gebeurd is..."
+                        rows={3}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-rose-500 focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(null)
+                          setReportReason('')
+                          setReportDescription('')
+                        }}
+                        disabled={isSubmitting}
+                        className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+                      >
+                        Terug
+                      </button>
+                      <button
+                        onClick={handleReport}
+                        disabled={!reportReason || isSubmitting}
+                        className="flex-1 px-4 py-3 text-white bg-rose-600 rounded-lg hover:bg-rose-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? 'Versturen...' : 'Rapporteer'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Block Modal */}
+        {showBlockModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {successMessage ? (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <Ban className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Gebruiker geblokkeerd</h3>
+                  <p className="text-gray-600">{successMessage}</p>
+                </div>
+              ) : !selectedUser ? (
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Blokkeer een gebruiker</h2>
+                    <button
+                      onClick={() => setShowBlockModal(false)}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Zoek een match..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-rose-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Matches List */}
+                  {isLoadingMatches ? (
+                    <div className="text-center py-8 text-gray-500">Laden...</div>
+                  ) : filteredMatches.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      {matches.length === 0 ? 'Je hebt nog geen matches' : 'Geen matches gevonden'}
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {filteredMatches.map((user) => (
+                        <button
+                          key={user.id}
+                          onClick={() => setSelectedUser(user)}
+                          className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors text-left border-2 border-gray-100 hover:border-gray-200"
+                        >
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt={user.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="font-medium text-gray-900">{user.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Blokkeer {selectedUser.name}</h2>
+                    <button
+                      onClick={() => setSelectedUser(null)}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <p className="text-sm text-red-900">
+                      Weet je zeker dat je <strong>{selectedUser.name}</strong> wilt blokkeren?
+                    </p>
+                    <ul className="text-xs text-red-700 mt-2 space-y-1 list-disc list-inside">
+                      <li>Je zult elkaar niet meer zien in discover</li>
+                      <li>Eventuele matches worden verwijderd</li>
+                      <li>Je kunt dit later ongedaan maken in je instellingen</li>
+                    </ul>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setSelectedUser(null)}
+                      disabled={isSubmitting}
+                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+                    >
+                      Annuleer
+                    </button>
+                    <button
+                      onClick={handleBlock}
+                      disabled={isSubmitting}
+                      className="flex-1 px-4 py-3 text-white bg-red-600 rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50"
+                    >
+                      {isSubmitting ? 'Blokkeren...' : 'Blokkeer'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Safety Tips */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -190,19 +592,23 @@ export default function SafetyCenterPage() {
   )
 }
 
-function ActionCard({ icon, title, description, color }: {
+function ActionCard({ icon, title, description, color, onClick }: {
   icon: React.ReactNode
   title: string
   description: string
   color: 'orange' | 'red'
+  onClick?: () => void
 }) {
   const colorClasses = {
-    orange: 'bg-orange-100 text-orange-600 border-orange-200',
-    red: 'bg-red-100 text-red-600 border-red-200',
+    orange: 'bg-orange-100 text-orange-600 border-orange-200 hover:bg-orange-200',
+    red: 'bg-red-100 text-red-600 border-red-200 hover:bg-red-200',
   }
 
   return (
-    <button className={`flex items-start gap-3 p-4 rounded-xl border-2 hover:shadow-md transition-all ${colorClasses[color]}`}>
+    <button
+      onClick={onClick}
+      className={`flex items-start gap-3 p-4 rounded-xl border-2 hover:shadow-md transition-all ${colorClasses[color]}`}
+    >
       <div className="mt-0.5">{icon}</div>
       <div className="text-left">
         <h3 className="font-bold text-gray-900">{title}</h3>

@@ -3,36 +3,37 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Users } from 'lucide-react';
-import { useOnboardingStore } from '@/store/useOnboardingStore';
 
-export default function AgePreferenceStep() {
-  const { userData, updateUserData, nextStep, saveStepToServer } = useOnboardingStore();
-  const [minAge, setMinAge] = useState(userData.minAgePreference || 18);
-  const [maxAge, setMaxAge] = useState(userData.maxAgePreference || 99);
+export interface AgePreferenceData {
+  minAge: number;
+  maxAge: number;
+}
+
+interface AgePreferenceStepProps {
+  onComplete: (data: AgePreferenceData) => void;
+  initialMinAge?: number;
+  initialMaxAge?: number;
+}
+
+export default function AgePreferenceStep({ onComplete, initialMinAge = 18, initialMaxAge = 99 }: AgePreferenceStepProps) {
+  const [minAge, setMinAge] = useState(initialMinAge);
+  const [maxAge, setMaxAge] = useState(initialMaxAge);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleMinChange = useCallback((value: number) => {
     const newMin = Math.min(value, maxAge - 1);
     setMinAge(newMin);
-    updateUserData({ minAgePreference: newMin });
-  }, [maxAge, updateUserData]);
+  }, [maxAge]);
 
   const handleMaxChange = useCallback((value: number) => {
     const newMax = Math.max(value, minAge + 1);
     setMaxAge(newMax);
-    updateUserData({ maxAgePreference: newMax });
-  }, [minAge, updateUserData]);
+  }, [minAge]);
 
   const handleContinue = async () => {
     setIsSaving(true);
     try {
-      const success = await saveStepToServer(8, {
-        minAgePreference: minAge,
-        maxAgePreference: maxAge,
-      });
-      if (success) {
-        nextStep();
-      }
+      onComplete({ minAge, maxAge });
     } finally {
       setIsSaving(false);
     }
@@ -121,10 +122,6 @@ export default function AgePreferenceStep() {
               onClick={() => {
                 setMinAge(range.min);
                 setMaxAge(range.max);
-                updateUserData({
-                  minAgePreference: range.min,
-                  maxAgePreference: range.max,
-                });
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 minAge === range.min && maxAge === range.max

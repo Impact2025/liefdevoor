@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Navigation } from '@/components/layout/Navigation'
 import { CookieBanner } from '@/components/legal/CookieBanner'
-import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { Chatbot } from '@/components/helpdesk/Chatbot'
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
@@ -37,7 +36,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <div>
       {/* Skip to main content link for accessibility */}
       <a
         href="#main-content"
@@ -58,10 +57,9 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
       </div>
 
       <CookieBanner />
-      <InstallPrompt />
 
       {/* Support Chatbot - Contextual display on help/support pages only */}
       {shouldShowChatbot && <Chatbot />}
-    </>
+    </div>
   )
 }

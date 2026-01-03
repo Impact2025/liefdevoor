@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
-import { useOnboardingStore, UserData } from '@/store/useOnboardingStore';
+
+type LookingFor = 'MALE' | 'FEMALE' | 'BOTH';
+
+interface LookingForStepProps {
+  onComplete: (lookingFor: LookingFor) => void;
+  initialLookingFor?: LookingFor;
+}
 
 type LookingForOption = {
-  value: Exclude<UserData['lookingFor'], ''>;
+  value: LookingFor;
   label: string;
   description: string;
 };
@@ -29,21 +35,15 @@ const lookingForOptions: LookingForOption[] = [
   },
 ];
 
-export default function LookingForStep() {
-  const { userData, updateUserData, nextStep, saveStepToServer } = useOnboardingStore();
-  const [selected, setSelected] = useState<UserData['lookingFor']>(userData.lookingFor);
+export default function LookingForStep({ onComplete, initialLookingFor }: LookingForStepProps) {
+  const [selected, setSelected] = useState<LookingFor | undefined>(initialLookingFor);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSelect = async (lookingFor: Exclude<UserData['lookingFor'], ''>) => {
+  const handleSelect = async (lookingFor: LookingFor) => {
     setSelected(lookingFor);
-
     setIsSaving(true);
     try {
-      const success = await saveStepToServer(7, { lookingFor });
-      if (success) {
-        updateUserData({ lookingFor });
-        nextStep();
-      }
+      onComplete(lookingFor);
     } finally {
       setIsSaving(false);
     }

@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
-import { useOnboardingStore, UserData } from '@/store/useOnboardingStore';
+
+type Gender = 'MALE' | 'FEMALE' | 'NON_BINARY';
+
+interface GenderStepProps {
+  onComplete: (gender: Gender) => void;
+  initialGender?: Gender;
+}
 
 type GenderOption = {
-  value: Exclude<UserData['gender'], ''>;
+  value: Gender;
   label: string;
   description: string;
 };
@@ -29,21 +35,15 @@ const genderOptions: GenderOption[] = [
   },
 ];
 
-export default function GenderStep() {
-  const { userData, updateUserData, nextStep, saveStepToServer } = useOnboardingStore();
-  const [selected, setSelected] = useState<UserData['gender']>(userData.gender);
+export default function GenderStep({ onComplete, initialGender }: GenderStepProps) {
+  const [selected, setSelected] = useState<Gender | undefined>(initialGender);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSelect = async (gender: Exclude<UserData['gender'], ''>) => {
+  const handleSelect = async (gender: Gender) => {
     setSelected(gender);
-
     setIsSaving(true);
     try {
-      const success = await saveStepToServer(4, { gender });
-      if (success) {
-        updateUserData({ gender });
-        nextStep();
-      }
+      onComplete(gender);
     } finally {
       setIsSaving(false);
     }

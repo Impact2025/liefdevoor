@@ -9,6 +9,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { DiscoverUser, DiscoverFilters, ApiResponse, Pagination } from '@/lib/types'
 
+interface ShowcaseInfo {
+  enabled: boolean
+  count: number
+  realProfileCount: number
+  message: string | null
+}
+
 interface UseDiscoverUsersResult {
   users: DiscoverUser[]
   setUsers: React.Dispatch<React.SetStateAction<DiscoverUser[]>>
@@ -17,6 +24,7 @@ interface UseDiscoverUsersResult {
   error: Error | null
   refetch: (filters?: DiscoverFilters) => Promise<void>
   hasMore: boolean
+  showcase: ShowcaseInfo | null // 🎭 Showcase metadata
 }
 
 /**
@@ -42,6 +50,7 @@ export function useDiscoverUsers(
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [filters, setFilters] = useState<DiscoverFilters>(initialFilters)
+  const [showcase, setShowcase] = useState<ShowcaseInfo | null>(null) // 🎭 Showcase state
 
   const fetchUsers = useCallback(async (newFilters?: DiscoverFilters) => {
     try {
@@ -84,12 +93,18 @@ export function useDiscoverUsers(
         throw new Error(`Failed to fetch users: ${response.statusText}`)
       }
 
-      const data: ApiResponse<{ users: DiscoverUser[]; pagination: Pagination }> =
+      const data: ApiResponse<{ users: DiscoverUser[]; pagination: Pagination; showcase?: ShowcaseInfo }> =
         await response.json()
 
       if (data.success && data.data) {
         setUsers(data.data.users)
         setPagination(data.data.pagination)
+        // 🎭 Store showcase metadata
+        if (data.data.showcase) {
+          setShowcase(data.data.showcase)
+        } else {
+          setShowcase(null)
+        }
         if (newFilters) {
           setFilters(newFilters)
         }
@@ -117,5 +132,6 @@ export function useDiscoverUsers(
     error,
     refetch: fetchUsers,
     hasMore: pagination?.hasNextPage || false,
+    showcase, // 🎭 Expose showcase metadata
   }
 }

@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const [voiceAudioRef, setVoiceAudioRef] = useState<HTMLAudioElement | null>(null)
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false)
   const [isUploadingVoice, setIsUploadingVoice] = useState(false)
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
 
   // Define functions with useCallback before any conditional returns
   const fetchPhotos = useCallback(async () => {
@@ -288,14 +289,23 @@ export default function ProfilePage() {
                 <div>
                   <UploadButton
                     endpoint="profilePhotos"
-                    onClientUploadComplete={(res) => {
+                    onBeforeUploadBegin={(files) => {
+                      setIsUploadingPhoto(true)
+                      return files
+                    }}
+                    onClientUploadComplete={async (res) => {
                       if (res) {
-                        fetchPhotos()
-                        refetch()
+                        // Wait a bit for the database to update
+                        await new Promise(resolve => setTimeout(resolve, 500))
+                        // Then fetch photos and refresh user data
+                        await fetchPhotos()
+                        await refetch()
                       }
+                      setIsUploadingPhoto(false)
                     }}
                     onUploadError={(error: Error) => {
                       console.error('Upload error:', error)
+                      setIsUploadingPhoto(false)
                       alert(
                         `❌ Upload mislukt!\n\n` +
                         `Fout: ${error.message}\n\n` +
@@ -310,6 +320,12 @@ export default function ProfilePage() {
                       )
                     }}
                   />
+                  {isUploadingPhoto && (
+                    <div className="mt-3 flex items-center justify-center gap-2 text-purple-600">
+                      <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm font-medium">Foto uploaden...</span>
+                    </div>
+                  )}
                   <p className="text-xs text-gray-500 mt-2">
                     {photos.length === 0
                       ? "Klik hierboven om je eerste foto te uploaden"

@@ -78,22 +78,7 @@ export const metadata: Metadata = {
     siteName: "Liefde Voor Iedereen",
     title: "Liefde Voor Iedereen - Vind Echte Liefde",
     description: "Ontmoet singles in Nederland en België. Dating app met AI-matching, video verificatie en 100% Nederlandse ondersteuning.",
-    images: [
-      {
-        url: "/images/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Liefde Voor Iedereen - Nederlandse Dating App",
-        type: "image/png",
-      },
-      {
-        url: "/images/og-image-square.png",
-        width: 600,
-        height: 600,
-        alt: "Liefde Voor Iedereen Logo",
-        type: "image/png",
-      },
-    ],
+    // OG images are now dynamically generated via app/opengraph-image.tsx
   },
   twitter: {
     card: "summary_large_image",
@@ -101,7 +86,7 @@ export const metadata: Metadata = {
     creator: "@liefdevooriedereen",
     title: "Liefde Voor Iedereen - Nederlandse Dating App",
     description: "Ontmoet singles in Nederland en België. AI-matching, video verificatie, 100% Nederlands.",
-    images: ["/images/og-image.png"],
+    // Twitter images are now dynamically generated via app/twitter-image.tsx
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
@@ -139,7 +124,7 @@ export default function RootLayout({
       width: 512,
       height: 512,
     },
-    image: `${baseUrl}/images/og-image.png`,
+    image: `${baseUrl}/opengraph-image`,
     foundingDate: '2024',
     areaServed: [
       { '@type': 'Country', name: 'Netherlands', alternateName: 'NL' },

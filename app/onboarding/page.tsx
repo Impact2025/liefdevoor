@@ -7,13 +7,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Heart } from 'lucide-react';
 import Image from 'next/image';
 
-// Step Components (LivenessCheck temporarily disabled)
+// Step Components - Essentiële stappen
+import BirthdateStep from '@/components/onboarding/steps/BirthdateStep';
+import GenderStep from '@/components/onboarding/steps/GenderStep';
+import LookingForStep from '@/components/onboarding/steps/LookingForStep';
+import LocationStep, { LocationData } from '@/components/onboarding/steps/LocationStep';
+import PhotosStep, { PhotoData } from '@/components/onboarding/steps/PhotosStep';
+import AgePreferenceStep, { AgePreferenceData } from '@/components/onboarding/steps/AgePreferenceStep';
+
+// Step Components - Unieke features
 import VoiceIntroRecorder from '@/components/onboarding/steps/VoiceIntroRecorder';
 import RelationshipGoalStep from '@/components/onboarding/steps/RelationshipGoalStep';
 import VibeCard, { VibeAnswers } from '@/components/onboarding/steps/VibeCard';
 import LifestyleStep, { LifestyleData } from '@/components/onboarding/steps/LifestyleStep';
 import LoveLanguagesStep, { LoveLanguageData } from '@/components/onboarding/steps/LoveLanguagesStep';
 import DealbreakersStep, { DealbreakersData } from '@/components/onboarding/steps/DealbreakersStep';
+import ProfileGeneratorStep from '@/components/onboarding/steps/ProfileGeneratorStep';
 import FinishStep from '@/components/onboarding/steps/FinishStep';
 
 // Accessibility Welcome Screen
@@ -24,15 +33,22 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { trackOnboardingStep, trackOnboardingDropoff, trackOnboardingComplete } from '@/lib/analytics-events';
 import { useExperiment } from '@/lib/ab-testing';
 
-// Step configuration - Wereldklasse onboarding flow
+// Step configuration - Wereldklasse onboarding flow met ALLE essentiële stappen
 const STEPS = [
-  { id: 1, name: 'Stem', description: 'Voice intro' },
-  { id: 2, name: 'Doel', description: 'Wat zoek je?' },
-  { id: 3, name: 'Vibe', description: 'Persoonlijkheid' },
-  { id: 4, name: 'Lifestyle', description: 'Jouw levensstijl' },
-  { id: 5, name: 'Liefde', description: 'Love Languages' },
-  { id: 6, name: 'Filters', description: 'Dealbreakers' },
-  { id: 7, name: 'Klaar', description: 'Profiel compleet' },
+  { id: 1, name: 'Leeftijd', description: 'Wanneer ben je geboren?' },
+  { id: 2, name: 'Gender', description: 'Hoe identificeer je?' },
+  { id: 3, name: 'Zoekt', description: 'Wie zoek je?' },
+  { id: 4, name: 'Locatie', description: 'Waar woon je?' },
+  { id: 5, name: "Foto's", description: 'Laat jezelf zien' },
+  { id: 6, name: 'Stem', description: 'Voice intro' },
+  { id: 7, name: 'Doel', description: 'Wat zoek je?' },
+  { id: 8, name: 'Vibe', description: 'Persoonlijkheid' },
+  { id: 9, name: 'Lifestyle', description: 'Jouw levensstijl' },
+  { id: 10, name: 'Liefde', description: 'Love Languages' },
+  { id: 11, name: 'Voorkeur', description: 'Leeftijdsvoorkeur' },
+  { id: 12, name: 'Filters', description: 'Dealbreakers' },
+  { id: 13, name: 'AI Bio', description: 'Profiel generator' },
+  { id: 14, name: 'Klaar', description: 'Profiel compleet' },
 ];
 
 const TOTAL_STEPS = STEPS.length;
@@ -134,6 +150,51 @@ export default function OnboardingPage() {
     }
   }, [currentStep, updateStepOnServer, trackConversion]);
 
+  // === ESSENTIËLE STAPPEN HANDLERS ===
+
+  // Handle birthdate completion
+  const handleBirthdateComplete = useCallback(async (birthDate: string) => {
+    await goToNextStep({ birthDate });
+  }, [goToNextStep]);
+
+  // Handle gender completion
+  const handleGenderComplete = useCallback(async (gender: string) => {
+    await goToNextStep({ gender });
+  }, [goToNextStep]);
+
+  // Handle looking for completion
+  const handleLookingForComplete = useCallback(async (lookingFor: string) => {
+    await goToNextStep({ lookingFor });
+  }, [goToNextStep]);
+
+  // Handle location completion
+  const handleLocationComplete = useCallback(async (data: LocationData) => {
+    await goToNextStep({
+      city: data.city,
+      postcode: data.postcode,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    });
+  }, [goToNextStep]);
+
+  // Handle photos completion
+  const handlePhotosComplete = useCallback(async (photos: PhotoData[]) => {
+    await goToNextStep({ photos });
+  }, [goToNextStep]);
+
+  // Handle profile generator completion (AI-generated bio)
+  const handleProfileGeneratorComplete = useCallback(async (bio: string) => {
+    await goToNextStep({ bio });
+  }, [goToNextStep]);
+
+  // Handle profile generator skip
+  const handleSkipProfileGenerator = useCallback(() => {
+    trackOnboardingDropoff('profile_generator', 'skipped');
+    goToNextStep();
+  }, [goToNextStep]);
+
+  // === UNIEKE FEATURES HANDLERS ===
+
   // Handle voice intro completion
   const handleVoiceComplete = useCallback(async (audioUrl: string | null) => {
     await goToNextStep({ voiceIntroUrl: audioUrl });
@@ -157,6 +218,14 @@ export default function OnboardingPage() {
   // Handle love languages completion
   const handleLoveLanguagesComplete = useCallback(async (data: LoveLanguageData) => {
     await goToNextStep({ loveLanguages: data });
+  }, [goToNextStep]);
+
+  // Handle age preference completion
+  const handleAgePreferenceComplete = useCallback(async (data: AgePreferenceData) => {
+    await goToNextStep({
+      minAgePreference: data.minAge,
+      maxAgePreference: data.maxAge,
+    });
   }, [goToNextStep]);
 
   // Handle dealbreakers completion
@@ -237,18 +306,14 @@ export default function OnboardingPage() {
               />
             </div>
 
-            {/* Step indicators */}
-            <div className="flex justify-between mt-2">
-              {STEPS.map((step) => (
-                <div
-                  key={step.id}
-                  className={`text-xs font-medium transition-colors ${
-                    currentStep >= step.id ? 'text-rose-600' : 'text-slate-400'
-                  }`}
-                >
-                  {step.name}
-                </div>
-              ))}
+            {/* Current step info */}
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-xs text-slate-500">
+                Stap {currentStep} van {STEPS.length}
+              </span>
+              <span className="text-xs font-medium text-rose-600">
+                {STEPS[currentStep - 1]?.name}
+              </span>
             </div>
           </div>
         </div>
@@ -272,8 +337,53 @@ export default function OnboardingPage() {
               }}
               className="h-full"
             >
-              {/* Step 1: Voice Intro (Liveness check temporarily disabled) */}
+              {/* Step 1: Birthdate - Leeftijdsverificatie (18+) */}
               {currentStep === 1 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('birthdate', error.message)}
+                >
+                  <BirthdateStep onComplete={handleBirthdateComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 2: Gender */}
+              {currentStep === 2 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('gender', error.message)}
+                >
+                  <GenderStep onComplete={handleGenderComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 3: Looking For */}
+              {currentStep === 3 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('looking_for', error.message)}
+                >
+                  <LookingForStep onComplete={handleLookingForComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 4: Location */}
+              {currentStep === 4 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('location', error.message)}
+                >
+                  <LocationStep onComplete={handleLocationComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 5: Photos */}
+              {currentStep === 5 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('photos', error.message)}
+                >
+                  <PhotosStep onComplete={handlePhotosComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 6: Voice Intro */}
+              {currentStep === 6 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('voice_intro', error.message)}
                 >
@@ -284,8 +394,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 2: Relationship Goal */}
-              {currentStep === 2 && (
+              {/* Step 7: Relationship Goal */}
+              {currentStep === 7 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('relationship_goal', error.message)}
                 >
@@ -296,8 +406,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 3: Vibe Card */}
-              {currentStep === 3 && (
+              {/* Step 8: Vibe Card */}
+              {currentStep === 8 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('vibe_card', error.message)}
                 >
@@ -305,8 +415,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 4: Lifestyle */}
-              {currentStep === 4 && (
+              {/* Step 9: Lifestyle */}
+              {currentStep === 9 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('lifestyle', error.message)}
                 >
@@ -314,8 +424,8 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 5: Love Languages */}
-              {currentStep === 5 && (
+              {/* Step 10: Love Languages */}
+              {currentStep === 10 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('love_languages', error.message)}
                 >
@@ -323,8 +433,17 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 6: Dealbreakers */}
-              {currentStep === 6 && (
+              {/* Step 11: Age Preference */}
+              {currentStep === 11 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('age_preference', error.message)}
+                >
+                  <AgePreferenceStep onComplete={handleAgePreferenceComplete} />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 12: Dealbreakers */}
+              {currentStep === 12 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('dealbreakers', error.message)}
                 >
@@ -332,8 +451,26 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 7: Finish */}
-              {currentStep === 7 && (
+              {/* Step 13: AI Profile Generator */}
+              {currentStep === 13 && (
+                <ErrorBoundary
+                  onError={(error) => trackOnboardingDropoff('profile_generator', error.message)}
+                >
+                  <ProfileGeneratorStep
+                    onComplete={handleProfileGeneratorComplete}
+                    onSkip={handleSkipProfileGenerator}
+                    userData={{
+                      name: session?.user?.name || undefined,
+                      gender: undefined, // Collected in step 2
+                      lookingFor: undefined, // Collected in step 3
+                      relationshipGoal: undefined, // Collected in step 7
+                    }}
+                  />
+                </ErrorBoundary>
+              )}
+
+              {/* Step 14: Finish */}
+              {currentStep === 14 && (
                 <ErrorBoundary
                   onError={(error) => trackOnboardingDropoff('finish', error.message)}
                 >

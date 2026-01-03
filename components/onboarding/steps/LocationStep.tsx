@@ -14,19 +14,29 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Loader2 } from 'lucide-react';
-import { useOnboardingStore } from '@/store/useOnboardingStore';
 import { PostcodeInput } from '@/components/features/location/PostcodeInput';
 import { CityAutocomplete } from '@/components/features/location/CityAutocomplete';
 import { LocationMap } from '@/components/features/location/LocationMap';
 import { LocationPrivacy } from '@/components/features/location/LocationPrivacy';
 import type { GeocodingResult, CityOption } from '@/lib/services/geocoding';
 
-export default function LocationStep() {
-  const { userData, updateUserData, nextStep, saveStepToServer } = useOnboardingStore();
-  const [postcode, setPostcode] = useState(userData.postcode || '');
-  const [city, setCity] = useState(userData.city || '');
-  const [latitude, setLatitude] = useState<number | null>(userData.latitude || null);
-  const [longitude, setLongitude] = useState<number | null>(userData.longitude || null);
+export interface LocationData {
+  postcode?: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface LocationStepProps {
+  onComplete: (data: LocationData) => void;
+  initialData?: Partial<LocationData>;
+}
+
+export default function LocationStep({ onComplete, initialData }: LocationStepProps) {
+  const [postcode, setPostcode] = useState(initialData?.postcode || '');
+  const [city, setCity] = useState(initialData?.city || '');
+  const [latitude, setLatitude] = useState<number | null>(initialData?.latitude || null);
+  const [longitude, setLongitude] = useState<number | null>(initialData?.longitude || null);
   const [isSaving, setIsSaving] = useState(false);
   const [inputMethod, setInputMethod] = useState<'postcode' | 'city'>('postcode');
 
@@ -35,12 +45,6 @@ export default function LocationStep() {
     setCity(result.city);
     setLatitude(result.latitude);
     setLongitude(result.longitude);
-    updateUserData({
-      postcode: postcode,
-      city: result.city,
-      latitude: result.latitude,
-      longitude: result.longitude,
-    });
   };
 
   // Handle city selection from autocomplete
@@ -48,30 +52,20 @@ export default function LocationStep() {
     setCity(selectedCity.name);
     setLatitude(selectedCity.latitude);
     setLongitude(selectedCity.longitude);
-    updateUserData({
-      city: selectedCity.name,
-      latitude: selectedCity.latitude,
-      longitude: selectedCity.longitude,
-      postcode: postcode || undefined, // Keep existing postcode if any
-    });
   };
 
   const handleContinue = async () => {
-    // Validate: need either postcode or city with coordinates
-    const hasLocation = (postcode && latitude && longitude) || (city && latitude && longitude);
-    if (!hasLocation) return;
+    // Validate: need city with coordinates
+    if (!city || !latitude || !longitude) return;
 
     setIsSaving(true);
     try {
-      const success = await saveStepToServer(6, {
+      onComplete({
         postcode: postcode || undefined,
-        city: city || undefined,
-        latitude: latitude || undefined,
-        longitude: longitude || undefined,
+        city,
+        latitude,
+        longitude,
       });
-      if (success) {
-        nextStep();
-      }
     } finally {
       setIsSaving(false);
     }

@@ -4,7 +4,6 @@ import { SessionProvider, useSession } from 'next-auth/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { AdaptiveUIProvider } from '@/components/adaptive'
-import { InstallPrompt, IOSInstallInstructions } from '@/components/ui'
 import { UpdatePrompt } from '@/components/pwa/UpdatePrompt'
 import { InstallSuccess } from '@/components/pwa/InstallSuccess'
 import { ContextualInstallPrompt } from '@/components/pwa/ContextualInstallPrompt'
@@ -68,8 +67,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <InstallSuccess />
             <ContextualInstallPrompt trigger="return_visit" delay={5000} />
             <IOSPushPermissions />
-            <InstallPrompt delay={10000} />
-            <IOSInstallInstructions />
           </AccessibilityProvider>
         </SessionProvider>
       </QueryClientProvider>

@@ -179,7 +179,7 @@ export function Navigation() {
           <div className="text-xs text-gray-400 space-y-1">
             <Link href="/terms" className="hover:text-gray-600 block">Algemene voorwaarden</Link>
             <Link href="/privacy" className="hover:text-gray-600 block">Privacybeleid</Link>
-            <Link href="/safety" className="hover:text-gray-600 block">Help</Link>
+            <Link href="/safety" className="hover:text-gray-600 block">Veiligheid</Link>
           </div>
         </div>
       </aside>
@@ -334,7 +334,7 @@ export function Navigation() {
                     >
                       <div className="flex items-center gap-3">
                         <HelpCircle size={18} className="text-blue-500" />
-                        <span className="text-gray-700">Hulp nodig?</span>
+                        <span className="text-gray-700">Support & Contact</span>
                       </div>
                       <ChevronRight size={16} className="text-gray-300" />
                     </Link>
@@ -548,7 +548,7 @@ export function Navigation() {
                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                         <HelpCircle size={20} className="text-blue-600" />
                       </div>
-                      <span className="font-semibold text-gray-900">Hulp nodig?</span>
+                      <span className="font-semibold text-gray-900">Support & Contact</span>
                     </Link>
 
                     <Link href="/prijzen" onClick={() => setShowMenu(false)} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50">

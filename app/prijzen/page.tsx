@@ -185,7 +185,7 @@ export default function PrijzenPage() {
                 {/* Recommended Badge */}
                 {config.recommended && (
                   <div className="absolute -top-4 lg:-top-5 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-primary text-white text-sm lg:text-base font-semibold px-5 lg:px-6 py-1.5 lg:py-2 rounded-full shadow-lg">
+                    <div className="bg-primary text-white text-sm lg:text-base font-semibold px-4 lg:px-5 py-1 lg:py-1.5 rounded-full shadow-lg whitespace-nowrap">
                       Aanbevolen
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export default function PrijzenPage() {
                 {/* Current Plan Badge */}
                 {isCurrentPlan && (
                   <div className="absolute -top-4 lg:-top-5 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-gray-900 text-white text-sm lg:text-base font-semibold px-5 lg:px-6 py-1.5 lg:py-2 rounded-full shadow-lg">
+                    <div className="bg-gray-900 text-white text-sm lg:text-base font-semibold px-4 lg:px-5 py-1 lg:py-1.5 rounded-full shadow-lg whitespace-nowrap">
                       Huidig plan
                     </div>
                   </div>

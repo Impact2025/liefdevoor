@@ -6,6 +6,20 @@ import type { Prisma } from '@prisma/client'
 import { calculateCompatibility } from '@/lib/services/matching/compatibility-engine'
 
 /**
+ * 🎭 INTELLIGENT FALLBACK SYSTEEM
+ *
+ * Wanneer een nieuwe gebruiker registreert en er zijn geen echte matches,
+ * tonen we showcase profielen zodat de app niet leeg aanvoelt.
+ *
+ * Strategie:
+ * 1. Eerst echte profielen ophalen (isShowcase: false)
+ * 2. Als < MIN_PROFILES: showcase profielen toevoegen
+ * 3. Showcase profielen worden gemarkeerd zodat swipes niet worden opgeslagen
+ */
+const MIN_PROFILES_BEFORE_SHOWCASE = 5 // Minimaal aantal echte profielen voordat we showcase tonen
+const MAX_SHOWCASE_PROFILES = 20 // Maximum aantal showcase profielen om te tonen
+
+/**
  * Geocode a Dutch/Belgian postcode to coordinates
  */
 async function geocodePostcode(postcode: string): Promise<{ lat: number; lng: number } | null> {
@@ -347,6 +361,13 @@ export async function GET(request: NextRequest) {
     // Filter out incognito users (they don't appear in discover)
     where.incognitoMode = false
 
+    // 🎭 STAP 1: Filter out showcase profielen in eerste query (alleen echte users)
+    // Check if isShowcase column exists by checking environment/feature flag
+    const showcaseFeatureEnabled = process.env.SHOWCASE_ENABLED === 'true'
+    if (showcaseFeatureEnabled) {
+      where.isShowcase = false
+    }
+
     // 🛑 DEALBREAKER FILTERING - Apply user's dealbreakers
     const dealbreakers = currentUser.dealbreakers
     if (dealbreakers) {
@@ -471,12 +492,95 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // 🎭 STAP 2: INTELLIGENT FALLBACK - Als te weinig echte profielen, voeg showcase toe
+    let showcaseProfiles: typeof potentialMatches = []
+    let needsShowcase = false
+
+    if (showcaseFeatureEnabled && filteredMatches.length < MIN_PROFILES_BEFORE_SHOWCASE) {
+      needsShowcase = true
+      console.log(`[Discover] 🎭 Fallback activated: Only ${filteredMatches.length} real profiles, fetching showcase profiles...`)
+
+      // Build showcase query - less strict filters
+      const showcaseWhere: Prisma.UserWhereInput = {
+        id: { notIn: [...excludeIds, ...filteredMatches.map(u => u.id)] },
+        profileImage: { not: null },
+        isShowcase: true, // Only showcase profiles
+        incognitoMode: false,
+      }
+
+      // Apply basic gender preference to showcase profiles
+      if (filters.gender) {
+        showcaseWhere.gender = filters.gender
+      } else if (prefs.genderPreference) {
+        showcaseWhere.gender = prefs.genderPreference
+      }
+
+      // Apply age range to showcase profiles (but more relaxed)
+      const showcaseMinAge = (filters.minAge ?? prefs.minAge ?? 18) - 5
+      const showcaseMaxAge = (filters.maxAge ?? prefs.maxAge ?? 99) + 5
+      const showcaseBirthDateRange = ageToBirthDateRange(
+        Math.max(18, showcaseMinAge),
+        showcaseMaxAge
+      )
+      if (showcaseBirthDateRange) {
+        showcaseWhere.birthDate = showcaseBirthDateRange
+      }
+
+      // Fetch showcase profiles
+      showcaseProfiles = await prisma.user.findMany({
+        where: showcaseWhere,
+        select: {
+          id: true,
+          name: true,
+          bio: true,
+          birthDate: true,
+          gender: true,
+          city: true,
+          postcode: true,
+          latitude: true,
+          longitude: true,
+          profileImage: true,
+          voiceIntro: true,
+          role: true,
+          isVerified: true,
+          safetyScore: true,
+          createdAt: true,
+          updatedAt: true,
+          lastSeen: true,
+          interests: true,
+          occupation: true,
+          education: true,
+          height: true,
+          drinking: true,
+          smoking: true,
+          children: true,
+          religion: true,
+          languages: true,
+          ethnicity: true,
+          sports: true,
+          psychProfile: true,
+          photos: {
+            select: { id: true, url: true, order: true },
+            orderBy: { order: 'asc' },
+          },
+        },
+        take: MAX_SHOWCASE_PROFILES,
+        orderBy: { createdAt: 'desc' },
+      })
+
+      console.log(`[Discover] 🎭 Found ${showcaseProfiles.length} showcase profiles to fill the gap`)
+    }
+
+    // Combine real profiles with showcase profiles
+    const allProfiles = [...filteredMatches, ...showcaseProfiles]
+    const showcaseIds = new Set(showcaseProfiles.map(p => p.id))
+
     // Get boosted user IDs (reuse 'now' from passport check)
     const boostedUsers = await prisma.profileBoost.findMany({
       where: {
         isActive: true,
         expiresAt: { gt: now },
-        userId: { in: filteredMatches.map(u => u.id) },
+        userId: { in: allProfiles.map(u => u.id) },
       },
       select: { userId: true },
     })
@@ -512,8 +616,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 🤖 AI MATCHING ACTIVE - Calculate compatibility scores for all matches (7 factors!)
-    console.log(`[AI Matching] Calculating compatibility for ${filteredMatches.length} potential matches (7-factor engine)`)
-    const matchesWithScores = filteredMatches.map(match => {
+    console.log(`[AI Matching] Calculating compatibility for ${allProfiles.length} profiles (${filteredMatches.length} real + ${showcaseProfiles.length} showcase)`)
+    const matchesWithScores = allProfiles.map(match => {
       const targetProfile = {
         id: match.id,
         interests: match.interests,
@@ -581,6 +685,8 @@ export async function GET(request: NextRequest) {
           ? user.interests.split(',').map((i: string) => i.trim())
           : [],
       isBoosted: boostedUserIds.has(user.id),
+      // 🎭 SHOWCASE FLAG - Swipes op showcase profielen worden niet opgeslagen
+      isShowcase: showcaseIds.has(user.id),
       // Include AI compatibility score (0-100)
       matchScore: user.compatibilityScore,
       matchQuality: user.compatibilityScore >= 75 ? 'excellent' :
@@ -603,6 +709,8 @@ export async function GET(request: NextRequest) {
       psychProfile: undefined,
     }))
 
+    // Count real profiles only for pagination
+    const realProfileCount = filteredMatches.length
     const totalCount = await prisma.user.count({ where })
 
     return successResponse({
@@ -610,14 +718,23 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
+        total: totalCount + showcaseProfiles.length,
+        totalPages: Math.ceil((totalCount + showcaseProfiles.length) / limit),
       },
       // Include passport info if active
       passport: isPassportActive ? {
         city: currentUser.passportCity,
         expiresAt: currentUser.passportExpiresAt,
       } : null,
+      // 🎭 SHOWCASE METADATA - Voor frontend UX
+      showcase: {
+        enabled: needsShowcase,
+        count: showcaseProfiles.length,
+        realProfileCount: realProfileCount,
+        message: needsShowcase
+          ? 'We hebben voorbeeldprofielen toegevoegd zodat je de app kunt uitproberen!'
+          : null,
+      },
     })
   } catch (error) {
     return handleApiError(error)

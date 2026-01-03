@@ -190,10 +190,12 @@ export function useSwipeStack(
       const data = await response.json()
 
       if (!response.ok) {
-        // Check for swipe limit
-        if (response.status === 403 && data.error === 'swipe_limit_reached') {
-          onSwipeLimitReached?.()
-          return { success: false, error: 'swipe_limit_reached' }
+        // Check for swipe/superlike limit - don't retry these
+        if (response.status === 403) {
+          if (data.error === 'swipe_limit_reached' || data.error === 'superlike_limit_reached') {
+            onSwipeLimitReached?.()
+            return { success: false, error: data.error, message: data.message }
+          }
         }
         throw new Error(data.message || 'Swipe failed')
       }
@@ -336,12 +338,18 @@ export function useSwipeStack(
         setLastMatch(result.match)
         onMatch?.(result.match)
       }
-    } else if (result.error !== 'aborted' && result.error !== 'swipe_limit_reached') {
+    } else if (result.error !== 'aborted' && result.error !== 'swipe_limit_reached' && result.error !== 'superlike_limit_reached') {
       // API call failed - add profile back to stack
       console.error('[SwipeStack] Swipe failed, rolling back')
       hapticError()
 
       // Roll back optimistic update
+      setProfilesState(prev => [swipedProfile, ...prev])
+      setSwipeHistory(prev => prev.slice(0, -1))
+    } else if (result.error === 'superlike_limit_reached') {
+      // Super like limit reached - roll back but don't show error (user can still normal swipe)
+      console.log('[SwipeStack] Super like limit reached, rolling back')
+      hapticWarning()
       setProfilesState(prev => [swipedProfile, ...prev])
       setSwipeHistory(prev => prev.slice(0, -1))
     }

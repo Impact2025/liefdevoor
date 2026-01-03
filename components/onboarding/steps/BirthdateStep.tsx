@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, ArrowRight } from 'lucide-react';
-import { useOnboardingStore } from '@/store/useOnboardingStore';
 
-export default function BirthdateStep() {
-  const { userData, updateUserData, nextStep, saveStepToServer } = useOnboardingStore();
+interface BirthdateStepProps {
+  onComplete: (birthDate: string) => void;
+  initialDate?: string;
+}
 
-  const existingDate = userData.birthDate ? new Date(userData.birthDate) : null;
+export default function BirthdateStep({ onComplete, initialDate }: BirthdateStepProps) {
+  const existingDate = initialDate ? new Date(initialDate) : null;
   const [day, setDay] = useState(existingDate ? String(existingDate.getDate()) : '');
   const [month, setMonth] = useState(existingDate ? String(existingDate.getMonth() + 1) : '');
   const [year, setYear] = useState(existingDate ? String(existingDate.getFullYear()) : '');
@@ -79,11 +81,7 @@ export default function BirthdateStep() {
 
     setIsSaving(true);
     try {
-      const success = await saveStepToServer(5, { birthDate: dateString });
-      if (success) {
-        updateUserData({ birthDate: dateString });
-        nextStep();
-      }
+      onComplete(dateString);
     } finally {
       setIsSaving(false);
     }

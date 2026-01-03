@@ -3,17 +3,16 @@
  * Enables offline support, caching, and push notifications
  */
 
-const CACHE_NAME = 'lvi-cache-v2';
-const STATIC_CACHE = 'lvi-static-v2';
-const DYNAMIC_CACHE = 'lvi-dynamic-v2';
-const IMAGE_CACHE = 'lvi-images-v2';
+const CACHE_NAME = 'lvi-cache-v3';
+const STATIC_CACHE = 'lvi-static-v3';
+const DYNAMIC_CACHE = 'lvi-dynamic-v3';
+const IMAGE_CACHE = 'lvi-images-v3';
 
 // Static assets to cache immediately
+// NOTE: Do NOT cache protected routes (discover, matches, profile) here
+// as they redirect when not authenticated, causing SW errors
 const STATIC_ASSETS = [
   '/',
-  '/discover',
-  '/matches',
-  '/profile',
   '/login',
   '/register',
   '/offline',
@@ -50,6 +49,9 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Protected routes that require authentication (will redirect if not logged in)
+const PROTECTED_ROUTES = ['/discover', '/matches', '/profile', '/chat', '/settings'];
+
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -61,6 +63,12 @@ self.addEventListener('fetch', (event) => {
   // Skip WebSocket and SSE connections
   if (url.pathname.includes('/api/notifications/stream')) return;
   if (url.pathname.includes('/api/presence')) return;
+
+  // Skip protected routes for navigation - let browser handle auth redirects
+  // This prevents "redirected response was used" errors
+  if (request.mode === 'navigate' && PROTECTED_ROUTES.some(route => url.pathname.startsWith(route))) {
+    return; // Don't intercept, let browser handle normally
+  }
 
   // Handle image requests with cache-first strategy
   if (request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
