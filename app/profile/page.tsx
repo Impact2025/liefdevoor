@@ -191,7 +191,7 @@ export default function ProfilePage() {
       />
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 py-8 lg:py-6">
+      <div className="max-w-7xl mx-auto px-4 py-8 lg:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Sidebar - Profile Picture & Photos */}
           <div className="lg:col-span-1">
@@ -445,13 +445,23 @@ export default function ProfilePage() {
                 Profiel Informatie
               </h2>
 
-              {user && (
-                <ProfileForm
-                  initialData={user}
-                  onSuccess={(updatedProfile) => {
-                    refetch()
-                  }}
-                />
+              {!user ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Profiel gegevens laden...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Debug info */}
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                    <strong>Debug:</strong> User geladen, ProfileForm wordt gerenderd
+                  </div>
+                  <ProfileForm
+                    initialData={user}
+                    onSuccess={(updatedProfile) => {
+                      refetch()
+                    }}
+                  />
+                </>
               )}
             </div>
           </div>
