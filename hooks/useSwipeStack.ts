@@ -56,6 +56,7 @@ export interface SwipeResult {
     superLikesRemaining?: number
   }
   error?: string
+  message?: string
 }
 
 export interface SwipeAction {
