@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -63,8 +63,8 @@ interface Post {
 
 type TabType = 'editor' | 'seo' | 'social' | 'settings'
 
-export default function EditBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function EditBlogPostPage({ params }: { params: { id: string } }) {
+  const { id } = params
   const { data: session, status } = useSession()
   const router = useRouter()
 
