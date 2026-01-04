@@ -42,6 +42,9 @@ export default function RichTextEditor({
         heading: {
           levels: [1, 2, 3],
         },
+        // Disable extensions we'll add separately to avoid duplicates
+        link: false,
+        underline: false,
       }),
       Link.configure({
         openOnClick: false,
