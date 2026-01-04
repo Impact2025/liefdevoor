@@ -19,8 +19,8 @@ interface Post {
     profileImage: string | null
   }
   category: {
+    id: string
     name: string
-    slug: string
   }
   seoTitle: string | null
   seoDescription: string | null
@@ -117,7 +117,7 @@ export default function BlogPostPage() {
           {/* Category */}
           {post.category && (
             <Link
-              href={`/blog?category=${post.category.slug}`}
+              href={`/blog?category=${post.category.id}`}
               className="inline-block px-3 py-1 bg-rose-100 text-rose-700 text-sm rounded-full mb-4 hover:bg-rose-200"
             >
               {post.category.name}
