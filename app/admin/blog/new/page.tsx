@@ -266,10 +266,67 @@ export default function NewBlogPostPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // For now, use a placeholder or URL input
-    // In production, you'd upload to a storage service
-    const url = URL.createObjectURL(file)
-    setFeaturedImage(url)
+    // Show loading state
+    setGenerating(true)
+    setError(null)
+
+    try {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Afbeelding te groot. Maximaal 10MB toegestaan.')
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Alleen afbeeldingen zijn toegestaan.')
+      }
+
+      console.log('[Upload] Uploading image:', file.name, 'Size:', file.size)
+
+      // Create form data
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('title', title || 'Blog afbeelding')
+      if (categoryId) {
+        const category = categories.find(c => c.id === categoryId)
+        if (category) {
+          formData.append('category', category.name)
+        }
+      }
+
+      // Upload and optimize
+      const res = await fetch('/api/admin/blog/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Upload mislukt')
+      }
+
+      const data = await res.json()
+
+      console.log('[Upload] Image optimized:', data)
+
+      // Set the optimized image URL
+      // Prefer WebP if available, fallback to optimized JPEG
+      const imageUrl = data.image.webpUrl || data.image.optimizedUrl
+      setFeaturedImage(imageUrl)
+
+      // Show success with stats
+      const savings = ((data.stats.originalSize - data.stats.optimizedSize) / 1024 / 1024).toFixed(2)
+      setSuccess(`✅ Afbeelding geoptimaliseerd! ${savings}MB bespaard (${data.stats.compressionRatio})`)
+      setTimeout(() => setSuccess(null), 5000)
+
+    } catch (err) {
+      console.error('[Upload] Error:', err)
+      setError(err instanceof Error ? err.message : 'Upload mislukt')
+    } finally {
+      setGenerating(false)
+      // Reset file input
+      e.target.value = ''
+    }
   }
 
   if (status === 'loading' || loading) {
