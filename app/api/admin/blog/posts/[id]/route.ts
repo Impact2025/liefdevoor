@@ -44,7 +44,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, content, categoryId, excerpt, featuredImage, published } = await request.json()
+    const { title, content, categoryId, excerpt, featuredImage, published, applyAiOptimization = false } = await request.json()
 
     // Generate new slug if title changed
     let slug = undefined
@@ -76,6 +76,36 @@ export async function PATCH(
     if (excerpt !== undefined) updateData.excerpt = excerpt
     if (featuredImage !== undefined) updateData.featuredImage = featuredImage
     if (published !== undefined) updateData.published = published
+
+    // Apply AI optimization if requested and we have the necessary data
+    if (applyAiOptimization && title && content && categoryId) {
+      try {
+        console.log('[Blog Optimizer] Starting content optimization for update...')
+        const { optimizeBlogContent } = await import('@/lib/blog/optimizer')
+
+        const optimized = await optimizeBlogContent({
+          title,
+          content,
+          categoryId,
+          excerpt
+        })
+
+        // Update with optimized data
+        updateData.content = optimized.optimizedContent
+        updateData.excerpt = optimized.excerpt
+        updateData.seoTitle = optimized.seoTitle
+        updateData.seoDescription = optimized.seoDescription
+        updateData.keywords = optimized.keywords
+        updateData.socialMedia = optimized.socialMedia
+        updateData.imagePrompt = optimized.imagePrompt
+        updateData.aiOptimized = true
+
+        console.log('[Blog Optimizer] Content optimized successfully for update')
+      } catch (error) {
+        console.error('[Blog Optimizer] Optimization failed during update:', error)
+        // Continue without optimization - graceful degradation
+      }
+    }
 
     const post = await prisma.post.update({
       where: { id: params.id },

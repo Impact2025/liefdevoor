@@ -532,9 +532,18 @@ model Post {
   comments    Comment[]
   likeCount   Int       @default(0)
 
+  // AI SEO Optimization Fields
+  seoTitle          String?   // Max 60 chars for search engines
+  seoDescription    String?   // Max 155 chars meta description
+  keywords          Json?     // Array: ["keyword1", "keyword2", ...]
+  socialMedia       Json?     // {instagram: "", facebook: "", linkedin: "", twitter: ""}
+  imagePrompt       String?   @db.Text  // Midjourney/DALL-E prompt for featured image
+  aiOptimized       Boolean   @default(false)  // Flag to track if post was AI-optimized
+
   @@index([authorId])
   @@index([categoryId])
   @@index([published, createdAt])
+  @@index([aiOptimized])
 }
 
 model Comment {

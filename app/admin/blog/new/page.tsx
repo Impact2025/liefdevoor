@@ -91,6 +91,10 @@ export default function NewBlogPostPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // AI Optimization state
+  const [applyAiOptimization, setApplyAiOptimization] = useState(true)  // Default ON
+  const [optimizationProgress, setOptimizationProgress] = useState<string | null>(null)
+
   useEffect(() => {
     if (status === 'loading') return
     if (!session || session.user.role !== 'ADMIN') {
@@ -193,6 +197,11 @@ export default function NewBlogPostPage() {
     setSaving(true)
     setError(null)
 
+    // Show optimization progress if enabled
+    if (applyAiOptimization) {
+      setOptimizationProgress('AI optimaliseert je content...')
+    }
+
     try {
       const res = await fetch('/api/admin/blog/posts', {
         method: 'POST',
@@ -203,7 +212,8 @@ export default function NewBlogPostPage() {
           excerpt,
           categoryId,
           featuredImage: featuredImage || undefined,
-          published: asDraft ? false : published
+          published: asDraft ? false : published,
+          applyAiOptimization  // NEW: Send optimization flag
         })
       })
 
@@ -213,7 +223,25 @@ export default function NewBlogPostPage() {
       }
 
       const data = await res.json()
-      setSuccess(asDraft ? 'Concept opgeslagen!' : 'Artikel gepubliceerd!')
+
+      // Update local state with optimized data if available
+      if (data.post.aiOptimized) {
+        setContent(data.post.content)
+        setExcerpt(data.post.excerpt || excerpt)
+        setSeoTitle(data.post.seoTitle || '')
+        setSeoDescription(data.post.seoDescription || '')
+        setKeywords(data.post.keywords || [])
+        if (data.post.socialMedia) {
+          setSocialMedia(data.post.socialMedia)
+        }
+        setMidjourneyPrompt(data.post.imagePrompt || '')
+      }
+
+      setSuccess(
+        applyAiOptimization
+          ? '✅ Blog geoptimaliseerd en opgeslagen!'
+          : (asDraft ? 'Concept opgeslagen!' : 'Artikel gepubliceerd!')
+      )
 
       // Redirect to blog management after short delay
       setTimeout(() => {
@@ -224,6 +252,7 @@ export default function NewBlogPostPage() {
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
     } finally {
       setSaving(false)
+      setOptimizationProgress(null)
     }
   }
 
@@ -273,7 +302,15 @@ export default function NewBlogPostPage() {
               </button>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Nieuw Artikel</h1>
-                <p className="text-sm text-gray-500">Wereldklasse Blog Editor</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-gray-500">Wereldklasse Blog Editor</p>
+                  {applyAiOptimization && (
+                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
+                      <Sparkles size={12} />
+                      AI Optimalisatie
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -317,11 +354,16 @@ export default function NewBlogPostPage() {
                 className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-rose-hover transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {saving ? (
-                  <RefreshCw size={18} className="animate-spin" />
+                  <>
+                    <RefreshCw size={18} className="animate-spin" />
+                    {optimizationProgress || 'Opslaan...'}
+                  </>
                 ) : (
-                  <Save size={18} />
+                  <>
+                    <Save size={18} />
+                    {applyAiOptimization ? 'Optimaliseren & Publiceren' : 'Publiceren'}
+                  </>
                 )}
-                Publiceren
               </button>
             </div>
           </div>
@@ -700,6 +742,34 @@ export default function NewBlogPostPage() {
               {/* Settings Tab */}
               {activeTab === 'settings' && (
                 <div className="space-y-6">
+                  {/* AI Optimization Toggle */}
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={applyAiOptimization}
+                        onChange={(e) => setApplyAiOptimization(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Sparkles size={18} className="text-purple-600" />
+                          <span className="font-medium text-gray-900">AI Optimalisatie bij opslaan</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Laat AI je content automatisch optimaliseren voor SEO, leesbaarheid en social media bij het opslaan.
+                          Dit overschrijft je originele content met een geoptimaliseerde versie.
+                        </p>
+                        <div className="mt-2 text-xs text-purple-700 space-y-1">
+                          <div>✓ Content optimalisatie voor wereldklasse SEO</div>
+                          <div>✓ Generatie van SEO metadata (titel, beschrijving, keywords)</div>
+                          <div>✓ Social media posts voor 4 platformen</div>
+                          <div>✓ AI afbeelding prompt voor Midjourney/DALL-E</div>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
                   <div>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input

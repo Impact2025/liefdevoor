@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const { title, content, categoryId, excerpt, featuredImage, published } = await request.json()
+    const { title, content, categoryId, excerpt, featuredImage, published, applyAiOptimization = false } = await request.json()
 
     if (!title || !content || !categoryId) {
       return NextResponse.json({ error: 'Title, content, and category are required' }, { status: 400 })
@@ -116,17 +116,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Slug already exists. Please choose a different title.' }, { status: 400 })
     }
 
+    // Prepare post data
+    let postData: any = {
+      title,
+      content,
+      slug,
+      excerpt,
+      featuredImage,
+      published: published || false,
+      authorId: session.user.id,
+      categoryId,
+      aiOptimized: false
+    }
+
+    // Apply AI optimization if requested
+    if (applyAiOptimization) {
+      try {
+        console.log('[Blog Optimizer] Starting content optimization...')
+        const { optimizeBlogContent } = await import('@/lib/blog/optimizer')
+
+        const optimized = await optimizeBlogContent({
+          title,
+          content,
+          categoryId,
+          excerpt
+        })
+
+        // Update with optimized data
+        postData = {
+          ...postData,
+          content: optimized.optimizedContent,  // OVERWRITES original content
+          excerpt: optimized.excerpt,
+          seoTitle: optimized.seoTitle,
+          seoDescription: optimized.seoDescription,
+          keywords: optimized.keywords,
+          socialMedia: optimized.socialMedia,
+          imagePrompt: optimized.imagePrompt,
+          aiOptimized: true
+        }
+
+        console.log('[Blog Optimizer] Content optimized successfully')
+      } catch (error) {
+        console.error('[Blog Optimizer] Optimization failed, saving without optimization:', error)
+        // Continue with original data - graceful degradation
+      }
+    }
+
     const post = await prisma.post.create({
-      data: {
-        title,
-        content,
-        slug,
-        excerpt,
-        featuredImage,
-        published: published || false,
-        authorId: session.user.id,
-        categoryId
-      },
+      data: postData,
       include: {
         author: { select: { name: true } },
         category: { select: { name: true, color: true } }
