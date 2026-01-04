@@ -110,12 +110,16 @@ export async function GET(
     // Format response
     const response = {
       id: article.id,
-      title: article.titleNl,
+      title: article.title,
+      titleNl: article.titleNl,
       slug: article.slug,
-      // Return easy read content if requested and available
-      content: easyRead && article.hasEasyRead ? article.contentEasyRead : article.contentNl,
+      // Return all content fields for frontend to handle
+      content: article.content,
+      contentNl: article.contentNl,
+      contentEasyRead: article.contentEasyRead,
       hasEasyRead: article.hasEasyRead,
-      excerpt: article.excerptNl,
+      excerpt: article.excerpt,
+      excerptNl: article.excerptNl,
       featuredImage: article.featuredImage,
       featuredVideo: article.featuredVideo,
       audioVersion: article.audioVersion,
@@ -135,7 +139,8 @@ export async function GET(
       publishedAt: article.publishedAt,
       updatedAt: article.updatedAt,
       category: {
-        name: article.category.nameNl,
+        name: article.category.name,
+        nameNl: article.category.nameNl,
         slug: article.category.slug,
         icon: article.category.icon,
         color: article.category.color,

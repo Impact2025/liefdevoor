@@ -20,7 +20,10 @@ import {
   Trash2,
   ExternalLink,
   Clock,
-  BarChart3
+  BarChart3,
+  Upload,
+  Calendar,
+  Info
 } from 'lucide-react'
 
 interface Category {
@@ -93,9 +96,12 @@ export default function EditArticlePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [activeTab, setActiveTab] = useState<'content' | 'easyread' | 'seo' | 'settings'>('content')
   const [article, setArticle] = useState<Article | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   // Form state
   const [form, setForm] = useState({
@@ -115,6 +121,7 @@ export default function EditArticlePage() {
     isPillarPage: false,
     isFeatured: false,
     isPublished: false,
+    publishedAt: '',
   })
 
   const [keywordInput, setKeywordInput] = useState('')
@@ -147,6 +154,14 @@ export default function EditArticlePage() {
         const data = await response.json()
         const article = data.data.article
         setArticle(article)
+
+        // Format publishedAt for datetime-local input
+        let publishedAtFormatted = ''
+        if (article.publishedAt) {
+          const date = new Date(article.publishedAt)
+          publishedAtFormatted = date.toISOString().slice(0, 16)
+        }
+
         setForm({
           titleNl: article.titleNl || '',
           slug: article.slug || '',
@@ -164,6 +179,7 @@ export default function EditArticlePage() {
           isPillarPage: article.isPillarPage || false,
           isFeatured: article.isFeatured || false,
           isPublished: article.isPublished || false,
+          publishedAt: publishedAtFormatted,
         })
       } else {
         router.push('/admin/kennisbank/artikelen')
@@ -210,6 +226,67 @@ export default function EditArticlePage() {
     setHasChanges(true)
   }
 
+  // Image upload handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    setUploadError(null)
+
+    try {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Afbeelding te groot. Maximaal 10MB toegestaan.')
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Alleen afbeeldingen zijn toegestaan.')
+      }
+
+      // Create form data
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('title', form.titleNl || 'Kennisbank afbeelding')
+      if (form.categoryId) {
+        const category = categories.find(c => c.id === form.categoryId)
+        if (category) {
+          formData.append('category', category.name)
+        }
+      }
+
+      // Upload and optimize
+      const res = await fetch('/api/admin/blog/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Upload mislukt')
+      }
+
+      const data = await res.json()
+
+      // Set the optimized image URL
+      const imageUrl = data.image.webpUrl || data.image.optimizedUrl
+      handleFormChange({ featuredImage: imageUrl })
+
+      // Show success with stats
+      const savings = ((data.stats.originalSize - data.stats.optimizedSize) / 1024 / 1024).toFixed(2)
+      setSuccess(`Afbeelding geoptimaliseerd! ${savings}MB bespaard`)
+      setTimeout(() => setSuccess(null), 5000)
+
+    } catch (err) {
+      console.error('Upload error:', err)
+      setUploadError(err instanceof Error ? err.message : 'Upload mislukt')
+    } finally {
+      setIsUploading(false)
+      e.target.value = ''
+    }
+  }
+
   const validate = () => {
     const newErrors: Record<string, string> = {}
 
@@ -231,13 +308,21 @@ export default function EditArticlePage() {
 
     setIsSaving(true)
     try {
-      const updateData = {
+      const updateData: any = {
         ...form,
         hasEasyRead: !!form.contentEasyRead,
       }
 
       if (typeof publish === 'boolean') {
         updateData.isPublished = publish
+        if (publish && !form.publishedAt) {
+          updateData.publishedAt = new Date().toISOString()
+        }
+      }
+
+      // Convert datetime-local to ISO string if set
+      if (form.publishedAt) {
+        updateData.publishedAt = new Date(form.publishedAt).toISOString()
       }
 
       const response = await fetch(`/api/kennisbank/articles/${articleId}`, {
@@ -248,6 +333,8 @@ export default function EditArticlePage() {
 
       if (response.ok) {
         setHasChanges(false)
+        setSuccess('Wijzigingen opgeslagen!')
+        setTimeout(() => setSuccess(null), 3000)
         fetchArticle() // Refresh data
       } else {
         const error = await response.json()
@@ -368,6 +455,25 @@ export default function EditArticlePage() {
         </div>
       </div>
 
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{success}</span>
+            <button onClick={() => setSuccess(null)}><X className="w-4 h-4" /></button>
+          </div>
+        </div>
+      )}
+
+      {uploadError && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{uploadError}</span>
+            <button onClick={() => setUploadError(null)}><X className="w-4 h-4" /></button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -473,6 +579,9 @@ export default function EditArticlePage() {
                     {errors.contentNl && (
                       <p className="text-red-500 text-sm mt-1">{errors.contentNl}</p>
                     )}
+                    <p className="text-xs text-gray-500 mt-2">
+                      Tip: Gebruik ## voor koppen, **tekst** voor vet, en - voor lijsten
+                    </p>
                   </div>
                 )}
 
@@ -493,7 +602,14 @@ export default function EditArticlePage() {
                     <textarea
                       value={form.contentEasyRead}
                       onChange={(e) => handleFormChange({ contentEasyRead: e.target.value })}
-                      placeholder="Schrijf hier de makkelijk lezen versie..."
+                      placeholder="Schrijf hier de makkelijk lezen versie...
+
+Tips:
+- Gebruik korte zinnen (max 10 woorden)
+- Vermijd moeilijke woorden
+- Leg begrippen uit
+- Gebruik opsommingen
+- Schrijf actief (niet lijdend)"
                       rows={20}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                     />
@@ -571,6 +687,20 @@ export default function EditArticlePage() {
                           ))}
                         </div>
                       )}
+                    </div>
+
+                    {/* SEO Preview */}
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-2">Google Preview</p>
+                      <div className="text-blue-700 text-lg hover:underline cursor-pointer">
+                        {form.metaTitle || form.titleNl || 'Titel'}
+                      </div>
+                      <div className="text-green-700 text-sm">
+                        liefdevooridereen.nl/kennisbank/.../{form.slug || 'slug'}
+                      </div>
+                      <div className="text-gray-600 text-sm mt-1">
+                        {form.metaDescription || form.excerptNl || 'Beschrijving van het artikel...'}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -681,15 +811,7 @@ export default function EditArticlePage() {
                       {article.notHelpfulCount}
                     </span>
                   </div>
-                  {article.publishedAt && (
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <span className="text-sm text-gray-600">Gepubliceerd</span>
-                      <span className="text-sm">
-                        {new Date(article.publishedAt).toLocaleDateString('nl-NL')}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between pt-3 border-t">
                     <span className="text-sm text-gray-600">Bijgewerkt</span>
                     <span className="text-sm">
                       {new Date(article.updatedAt).toLocaleDateString('nl-NL')}
@@ -719,34 +841,116 @@ export default function EditArticlePage() {
               )}
             </div>
 
+            {/* Publication Date */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Publicatiedatum
+              </h3>
+              <input
+                type="datetime-local"
+                value={form.publishedAt}
+                onChange={(e) => handleFormChange({ publishedAt: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+              {article?.publishedAt && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Oorspronkelijk gepubliceerd: {new Date(article.publishedAt).toLocaleDateString('nl-NL', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              )}
+            </div>
+
             {/* Featured Image */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-medium text-gray-900 mb-4">Uitgelichte Afbeelding</h3>
+              <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                Uitgelichte Afbeelding
+              </h3>
+
               {form.featuredImage ? (
                 <div className="relative">
                   <img
                     src={form.featuredImage}
                     alt="Featured"
-                    className="w-full h-40 object-cover rounded-lg"
+                    className="w-full h-48 object-cover rounded-lg"
                   />
                   <button
                     onClick={() => handleFormChange({ featuredImage: '' })}
-                    className="absolute top-2 right-2 p-1 bg-white rounded-full shadow"
+                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <div>
+                <div className="space-y-3">
+                  {/* Upload Button */}
+                  <label className={`
+                    flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer
+                    transition-colors
+                    ${isUploading ? 'border-rose-300 bg-rose-50' : 'border-gray-300 hover:border-rose-400 hover:bg-gray-50'}
+                  `}>
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-8 h-8 text-rose-500 animate-spin mb-2" />
+                          <p className="text-sm text-rose-600">Uploaden & optimaliseren...</p>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600 font-medium">Klik om te uploaden</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG, WebP (max 10MB)</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* Or URL Input */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-2 bg-white text-gray-500">of voer URL in</span>
+                    </div>
+                  </div>
+
                   <input
                     type="url"
                     value={form.featuredImage}
                     onChange={(e) => handleFormChange({ featuredImage: e.target.value })}
                     placeholder="https://..."
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
                   />
                 </div>
               )}
+            </div>
+
+            {/* Reading Time Estimate */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Leestijd
+              </h3>
+              <p className="text-2xl font-bold text-rose-600">
+                {Math.max(1, Math.ceil(form.contentNl.split(/\s+/).length / 200))} min
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Gebaseerd op {form.contentNl.split(/\s+/).filter(Boolean).length} woorden
+              </p>
             </div>
 
             {/* Danger Zone */}
