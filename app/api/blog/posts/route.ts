@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         featuredImage: post.featuredImage,
         author: post.author,
         category: post.category,
-        createdAt: post.createdAt.toISOString(),
+        createdAt: typeof post.createdAt === 'string' ? post.createdAt : post.createdAt.toISOString(),
         likeCount: post.likeCount,
       }))
 
