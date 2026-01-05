@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const { title, content, categoryId, excerpt, featuredImage, bannerText, published, publishedAt, applyAiOptimization = false } = await request.json()
+    const { title, content, categoryId, excerpt, featuredImage, bannerText, published, showOnMainBlog, publishedAt, applyAiOptimization = false } = await request.json()
 
     if (!title || !content || !categoryId) {
       return NextResponse.json({ error: 'Title, content, and category are required' }, { status: 400 })
@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
       featuredImage,
       bannerText,
       published: published || false,
+      showOnMainBlog: showOnMainBlog !== undefined ? showOnMainBlog : true,
       publishedAt: parsedPublishedAt,
       authorId: session.user.id,
       categoryId,
@@ -194,6 +195,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ post })
   } catch (error) {
     console.error('Post creation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
