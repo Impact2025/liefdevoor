@@ -64,6 +64,7 @@ interface Post {
   slug: string
   excerpt: string | null
   featuredImage: string | null
+  bannerText: string | null
   published: boolean
   publishedAt: string | null
   categoryId: string
@@ -86,6 +87,8 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   const [excerpt, setExcerpt] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
+  const [bannerText, setBannerText] = useState('')
+  const [useBannerText, setUseBannerText] = useState(false)
   const [published, setPublished] = useState(false)
   const [publishedAt, setPublishedAt] = useState<string>('')
   const [slug, setSlug] = useState('')
@@ -173,6 +176,8 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       setExcerpt(post.excerpt || '')
       setCategoryId(post.categoryId)
       setFeaturedImage(post.featuredImage || '')
+      setBannerText(post.bannerText || '')
+      setUseBannerText(!!post.bannerText)
       setPublished(post.published)
       // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
       if (post.publishedAt) {
@@ -279,7 +284,8 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
           content,
           excerpt,
           categoryId,
-          featuredImage: featuredImage || null,
+          featuredImage: useBannerText ? null : (featuredImage || null),
+          bannerText: useBannerText ? (bannerText || null) : null,
           published,
           publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
           applyAiOptimization  // NEW: Send optimization flag
@@ -644,8 +650,41 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Featured Image URL
+                        Uitgelichte Media
                       </label>
+                      {/* Toggle tussen Afbeelding en Tekst Banner */}
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setUseBannerText(false)}
+                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            !useBannerText
+                              ? 'bg-primary text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          <ImageIcon size={16} className="inline mr-2" />
+                          Afbeelding
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseBannerText(true)}
+                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            useBannerText
+                              ? 'bg-primary text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          <FileText size={16} className="inline mr-2" />
+                          Tekst Banner
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Afbeelding upload */}
+                  {!useBannerText && (
+                    <div className="space-y-3">
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -673,22 +712,44 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                           />
                         </label>
                       </div>
+                      {featuredImage && (
+                        <div className="relative">
+                          <img
+                            src={featuredImage}
+                            alt="Featured"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={() => setFeaturedImage('')}
+                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
 
-                  {featuredImage && (
-                    <div className="relative">
-                      <img
-                        src={featuredImage}
-                        alt="Featured"
-                        className="w-full h-48 object-cover rounded-lg"
+                  {/* Tekst Banner input */}
+                  {useBannerText && (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={bannerText}
+                        onChange={(e) => setBannerText(e.target.value)}
+                        placeholder="bijv. 10 Tips, Gids 2026, Top 5..."
+                        maxLength={50}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
-                      <button
-                        onClick={() => setFeaturedImage('')}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                      >
-                        <X size={16} />
-                      </button>
+                      <p className="text-xs text-gray-500">{bannerText.length}/50 karakters - Korte, pakkende tekst werkt het best</p>
+                      {/* Preview */}
+                      {bannerText && (
+                        <div className="relative w-full h-48 rounded-lg bg-gradient-to-r from-[#C34C60] to-pink-500 flex items-center justify-center">
+                          <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg text-center px-4">
+                            {bannerText}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
 
