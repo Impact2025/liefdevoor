@@ -8,6 +8,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, source = 'BLOG_PAGE' } = body
 
+    // Get base URL from request for email links
+    const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`
+
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!email || !emailRegex.test(email)) {
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
         })
 
         // Send verification email
-        await sendVerificationEmail(normalizedEmail, verifyToken)
+        await sendVerificationEmail(normalizedEmail, verifyToken, baseUrl)
 
         return NextResponse.json({
           success: true,
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Send verification email
-    await sendVerificationEmail(normalizedEmail, verifyToken)
+    await sendVerificationEmail(normalizedEmail, verifyToken, baseUrl)
 
     return NextResponse.json({
       success: true,
@@ -98,90 +101,73 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function sendVerificationEmail(email: string, token: string) {
-  const verifyUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/newsletter/verify?token=${token}`
+async function sendVerificationEmail(email: string, token: string, baseUrl?: string) {
+  // Use provided baseUrl or fallback to NEXTAUTH_URL
+  const domain = baseUrl || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const verifyUrl = `${domain}/api/newsletter/verify?token=${token}`
 
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            background: linear-gradient(135deg, #f43f5e 0%, #a855f7 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
-          }
-          .content {
-            background: #fff;
-            padding: 30px;
-            border: 1px solid #e5e7eb;
-            border-top: none;
-          }
-          .button {
-            display: inline-block;
-            background: linear-gradient(135deg, #f43f5e 0%, #a855f7 100%);
-            color: white !important;
-            padding: 14px 28px;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-weight: 600;
-          }
-          .footer {
-            background: #f9fafb;
-            padding: 20px;
-            text-align: center;
-            font-size: 14px;
-            color: #6b7280;
-            border: 1px solid #e5e7eb;
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-          }
-        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
       </head>
-      <body>
-        <div class="header">
-          <h1 style="margin: 0;">Bevestig je inschrijving</h1>
-        </div>
-        <div class="content">
-          <p>Hoi daar! 👋</p>
-          <p>
-            Bedankt voor je interesse in onze nieuwsbrief! We zijn blij dat je op de hoogte wilt blijven
-            van de laatste dating tips, relatie advies en verhalen.
-          </p>
-          <p>
-            Klik op de knop hieronder om je inschrijving te bevestigen:
-          </p>
-          <div style="text-align: center;">
-            <a href="${verifyUrl}" class="button">
-              Bevestig inschrijving
-            </a>
-          </div>
-          <p style="font-size: 14px; color: #6b7280;">
-            Deze link is 24 uur geldig. Als je deze email niet hebt aangevraagd, kun je deze negeren.
-          </p>
-          <p style="margin-top: 30px;">
-            Tot snel! ❤️<br>
-            <strong>Team Liefde Voor Iedereen</strong>
-          </p>
-        </div>
-        <div class="footer">
-          <p>
-            © ${new Date().getFullYear()} Liefde Voor Iedereen<br>
-            De dating app waar iedereen zich thuis voelt
-          </p>
-        </div>
+      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f3f4f6;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #f43f5e 0%, #a855f7 100%); padding: 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px;">Bevestig je inschrijving</h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 30px; background-color: #ffffff;">
+              <p style="margin: 0 0 15px 0; color: #333;">Hoi daar! 👋</p>
+
+              <p style="margin: 0 0 15px 0; color: #333;">
+                Bedankt voor je interesse in onze nieuwsbrief! We zijn blij dat je op de hoogte wilt blijven
+                van de laatste dating tips, relatie advies en verhalen.
+              </p>
+
+              <p style="margin: 0 0 20px 0; color: #333;">
+                Klik op de knop hieronder om je inschrijving te bevestigen:
+              </p>
+
+              <!-- Button -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 30px auto;">
+                <tr>
+                  <td style="background: linear-gradient(135deg, #f43f5e 0%, #a855f7 100%); border-radius: 8px; text-align: center;">
+                    <a href="${verifyUrl}" target="_blank" style="display: inline-block; padding: 14px 28px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px;">
+                      Bevestig inschrijving
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 20px 0 0 0; font-size: 14px; color: #6b7280;">
+                Deze link is 24 uur geldig. Als je deze email niet hebt aangevraagd, kun je deze negeren.
+              </p>
+
+              <p style="margin: 30px 0 0 0; color: #333;">
+                Tot snel! ❤️<br>
+                <strong>Team Liefde Voor Iedereen</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 20px; text-align: center; font-size: 14px; color: #6b7280;">
+              <p style="margin: 0;">
+                © ${new Date().getFullYear()} Liefde Voor Iedereen<br>
+                De dating app waar iedereen zich thuis voelt
+              </p>
+            </td>
+          </tr>
+        </table>
       </body>
     </html>
   `
