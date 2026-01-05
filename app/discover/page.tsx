@@ -512,20 +512,6 @@ export default function DiscoverPage() {
             </motion.div>
           ) : (
             <div className="relative h-full">
-              {/* 🎭 SHOWCASE BANNER - Subtiele notificatie wanneer voorbeeldprofielen actief zijn */}
-              {showcase?.enabled && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-0 left-0 right-0 z-30 flex justify-center pt-2"
-                >
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/90 to-orange-500/90 backdrop-blur-sm text-white rounded-full text-sm shadow-lg">
-                    <Sparkles size={14} />
-                    <span className="font-medium">Ontdek voorbeeldprofielen terwijl we groeien!</span>
-                  </div>
-                </motion.div>
-              )}
-
               {/* Card Stack - WERELDKLASSE: No more AnimatePresence conflicts! */}
               {currentProfile && (
                 <SwipeCard
