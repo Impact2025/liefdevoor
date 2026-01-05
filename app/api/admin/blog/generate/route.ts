@@ -11,6 +11,7 @@ const requestSchema = z.object({
   targetAudience: z.string().optional(),
   toneOfVoice: z.string().optional().default('vriendelijk en motiverend'),
   articleLength: z.number().optional().default(1200),
+  existingContent: z.string().optional(), // Bestaande content die alleen SEO-vriendelijk gemaakt moet worden
 });
 
 export async function POST(request: NextRequest) {
@@ -38,10 +39,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { primaryKeyword, category, year, targetAudience, toneOfVoice, articleLength } = result.data;
+    const { primaryKeyword, category, year, targetAudience, toneOfVoice, articleLength, existingContent } = result.data;
 
     // Build the AI prompt
-    const prompt = `Je bent een SEO expert en dating content specialist voor de Nederlandse markt. Je schrijft voor Wereldklasse, een premium dating platform.
+    const prompt = existingContent
+      ? `Je bent een SEO expert voor Wereldklasse. Je taak is om bestaande content SEO-vriendelijk te maken ZONDER de tekst te herschrijven.
+
+BESTAANDE CONTENT:
+${existingContent}
+
+TAAK: Maak deze content SEO-vriendelijk door:
+1. Voeg HTML structuur toe: <h1>, <h2>, <h3>, <p> tags
+2. Identificeer de hoofdtitel en maak er een <h1> van
+3. Identificeer secties en maak er <h2>/<h3> van
+4. Voeg 2-3 interne links toe naar: /register, /features, of /dashboard waar relevant
+5. Behoud de EXACTE tekst - verander GEEN woorden, zinnen of betekenis
+6. Alleen structuur en links toevoegen!
+
+PRIMARY KEYWORD: "${primaryKeyword}"
+JAAR: ${year}
+`
+      : `Je bent een SEO expert en dating content specialist voor de Nederlandse markt. Je schrijft voor Wereldklasse, een premium dating platform.
 
 TAAK: Schrijf een complete, SEO-geoptimaliseerde blog post over "${primaryKeyword}".
 

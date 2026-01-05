@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const { title, content, categoryId, excerpt, featuredImage, published, publishedAt, applyAiOptimization = false } = await request.json()
+    const { title, content, categoryId, excerpt, featuredImage, bannerText, published, publishedAt, applyAiOptimization = false } = await request.json()
 
     if (!title || !content || !categoryId) {
       return NextResponse.json({ error: 'Title, content, and category are required' }, { status: 400 })
@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
       slug,
       excerpt,
       featuredImage,
+      bannerText,
       published: published || false,
       publishedAt: parsedPublishedAt,
       authorId: session.user.id,
