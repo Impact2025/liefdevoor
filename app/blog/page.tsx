@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, User, Tag, ArrowRight } from 'lucide-react'
+import { Calendar, User, ArrowRight } from 'lucide-react'
+import NewsletterSignup from '@/components/blog/NewsletterSignup'
 
 interface Post {
   id: string
@@ -206,24 +207,7 @@ export default function BlogPage() {
             )}
 
             {/* Newsletter Signup */}
-            <div className="mt-12 bg-gradient-to-r from-rose-50 to-purple-50 rounded-2xl p-8 text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Blijf op de hoogte
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Ontvang wekelijks dating tips en relatie advies in je inbox.
-              </p>
-              <div className="max-w-md mx-auto flex gap-2">
-                <input
-                  type="email"
-                  placeholder="jouw@email.com"
-                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <button className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-rose-hover transition-colors">
-                  Inschrijven
-                </button>
-              </div>
-            </div>
+            <NewsletterSignup />
           </div>
         </div>
       </div>

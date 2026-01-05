@@ -60,6 +60,8 @@ export default function NewBlogPostPage() {
   const [excerpt, setExcerpt] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
+  const [bannerText, setBannerText] = useState('')
+  const [useBannerText, setUseBannerText] = useState(false)
   const [published, setPublished] = useState(false)
   const [publishedAt, setPublishedAt] = useState<string>('')
 
@@ -216,7 +218,8 @@ export default function NewBlogPostPage() {
           content,
           excerpt,
           categoryId,
-          featuredImage: featuredImage || undefined,
+          featuredImage: useBannerText ? undefined : (featuredImage || undefined),
+          bannerText: useBannerText ? (bannerText || undefined) : undefined,
           published: asDraft ? false : published,
           publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
           applyAiOptimization  // NEW: Send optimization flag
@@ -500,43 +503,87 @@ export default function NewBlogPostPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Featured Image URL
+                        Header Type
                       </label>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setUseBannerText(false)}
+                          className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${!useBannerText ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          Afbeelding
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseBannerText(true)}
+                          className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${useBannerText ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          Tekst Banner
+                        </button>
+                      </div>
+
+                      {!useBannerText ? (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={featuredImage}
+                            onChange={(e) => setFeaturedImage(e.target.value)}
+                            placeholder="https://..."
+                            className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                          <label className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-2">
+                            <Upload size={18} />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      ) : (
                         <input
                           type="text"
-                          value={featuredImage}
-                          onChange={(e) => setFeaturedImage(e.target.value)}
-                          placeholder="https://..."
-                          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          value={bannerText}
+                          onChange={(e) => setBannerText(e.target.value)}
+                          placeholder="bijv. 10 Tips, Top 5, etc."
+                          maxLength={30}
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
-                        <label className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-2">
-                          <Upload size={18} />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Featured Image Preview */}
-                  {featuredImage && (
+                  {/* Image/Banner Preview */}
+                  {(featuredImage || bannerText) && (
                     <div className="relative">
-                      <img
-                        src={featuredImage}
-                        alt="Featured"
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <button
-                        onClick={() => setFeaturedImage('')}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                      >
-                        <X size={16} />
-                      </button>
+                      {!useBannerText && featuredImage ? (
+                        <>
+                          <img
+                            src={featuredImage}
+                            alt="Featured"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={() => setFeaturedImage('')}
+                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : useBannerText && bannerText ? (
+                        <div className="relative w-full h-48 rounded-lg bg-gradient-to-r from-primary to-pink-500 flex items-center justify-center">
+                          <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg">
+                            {bannerText}
+                          </span>
+                          <button
+                            onClick={() => setBannerText('')}
+                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   )}
 

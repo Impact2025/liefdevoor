@@ -1,6 +1,7 @@
 'use client'
 
-import { FileText, Users, Shield, BarChart3 } from 'lucide-react'
+import Link from 'next/link'
+import { FileText, Users, Shield, BarChart3, Plus } from 'lucide-react'
 import StatCard from '@/components/admin/shared/StatCard'
 import AIGeneratorForm from '@/components/admin/AIGeneratorForm'
 import GeneratedContentPreview from '@/components/admin/GeneratedContentPreview'
@@ -48,7 +49,16 @@ export default function BlogManagement({
 }: BlogManagementProps) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Blog Management</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Blog Management</h2>
+        <Link
+          href="/admin/blog/new"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Blog maken
+        </Link>
+      </div>
 
       {/* Blog Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
