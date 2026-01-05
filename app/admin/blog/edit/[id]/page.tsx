@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { useUploadThing } from '@/utils/uploadthing'
 import {
   Sparkles,
   Save,
@@ -24,7 +25,8 @@ import {
   Share2,
   Settings,
   X,
-  Trash2
+  Trash2,
+  Calendar
 } from 'lucide-react'
 import type { GeneratedBlogContent } from '@/lib/types/blog'
 
@@ -54,6 +56,7 @@ interface Post {
   excerpt: string | null
   featuredImage: string | null
   published: boolean
+  publishedAt: string | null
   categoryId: string
   category: Category
   author: { name: string }
@@ -75,7 +78,9 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   const [categoryId, setCategoryId] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [published, setPublished] = useState(false)
+  const [publishedAt, setPublishedAt] = useState<string>('')
   const [slug, setSlug] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   // SEO state
   const [seoTitle, setSeoTitle] = useState('')
@@ -152,6 +157,14 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       setCategoryId(post.categoryId)
       setFeaturedImage(post.featuredImage || '')
       setPublished(post.published)
+      // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
+      if (post.publishedAt) {
+        const date = new Date(post.publishedAt)
+        setPublishedAt(date.toISOString().slice(0, 16))
+      } else if (post.createdAt) {
+        const date = new Date(post.createdAt)
+        setPublishedAt(date.toISOString().slice(0, 16))
+      }
       setSlug(post.slug)
 
     } catch (err) {
@@ -251,6 +264,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
           categoryId,
           featuredImage: featuredImage || null,
           published,
+          publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
           applyAiOptimization  // NEW: Send optimization flag
         })
       })
@@ -312,6 +326,52 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
       setDeleting(false)
+    }
+  }
+
+  // UploadThing hook for blog images
+  const { startUpload, isUploading: uploadThingLoading } = useUploadThing('blogImage', {
+    onClientUploadComplete: (res) => {
+      if (res?.[0]?.url) {
+        setFeaturedImage(res[0].url)
+        setSuccess('Afbeelding succesvol geüpload!')
+        setTimeout(() => setSuccess(null), 3000)
+      }
+      setUploading(false)
+    },
+    onUploadError: (error) => {
+      console.error('Upload error:', error)
+      setError('Upload mislukt: ' + error.message)
+      setUploading(false)
+    },
+  })
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setError(null)
+
+    try {
+      // Validate file size (max 8MB for UploadThing)
+      if (file.size > 8 * 1024 * 1024) {
+        throw new Error('Afbeelding te groot. Maximaal 8MB toegestaan.')
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Alleen afbeeldingen zijn toegestaan.')
+      }
+
+      // Upload via UploadThing
+      await startUpload([file])
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload mislukt')
+      setUploading(false)
+    } finally {
+      e.target.value = ''
     }
   }
 
@@ -497,15 +557,21 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                           placeholder="https://..."
                           className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
-                        <label className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-2">
-                          <Upload size={18} />
+                        <label className={`px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-2 ${
+                          uploading
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}>
+                          {uploading ? (
+                            <RefreshCw size={18} className="animate-spin" />
+                          ) : (
+                            <Upload size={18} />
+                          )}
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) setFeaturedImage(URL.createObjectURL(file))
-                            }}
+                            onChange={handleImageUpload}
+                            disabled={uploading}
                             className="hidden"
                           />
                         </label>
@@ -811,6 +877,25 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                         <p className="text-sm text-gray-500">Artikel is zichtbaar op de blog</p>
                       </div>
                     </label>
+                  </div>
+
+                  {/* Publicatiedatum */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-primary" />
+                        Publicatiedatum
+                      </div>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={publishedAt}
+                      onChange={(e) => setPublishedAt(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Bepaal wanneer dit artikel als gepubliceerd wordt getoond (voor SEO en sortering)
+                    </p>
                   </div>
 
                   <div className="pt-4 border-t border-gray-200">

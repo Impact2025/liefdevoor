@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { useUploadThing } from '@/utils/uploadthing'
 import {
   Sparkles,
   Save,
@@ -23,7 +24,8 @@ import {
   FileText,
   Share2,
   Settings,
-  X
+  X,
+  Calendar
 } from 'lucide-react'
 import type { GeneratedBlogContent } from '@/lib/types/blog'
 
@@ -59,6 +61,7 @@ export default function NewBlogPostPage() {
   const [categoryId, setCategoryId] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [published, setPublished] = useState(false)
+  const [publishedAt, setPublishedAt] = useState<string>('')
 
   // SEO state
   const [seoTitle, setSeoTitle] = useState('')
@@ -85,6 +88,7 @@ export default function NewBlogPostPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [preserveContent, setPreserveContent] = useState(false) // Behoud bestaande tekst bij SEO optimalisatie
   const [activeTab, setActiveTab] = useState<TabType>('editor')
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [showAiPanel, setShowAiPanel] = useState(true)
@@ -144,7 +148,8 @@ export default function NewBlogPostPage() {
           year: new Date().getFullYear().toString(),
           targetAudience: targetAudience || undefined,
           toneOfVoice,
-          articleLength
+          articleLength,
+          existingContent: preserveContent ? content : undefined // Stuur bestaande content mee als preserve mode aan staat
         })
       })
 
@@ -213,6 +218,7 @@ export default function NewBlogPostPage() {
           categoryId,
           featuredImage: featuredImage || undefined,
           published: asDraft ? false : published,
+          publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
           applyAiOptimization  // NEW: Send optimization flag
         })
       })
@@ -262,18 +268,34 @@ export default function NewBlogPostPage() {
     setTimeout(() => setCopiedField(null), 2000)
   }
 
+  // UploadThing hook for blog images
+  const { startUpload, isUploading: uploadThingLoading } = useUploadThing('blogImage', {
+    onClientUploadComplete: (res) => {
+      if (res?.[0]?.url) {
+        setFeaturedImage(res[0].url)
+        setSuccess('Afbeelding succesvol geüpload!')
+        setTimeout(() => setSuccess(null), 3000)
+      }
+      setGenerating(false)
+    },
+    onUploadError: (error) => {
+      console.error('Upload error:', error)
+      setError('Upload mislukt: ' + error.message)
+      setGenerating(false)
+    },
+  })
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Show loading state
     setGenerating(true)
     setError(null)
 
     try {
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('Afbeelding te groot. Maximaal 10MB toegestaan.')
+      // Validate file size (max 8MB for UploadThing)
+      if (file.size > 8 * 1024 * 1024) {
+        throw new Error('Afbeelding te groot. Maximaal 8MB toegestaan.')
       }
 
       // Validate file type
@@ -281,50 +303,13 @@ export default function NewBlogPostPage() {
         throw new Error('Alleen afbeeldingen zijn toegestaan.')
       }
 
-      console.log('[Upload] Uploading image:', file.name, 'Size:', file.size)
-
-      // Create form data
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', title || 'Blog afbeelding')
-      if (categoryId) {
-        const category = categories.find(c => c.id === categoryId)
-        if (category) {
-          formData.append('category', category.name)
-        }
-      }
-
-      // Upload and optimize
-      const res = await fetch('/api/admin/blog/upload-image', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Upload mislukt')
-      }
-
-      const data = await res.json()
-
-      console.log('[Upload] Image optimized:', data)
-
-      // Set the optimized image URL
-      // Prefer WebP if available, fallback to optimized JPEG
-      const imageUrl = data.image.webpUrl || data.image.optimizedUrl
-      setFeaturedImage(imageUrl)
-
-      // Show success with stats
-      const savings = ((data.stats.originalSize - data.stats.optimizedSize) / 1024 / 1024).toFixed(2)
-      setSuccess(`✅ Afbeelding geoptimaliseerd! ${savings}MB bespaard (${data.stats.compressionRatio})`)
-      setTimeout(() => setSuccess(null), 5000)
+      // Upload via UploadThing
+      await startUpload([file])
 
     } catch (err) {
-      console.error('[Upload] Error:', err)
       setError(err instanceof Error ? err.message : 'Upload mislukt')
-    } finally {
       setGenerating(false)
-      // Reset file input
+    } finally {
       e.target.value = ''
     }
   }
@@ -840,6 +825,25 @@ export default function NewBlogPostPage() {
                         <p className="text-sm text-gray-500">Artikel is meteen zichtbaar op de blog</p>
                       </div>
                     </label>
+                  </div>
+
+                  {/* Publicatiedatum */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-primary" />
+                        Publicatiedatum
+                      </div>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={publishedAt}
+                      onChange={(e) => setPublishedAt(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optioneel: stel een specifieke publicatiedatum in (standaard is nu)
+                    </p>
                   </div>
 
                   <div className="pt-4 border-t border-gray-200">

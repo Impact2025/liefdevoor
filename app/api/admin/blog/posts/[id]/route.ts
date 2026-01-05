@@ -44,7 +44,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, content, categoryId, excerpt, featuredImage, published, applyAiOptimization = false } = await request.json()
+    const { title, content, categoryId, excerpt, featuredImage, published, publishedAt, applyAiOptimization = false } = await request.json()
 
     // Generate new slug if title changed
     let slug = undefined
@@ -76,6 +76,7 @@ export async function PATCH(
     if (excerpt !== undefined) updateData.excerpt = excerpt
     if (featuredImage !== undefined) updateData.featuredImage = featuredImage
     if (published !== undefined) updateData.published = published
+    if (publishedAt !== undefined) updateData.publishedAt = publishedAt ? new Date(publishedAt) : null
 
     // Apply AI optimization if requested and we have the necessary data
     if (applyAiOptimization && title && content && categoryId) {

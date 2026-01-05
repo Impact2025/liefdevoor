@@ -94,11 +94,14 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const { title, content, categoryId, excerpt, featuredImage, published, applyAiOptimization = false } = await request.json()
+    const { title, content, categoryId, excerpt, featuredImage, published, publishedAt, applyAiOptimization = false } = await request.json()
 
     if (!title || !content || !categoryId) {
       return NextResponse.json({ error: 'Title, content, and category are required' }, { status: 400 })
     }
+
+    // Parse publishedAt date if provided
+    const parsedPublishedAt = publishedAt ? new Date(publishedAt) : null
 
     // Generate slug from title
     const slug = title.toLowerCase()
@@ -124,6 +127,7 @@ export async function POST(request: NextRequest) {
       excerpt,
       featuredImage,
       published: published || false,
+      publishedAt: parsedPublishedAt,
       authorId: session.user.id,
       categoryId,
       aiOptimized: false

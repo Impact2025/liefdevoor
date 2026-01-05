@@ -33,8 +33,40 @@ const auth = async (req: Request) => {
   return { id: user.id };
 };
 
+// Admin auth function - requires ADMIN role
+const adminAuth = async (req: Request) => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true }
+  });
+
+  if (!user) throw new Error("User not found");
+  if (user.role !== 'ADMIN') throw new Error("Admin access required");
+
+  return { id: user.id };
+};
+
 // FileRouter: Hier bepalen we WAT er geüpload mag worden
 export const ourFileRouter = {
+  // Blog featured images (Admin only)
+  blogImage: f({
+    image: {
+      maxFileSize: "8MB",
+      maxFileCount: 1,
+    }
+  })
+    .middleware(async ({ req }) => {
+      const user = await adminAuth(req);
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Blog image upload compleet:", file.url);
+      return { url: file.url };
+    }),
+
   // We maken een route "profilePhotos" die meerdere afbeeldingen accepteert
   profilePhotos: f({
     image: {
