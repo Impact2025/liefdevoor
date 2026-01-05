@@ -1,61 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { blogArtikelen, getBlogsByTag } from '@/lib/doelgroepen-data'
+import { prisma } from '@/lib/prisma'
 
 /**
- * API endpoint voor doelgroep-specifieke blog artikelen
+ * API endpoint voor doelgroep-specifieke blog artikelen (DEPRECATED - use /api/blog/posts?tags=xxx)
  *
  * Query params:
  * - tag: Filter op specifieke tag (bijv. 'autisme', 'lvb', 'slechtziend')
  * - limit: Maximum aantal artikelen (default: 10)
- * - audio: Filter op audio beschikbaarheid ('true' voor alleen audio)
- * - simple: Filter op eenvoudige versies ('true' voor alleen simple)
+ *
+ * NOTE: This route now fetches from the database instead of static data
+ * Redirects to /api/blog/posts for consistency
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const tag = searchParams.get('tag')
     const limit = parseInt(searchParams.get('limit') || '10')
-    const audioOnly = searchParams.get('audio') === 'true'
-    const simpleOnly = searchParams.get('simple') === 'true'
 
-    let articles = tag ? getBlogsByTag(tag) : blogArtikelen
-
-    // Filter op audio beschikbaarheid
-    if (audioOnly) {
-      articles = articles.filter(a => a.audioAvailable)
+    // Redirect to the main blog posts API with tags filter
+    const baseUrl = new URL('/api/blog/posts', request.url)
+    if (tag) {
+      baseUrl.searchParams.set('tags', tag)
     }
+    baseUrl.searchParams.set('limit', limit.toString())
 
-    // Filter op eenvoudige versies
-    if (simpleOnly) {
-      articles = articles.filter(a => a.simpleVersion)
-    }
+    // Fetch from the main API
+    const response = await fetch(baseUrl.toString())
+    const data = await response.json()
 
-    // Limit resultaten
-    articles = articles.slice(0, limit)
-
-    // Format response
-    const formattedArticles = articles.map(article => ({
-      slug: article.slug,
-      title: article.title,
-      excerpt: article.excerpt,
-      content: simpleOnly && article.simpleVersion ? article.simpleVersion : article.content,
-      featuredImage: article.featuredImage,
-      category: article.category,
-      tags: article.tags,
-      readTime: article.readTime,
-      publishedAt: article.publishedAt,
-      audioAvailable: article.audioAvailable || false,
-      hasSimpleVersion: !!article.simpleVersion
-    }))
-
+    // Return in the old format for backwards compatibility
     return NextResponse.json({
-      articles: formattedArticles,
-      total: formattedArticles.length,
+      articles: data.posts || [],
+      total: data.posts?.length || 0,
       filters: {
         tag,
-        audioOnly,
-        simpleOnly
-      }
+      },
+      note: 'This API route is deprecated. Please use /api/blog/posts?tags=xxx instead.'
     })
   } catch (error) {
     console.error('Doelgroep blog fetch error:', error)

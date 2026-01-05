@@ -6,12 +6,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
+    const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const offset = (page - 1) * limit
 
     // Use cached posts for first page without filters (most common case)
-    if (page === 1 && !category && limit === 12) {
+    if (page === 1 && !category && !tags.length && limit === 12) {
       const cachedPosts = await getCachedBlogPosts({ limit })
 
       const formattedPosts = cachedPosts.map(post => ({
@@ -52,6 +53,13 @@ export async function GET(request: NextRequest) {
           equals: category.replace(/-/g, ' '),
           mode: 'insensitive'
         }
+      }
+    }
+
+    // Filter by tags (keywords)
+    if (tags.length > 0) {
+      where.keywords = {
+        hasSome: tags
       }
     }
 

@@ -1,9 +1,9 @@
 
 > pro-dating-app@0.1.0 build
-> next build
+> cross-env NODE_OPTIONS=--max-old-space-size=4096 next build
 
   ▲ Next.js 14.2.33
-  - Environments: .env
+  - Environments: .env.local, .env
   - Experiments (use with caution):
     · instrumentationHook
 
@@ -13,289 +13,44 @@
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (139kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
  ✓ Compiled successfully
    Linting and checking validity of types ...
-   Collecting page data ...
-   Generating static pages (0/108) ...
-[Admin Stats] Error: Q [Error]: Dynamic server usage: Route /api/admin/stats couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at h (D:\Datingsite2026\.next\server\app\api\admin\stats\route.js:1:2991)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/admin/stats couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-[Admin Coupons Stats] Error fetching stats: Q [Error]: Dynamic server usage: Route /api/admin/coupons/stats couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at f (D:\Datingsite2026\.next\server\app\api\admin\coupons\stats\route.js:1:2991)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/admin/coupons/stats couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Error fetching matches: Q [Error]: Dynamic server usage: Route /api/admin/matches couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at f (D:\Datingsite2026\.next\server\app\api\admin\matches\route.js:1:2991)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/admin/matches couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-[Verify] Error: B [Error]: Dynamic server usage: Route /api/auth/verify couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at V (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:21778)
-    at Object.get (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29137)
-    at f (D:\Datingsite2026\.next\server\app\api\auth\verify\route.js:1:2540)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24)
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:122:103 {
-  description: "Route /api/auth/verify couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Posts fetch error: B [Error]: Dynamic server usage: Route /api/blog/posts couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at V (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:21778)
-    at Object.get (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:29465)
-    at p (D:\Datingsite2026\.next\server\app\api\blog\posts\route.js:1:3428)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24)
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:122:103 {
-  description: "Route /api/blog/posts couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Could not find files for /_error in .next/build-manifest.json
-Could not find files for /_error in .next/build-manifest.json
-Could not find files for /_error in .next/build-manifest.json
-Could not find files for /_error in .next/build-manifest.json
-   Generating static pages (27/108) 
-API Error: Q [Error]: Dynamic server usage: Route /api/discover couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at u (D:\Datingsite2026\.next\server\app\api\matches\route.js:1:4206)
-    at c (D:\Datingsite2026\.next\server\app\api\matches\route.js:1:4411)
-    at l (D:\Datingsite2026\.next\server\app\api\discover\route.js:1:3188)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46) {
-  description: "Route /api/discover couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Error fetching likes: Q [Error]: Dynamic server usage: Route /api/likes couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at x (D:\Datingsite2026\.next\server\app\api\likes\route.js:1:2990)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/likes couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-API Error: Q [Error]: Dynamic server usage: Route /api/matches couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at u (D:\Datingsite2026\.next\server\app\api\matches\route.js:1:4206)
-    at c (D:\Datingsite2026\.next\server\app\api\matches\route.js:1:4411)
-    at l (D:\Datingsite2026\.next\server\app\api\matches\route.js:1:2952)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46) {
-  description: "Route /api/matches couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-API Error: Q [Error]: Dynamic server usage: Route /api/profile couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at u (D:\Datingsite2026\.next\server\app\api\discover\route.js:11:2919)
-    at d (D:\Datingsite2026\.next\server\app\api\discover\route.js:11:3124)
-    at f (D:\Datingsite2026\.next\server\app\api\profile\route.js:1:3461)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46) {
-  description: "Route /api/profile couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Onboarding GET error: Q [Error]: Dynamic server usage: Route /api/onboarding couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at x (D:\Datingsite2026\.next\server\app\api\onboarding\route.js:1:3572)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/onboarding couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-   Generating static pages (54/108) 
-Error fetching subscription: Q [Error]: Dynamic server usage: Route /api/subscription couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at u (D:\Datingsite2026\.next\server\app\api\profile\views\route.js:1:10213)
-    at d (D:\Datingsite2026\.next\server\app\api\subscription\route.js:1:2955)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31) {
-  description: "Route /api/subscription couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-API Error: Q [Error]: Dynamic server usage: Route /api/subscription/verify couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at u (D:\Datingsite2026\.next\server\app\api\subscription\verify\route.js:1:5320)
-    at c (D:\Datingsite2026\.next\server\app\api\subscription\verify\route.js:1:5525)
-    at p (D:\Datingsite2026\.next\server\app\api\subscription\verify\route.js:1:2956)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46) {
-  description: "Route /api/subscription/verify couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Error fetching swipe count: Q [Error]: Dynamic server usage: Route /api/swipe/count couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at y (D:\Datingsite2026\.next\server\app\api\swipe\count\route.js:1:3002)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/swipe/count couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Error fetching preferences: Q [Error]: Dynamic server usage: Route /api/user/preferences couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at x (D:\Datingsite2026\.next\server\app\api\user\preferences\route.js:1:3000)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/user/preferences couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-Error fetching top picks: Q [Error]: Dynamic server usage: Route /api/top-picks couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
-    at e (D:\Datingsite2026\.next\server\chunks\2828.js:26:154416)
-    at u (D:\Datingsite2026\.next\server\chunks\1706.js:25:120874)
-    at s (D:\Datingsite2026\.next\server\chunks\1706.js:25:19584)
-    at g (D:\Datingsite2026\.next\server\app\api\top-picks\route.js:1:3003)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
-    at D:\Datingsite2026\node_modules\next\dist\server\lib\trace\tracer.js:140:36
-    at NoopContextManager.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
-    at ContextAPI.with (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
-    at NoopTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
-    at ProxyTracer.startActiveSpan (D:\Datingsite2026\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
-  description: "Route /api/top-picks couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
-  digest: 'DYNAMIC_SERVER_USAGE'
-}
-   Generating static pages (81/108) 
-TypeError: Cannot read properties of undefined (reading 'call')
-    at Object.t [as require] (D:\Datingsite2026\.next\server\webpack-runtime.js:1:526)
-    at require (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:16:18839)
-    at I (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94364)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:96670
-    at F._fromJSON (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:97108)
-    at JSON.parse (<anonymous>)
-    at O (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94085)
-    at t (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:100584) {
-  digest: '4121995823'
-}
-TypeError: Cannot read properties of undefined (reading 'call')
-    at Object.t [as require] (D:\Datingsite2026\.next\server\webpack-runtime.js:1:526)
-    at require (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:16:18839)
-    at I (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94364)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:96670
-    at F._fromJSON (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:97108)
-    at JSON.parse (<anonymous>)
-    at O (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94085)
-    at t (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:100584)
+Failed to compile.
 
-Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+./app/blog/[slug]/page.tsx:21:29
+Type error: Property 'blogPost' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 
-TypeError: Cannot read properties of undefined (reading 'call')
-    at Object.t [as require] (D:\Datingsite2026\.next\server\webpack-runtime.js:1:526)
-    at require (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:16:18839)
-    at I (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94364)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:96670
-    at F._fromJSON (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:97108)
-    at JSON.parse (<anonymous>)
-    at O (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94085)
-    at t (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:100584)
-TypeError: Cannot read properties of undefined (reading 'call')
-    at Object.t [as require] (D:\Datingsite2026\.next\server\webpack-runtime.js:1:526)
-    at require (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:16:18839)
-    at i (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:88296)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:98819
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:98906
-    at t (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:99109) {
-  digest: '2539136716'
-}
-TypeError: Cannot read properties of undefined (reading 'call')
-    at Object.t [as require] (D:\Datingsite2026\.next\server\webpack-runtime.js:1:526)
-    at require (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:16:18839)
-    at I (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94364)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:96670
-    at F._fromJSON (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:97108)
-    at JSON.parse (<anonymous>)
-    at O (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94085)
-    at t (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:100584)
+[0m [90m 19 |[39m [90m// Fetch blog post data (server-side)[39m[0m
+[0m [90m 20 |[39m [36masync[39m [36mfunction[39m getBlogPost(slug[33m:[39m string) {[0m
+[0m[31m[1m>[22m[39m[90m 21 |[39m   [36mconst[39m post [33m=[39m [36mawait[39m prisma[33m.[39mblogPost[33m.[39mfindUnique({[0m
+[0m [90m    |[39m                             [31m[1m^[22m[39m[0m
+[0m [90m 22 |[39m     where[33m:[39m {[0m
+[0m [90m 23 |[39m       slug[33m,[39m[0m
+[0m [90m 24 |[39m       published[33m:[39m [36mtrue[39m[33m,[39m[0m
+Next.js build worker exited with code: 1 and signal: null
 
-Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+> pro-dating-app@0.1.0 build
+> cross-env NODE_OPTIONS=--max-old-space-size=4096 next build
 
-TypeError: Cannot read properties of undefined (reading 'call')
-    at Object.t [as require] (D:\Datingsite2026\.next\server\webpack-runtime.js:1:526)
-    at require (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:16:18839)
-    at I (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94364)
-    at D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:96670
-    at F._fromJSON (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:97108)
-    at JSON.parse (<anonymous>)
-    at O (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:94085)
-    at t (D:\Datingsite2026\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:100584)
- ✓ Generating static pages (108/108)
+  ▲ Next.js 14.2.33
+  - Environments: .env.local, .env
+  - Experiments (use with caution):
+    · instrumentationHook
 
-> Export encountered errors on following paths:
-	/_not-found/page: /_not-found
-	/page: /
+   Creating an optimized production build ...
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (188kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (139kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/blog/[slug]/page.tsx:50:15
+Type error: Object literal may only specify known properties, and 'viewCount' does not exist in type '(Without<PostUpdateInput, PostUncheckedUpdateInput> & PostUncheckedUpdateInput) | (Without<...> & PostUpdateInput)'.
+
+[0m [90m 48 |[39m     [33m.[39mupdate({[0m
+[0m [90m 49 |[39m       where[33m:[39m { id[33m:[39m post[33m.[39mid }[33m,[39m[0m
+[0m[31m[1m>[22m[39m[90m 50 |[39m       data[33m:[39m { viewCount[33m:[39m { increment[33m:[39m [35m1[39m } }[33m,[39m[0m
+[0m [90m    |[39m               [31m[1m^[22m[39m[0m
+[0m [90m 51 |[39m     })[0m
+[0m [90m 52 |[39m     [33m.[39m[36mcatch[39m((err) [33m=>[39m console[33m.[39merror([32m'Failed to increment view count:'[39m[33m,[39m err))[0m
+[0m [90m 53 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

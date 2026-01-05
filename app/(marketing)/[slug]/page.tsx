@@ -11,7 +11,7 @@ import {
   Battery, Moon, Coffee, MessageCircle, ArrowRight, Check, Star,
   ChevronDown, Play, Pause
 } from 'lucide-react'
-import { getDoelgroepBySlug, getBlogsByTag, type DoelgroepData, type BlogArtikel } from '@/lib/doelgroepen-data'
+import { getDoelgroepBySlug, type DoelgroepData } from '@/lib/doelgroepen-data'
 import { TextToSpeech } from '@/components/accessibility/TextToSpeech'
 import { AccessibleLandingWrapper } from '@/components/accessibility/AccessibleLandingWrapper'
 
@@ -36,11 +36,26 @@ interface KennisbankArticle {
   }
 }
 
+interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  featuredImage: string | null
+  bannerText: string | null
+  readTime: number
+  category: {
+    name: string
+    color: string
+    icon: string
+  }
+}
+
 export default function DoelgroepLandingPage() {
   const params = useParams()
   const slug = params?.slug as string
   const [data, setData] = useState<DoelgroepData | null>(null)
-  const [blogs, setBlogs] = useState<BlogArtikel[]>([])
+  const [blogs, setBlogs] = useState<BlogPost[]>([])
   const [kennisbankArticles, setKennisbankArticles] = useState<KennisbankArticle[]>([])
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
@@ -49,17 +64,22 @@ export default function DoelgroepLandingPage() {
       const doelgroep = getDoelgroepBySlug(slug)
       if (doelgroep) {
         setData(doelgroep)
-        // Haal relevante blogs op
-        const relevantBlogs: BlogArtikel[] = []
-        doelgroep.contentTags.forEach(tag => {
-          const tagBlogs = getBlogsByTag(tag)
-          tagBlogs.forEach(blog => {
-            if (!relevantBlogs.find(b => b.slug === blog.slug)) {
-              relevantBlogs.push(blog)
+
+        // Haal blog posts op via API (gefilterd op tags)
+        const fetchBlogPosts = async () => {
+          try {
+            const tagsParam = doelgroep.contentTags.join(',')
+            const response = await fetch(`/api/blog/posts?tags=${tagsParam}&limit=3`)
+            if (response.ok) {
+              const result = await response.json()
+              setBlogs(result.posts || [])
             }
-          })
-        })
-        setBlogs(relevantBlogs.slice(0, 3))
+          } catch (error) {
+            console.error('Error fetching blog posts:', error)
+          }
+        }
+
+        fetchBlogPosts()
 
         // Haal kennisbank artikelen op
         const fetchKennisbankArticles = async () => {
@@ -434,28 +454,54 @@ export default function DoelgroepLandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {blogs.map((blog, index) => (
                 <motion.article
-                  key={blog.slug}
+                  key={blog.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
                 >
-                  <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200">
+                  {/* Image/Banner Header */}
+                  {blog.featuredImage ? (
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={blog.featuredImage}
+                        alt={blog.title}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    </div>
+                  ) : blog.bannerText ? (
                     <div
-                      className="absolute inset-0 opacity-20"
+                      className="relative h-48 flex items-center justify-center"
                       style={{
                         background: `linear-gradient(135deg, ${data.gradientFrom}, ${data.gradientTo})`
                       }}
-                    />
-                    {blog.audioAvailable && (
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-2">
-                        <Volume2 className="w-4 h-4" style={{ color: data.primaryColor }} />
-                        <span className="text-sm font-medium">Audio</span>
-                      </div>
-                    )}
-                  </div>
+                    >
+                      <span className="text-white text-3xl font-bold tracking-tight drop-shadow-lg">
+                        {blog.bannerText}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200">
+                      <div
+                        className="absolute inset-0 opacity-20"
+                        style={{
+                          background: `linear-gradient(135deg, ${data.gradientFrom}, ${data.gradientTo})`
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <div className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xs font-medium px-2 py-1 rounded" style={{
+                        backgroundColor: `${blog.category.color}20`,
+                        color: blog.category.color
+                      }}>
+                        {blog.category.icon} {blog.category.name}
+                      </span>
+                    </div>
                     <h3 className={`${data.enableSimpleMode ? 'text-xl' : 'text-lg'} font-bold text-slate-900 mb-3 group-hover:text-rose-500 transition-colors`}>
                       {blog.title}
                     </h3>

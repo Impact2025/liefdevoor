@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(npx prisma db execute:*)",
+      "Bash(npx tsx:*)",
+      "Bash(ls:*)",
+      "Bash(node scripts/apply-photo-fix.js:*)",
+      "Bash(node scripts/fix-profile-photos.mjs:*)",
+      "Bash(for:*)",
+      "Bash(do node scripts/fix-profile-photos.mjs)",
+      "Bash(done)",
+      "Bash({ pgrep -f \"eslint\\\\|prettier\\\\|next\")",
+      "Bash(xargs:*)",
+      "Bash(})",
+      "Bash(git add:*)",
+      "Bash(cat:*)",
+      "Bash(node scripts/debug-fix.mjs:*)",
+      "Bash(node scripts/apply-photo-fix-final.mjs:*)",
+      "Bash(node scripts/apply-fix.mjs:*)",
+      "Bash(node -e:*)",
+      "Bash(node scripts/check-victor-photos.mjs:*)",
+      "Bash(pgrep:*)",
+      "Bash(node scripts/update-seo-tool.mjs:*)",
+      "Bash(node scripts/update-blog-ui.mjs:*)"
+    ]
+  }
+}
