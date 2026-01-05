@@ -6,6 +6,27 @@ import { useState } from 'react'
 import BulkActionBar from '@/components/admin/tables/BulkActionBar'
 import UserActivityTimeline from '@/components/admin/UserActivityTimeline'
 
+// Helper function to format relative time
+function formatRelativeTime(dateString: string | null): string {
+  if (!dateString) return 'Never'
+
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+  const diffMonths = Math.floor(diffDays / 30)
+  const diffYears = Math.floor(diffDays / 365)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 30) return `${diffDays}d ago`
+  if (diffMonths < 12) return `${diffMonths}mo ago`
+  return `${diffYears}y ago`
+}
+
 interface User {
   id: string
   name: string | null
@@ -13,6 +34,8 @@ interface User {
   role: string
   isVerified: boolean
   safetyScore: number
+  createdAt: string
+  lastSeen: string | null
   _count?: {
     matches1?: number
     matches2?: number
@@ -175,6 +198,12 @@ export default function UsersTable({
                   Matches
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Registered
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Last Online
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -182,13 +211,13 @@ export default function UsersTable({
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
                     Loading...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
@@ -240,6 +269,32 @@ export default function UsersTable({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {(user._count?.matches1 || 0) + (user._count?.matches2 || 0)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatRelativeTime(user.createdAt)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(user.createdAt).toLocaleDateString('nl-NL', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatRelativeTime(user.lastSeen)}
+                      </div>
+                      {user.lastSeen && (
+                        <div className="text-xs text-gray-500">
+                          {new Date(user.lastSeen).toLocaleDateString('nl-NL', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-3">

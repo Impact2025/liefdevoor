@@ -9,48 +9,117 @@
 
    Creating an optimized production build ...
 [@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (188kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (139kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
  ✓ Compiled successfully
    Linting and checking validity of types ...
-Failed to compile.
-
-./app/blog/[slug]/page.tsx:21:29
-Type error: Property 'blogPost' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-
-[0m [90m 19 |[39m [90m// Fetch blog post data (server-side)[39m[0m
-[0m [90m 20 |[39m [36masync[39m [36mfunction[39m getBlogPost(slug[33m:[39m string) {[0m
-[0m[31m[1m>[22m[39m[90m 21 |[39m   [36mconst[39m post [33m=[39m [36mawait[39m prisma[33m.[39mblogPost[33m.[39mfindUnique({[0m
-[0m [90m    |[39m                             [31m[1m^[22m[39m[0m
-[0m [90m 22 |[39m     where[33m:[39m {[0m
-[0m [90m 23 |[39m       slug[33m,[39m[0m
-[0m [90m 24 |[39m       published[33m:[39m [36mtrue[39m[33m,[39m[0m
-Next.js build worker exited with code: 1 and signal: null
-
-> pro-dating-app@0.1.0 build
-> cross-env NODE_OPTIONS=--max-old-space-size=4096 next build
-
-  ▲ Next.js 14.2.33
-  - Environments: .env.local, .env
-  - Experiments (use with caution):
-    · instrumentationHook
-
-   Creating an optimized production build ...
-[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (188kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (139kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled successfully
-   Linting and checking validity of types ...
-Failed to compile.
-
-./app/blog/[slug]/page.tsx:50:15
-Type error: Object literal may only specify known properties, and 'viewCount' does not exist in type '(Without<PostUpdateInput, PostUncheckedUpdateInput> & PostUncheckedUpdateInput) | (Without<...> & PostUpdateInput)'.
-
-[0m [90m 48 |[39m     [33m.[39mupdate({[0m
-[0m [90m 49 |[39m       where[33m:[39m { id[33m:[39m post[33m.[39mid }[33m,[39m[0m
-[0m[31m[1m>[22m[39m[90m 50 |[39m       data[33m:[39m { viewCount[33m:[39m { increment[33m:[39m [35m1[39m } }[33m,[39m[0m
-[0m [90m    |[39m               [31m[1m^[22m[39m[0m
-[0m [90m 51 |[39m     })[0m
-[0m [90m 52 |[39m     [33m.[39m[36mcatch[39m((err) [33m=>[39m console[33m.[39merror([32m'Failed to increment view count:'[39m[33m,[39m err))[0m
-[0m [90m 53 |[39m[0m
-Next.js build worker exited with code: 1 and signal: null
+   Collecting page data ...
+PageNotFoundError: Cannot find module for page: /admin/blog/assistant
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /admin/blog/assistant/links
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /admin/kennisbank/categorieen
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /unsubscribe
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /admin/blog/new
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /admin/kennisbank/artikelen
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /admin/coupons
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+PageNotFoundError: Cannot find module for page: /admin/kennisbank/artikelen/[id]
+    at getPagePath (D:\Datingsite2026\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (D:\Datingsite2026\node_modules\next\dist\server\require.js:99:22)
+    at D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async loadComponentsImpl (D:\Datingsite2026\node_modules\next\dist\server\load-components.js:103:26)
+    at async D:\Datingsite2026\node_modules\next\dist\build\utils.js:1116:32
+    at async Span.traceAsyncFn (D:\Datingsite2026\node_modules\next\dist\trace\trace.js:154:20) {
+  code: 'ENOENT'
+}
+unhandledRejection Error: Cannot find module './8838.js'
+Require stack:
+- D:\Datingsite2026\.next\server\webpack-runtime.js
+- D:\Datingsite2026\.next\server\pages\_document.js
+- D:\Datingsite2026\node_modules\next\dist\server\require.js
+- D:\Datingsite2026\node_modules\next\dist\server\load-components.js
+- D:\Datingsite2026\node_modules\next\dist\build\utils.js
+- D:\Datingsite2026\node_modules\next\dist\build\worker.js
+- D:\Datingsite2026\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at D:\Datingsite2026\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (D:\Datingsite2026\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16) {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'D:\\Datingsite2026\\.next\\server\\webpack-runtime.js',
+    'D:\\Datingsite2026\\.next\\server\\pages\\_document.js',
+    'D:\\Datingsite2026\\node_modules\\next\\dist\\server\\require.js',
+    'D:\\Datingsite2026\\node_modules\\next\\dist\\server\\load-components.js',
+    'D:\\Datingsite2026\\node_modules\\next\\dist\\build\\utils.js',
+    'D:\\Datingsite2026\\node_modules\\next\\dist\\build\\worker.js',
+    'D:\\Datingsite2026\\node_modules\\next\\dist\\compiled\\jest-worker\\processChild.js'
+  ]
+}

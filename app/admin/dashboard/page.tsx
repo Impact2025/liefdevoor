@@ -14,18 +14,14 @@ import BlogManagement from '@/components/admin/dashboard/BlogManagement'
 import SafetyMonitoring from '@/components/admin/dashboard/SafetyMonitoring'
 import type { AIGeneratorParams, GeneratedBlogContent, SavePostData, BlogStats, BlogPagination } from '@/lib/types/blog'
 import type { BlogPost, BlogCategory } from '@/lib/types/api'
+import type { DashboardStats } from '@/lib/admin/stats-aggregator'
 
 export default function AdminDashboard() {
   // Tab state
   const [activeTab, setActiveTab] = useState('overview')
 
   // Dashboard stats
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalMatches: 0,
-    activeUsers: 0,
-    reportedUsers: 0
-  })
+  const [stats, setStats] = useState<DashboardStats | null>(null)
 
   // Users state
   const [users, setUsers] = useState([])
@@ -465,6 +461,16 @@ export default function AdminDashboard() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'overview':
+        if (!stats) {
+          return (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading dashboard...</p>
+              </div>
+            </div>
+          )
+        }
         return <StatsOverview stats={stats} />
 
       case 'users':
@@ -566,16 +572,26 @@ export default function AdminDashboard() {
         return (
           <SafetyMonitoring
             stats={{
-              highRiskUsers: stats.reportedUsers,
+              highRiskUsers: stats?.reports?.pending || 0,
               mediumRiskUsers: 0,
               avgSafetyScore: 85,
-              safeInteractions: stats.totalMatches
+              safeInteractions: stats?.matches?.total || 0
             }}
             onAction={(action) => toast.info(`Safety action: ${action}`)}
           />
         )
 
       default:
+        if (!stats) {
+          return (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading dashboard...</p>
+              </div>
+            </div>
+          )
+        }
         return <StatsOverview stats={stats} />
     }
   }
