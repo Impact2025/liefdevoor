@@ -6,9 +6,10 @@ import { revalidateCache, CACHE_TAGS } from '@/lib/cache'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
@@ -16,7 +17,7 @@ export async function GET(
     }
 
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         author: { select: { name: true } },
         category: { select: { id: true, name: true, color: true } }
@@ -36,9 +37,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
@@ -47,7 +49,6 @@ export async function PATCH(
 
     const { title, content, categoryId, excerpt, featuredImage, published, publishedAt, applyAiOptimization = false } = await request.json()
 
-    // Generate new slug if title changed
     let slug = undefined
     if (title) {
       slug = title.toLowerCase()
@@ -56,11 +57,10 @@ export async function PATCH(
         .replace(/-+/g, '-')
         .trim()
 
-      // Check if slug exists (excluding current post)
       const existingPost = await prisma.post.findFirst({
         where: {
           slug,
-          id: { not: params.id }
+          id: { not: id }
         }
       })
 
@@ -79,7 +79,6 @@ export async function PATCH(
     if (published !== undefined) updateData.published = published
     if (publishedAt !== undefined) updateData.publishedAt = publishedAt ? new Date(publishedAt) : null
 
-    // Apply AI optimization if requested and we have the necessary data
     if (applyAiOptimization && title && content && categoryId) {
       try {
         console.log('[Blog Optimizer] Starting content optimization for update...')
@@ -92,7 +91,6 @@ export async function PATCH(
           excerpt
         })
 
-        // Update with optimized data
         updateData.content = optimized.optimizedContent
         updateData.excerpt = optimized.excerpt
         updateData.seoTitle = optimized.seoTitle
@@ -105,12 +103,11 @@ export async function PATCH(
         console.log('[Blog Optimizer] Content optimized successfully for update')
       } catch (error) {
         console.error('[Blog Optimizer] Optimization failed during update:', error)
-        // Continue without optimization - graceful degradation
       }
     }
 
     const post = await prisma.post.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         author: { select: { name: true } },
@@ -118,23 +115,28 @@ export async function PATCH(
       }
     })
 
-    // Invalidate Next.js cache
-    await revalidateCache(CACHE_TAGS.BLOG_POSTS)
-    await revalidateCache(CACHE_TAGS.BLOG_POST)
-    console.log('[Blog Posts] Cache invalidated after post update')
+    // Invalidate cache (non-blocking)
+    try {
+      await revalidateCache(CACHE_TAGS.BLOG_POSTS)
+      await revalidateCache(CACHE_TAGS.BLOG_POST)
+      console.log('[Blog Posts] Cache invalidated after post update')
+    } catch (cacheError) {
+      console.warn('[Blog Posts] Cache invalidation failed:', cacheError)
+    }
 
     return NextResponse.json({ post })
   } catch (error) {
     console.error('Post update error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
@@ -142,17 +144,21 @@ export async function DELETE(
     }
 
     await prisma.post.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
-    // Invalidate Next.js cache
-    await revalidateCache(CACHE_TAGS.BLOG_POSTS)
-    await revalidateCache(CACHE_TAGS.BLOG_POST)
-    console.log('[Blog Posts] Cache invalidated after post deletion')
+    // Invalidate cache (non-blocking, don't fail delete if cache fails)
+    try {
+      await revalidateCache(CACHE_TAGS.BLOG_POSTS)
+      await revalidateCache(CACHE_TAGS.BLOG_POST)
+      console.log('[Blog Posts] Cache invalidated after post deletion')
+    } catch (cacheError) {
+      console.warn('[Blog Posts] Cache invalidation failed:', cacheError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Post delete error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 })
   }
 }

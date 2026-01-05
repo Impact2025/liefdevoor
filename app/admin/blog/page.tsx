@@ -92,11 +92,18 @@ export default function AdminBlogPage() {
       const res = await fetch(`/api/admin/blog/posts/${postId}`, {
         method: 'DELETE'
       })
-      if (res.ok) {
-        await fetchPosts()
+
+      if (!res.ok) {
+        const data = await res.json()
+        alert(`Verwijderen mislukt: ${data.error || 'Onbekende fout'}`)
+        return
       }
+
+      // Remove from local state immediately for better UX
+      setPosts(posts.filter(p => p.id !== postId))
     } catch (error) {
       console.error('Failed to delete post:', error)
+      alert('Verwijderen mislukt: netwerkfout')
     }
   }
 
