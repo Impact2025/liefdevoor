@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getUpstash } from '@/lib/upstash'
 import { requireAnyPermission, AdminPermission } from '@/lib/permissions'
+import { revalidateCache, CACHE_TAGS } from '@/lib/cache'
 
 export async function GET() {
   try {
@@ -179,11 +180,15 @@ export async function POST(request: NextRequest) {
     if (upstash) {
       try {
         await upstash.del('admin:blog:posts')
-        console.log('[Blog Posts] Cache invalidated after post creation')
+        console.log('[Blog Posts] Upstash cache invalidated')
       } catch (error) {
-        console.warn('[Cache] Failed to invalidate cache:', error)
+        console.warn('[Cache] Failed to invalidate Upstash cache:', error)
       }
     }
+
+    // Invalidate Next.js cache
+    await revalidateCache(CACHE_TAGS.BLOG_POSTS)
+    console.log('[Blog Posts] Next.js cache invalidated after post creation')
 
     return NextResponse.json({ post })
   } catch (error) {

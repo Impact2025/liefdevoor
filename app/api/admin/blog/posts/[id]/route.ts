@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { revalidateCache, CACHE_TAGS } from '@/lib/cache'
 
 export async function GET(
   request: NextRequest,
@@ -117,6 +118,11 @@ export async function PATCH(
       }
     })
 
+    // Invalidate Next.js cache
+    await revalidateCache(CACHE_TAGS.BLOG_POSTS)
+    await revalidateCache(CACHE_TAGS.BLOG_POST)
+    console.log('[Blog Posts] Cache invalidated after post update')
+
     return NextResponse.json({ post })
   } catch (error) {
     console.error('Post update error:', error)
@@ -138,6 +144,11 @@ export async function DELETE(
     await prisma.post.delete({
       where: { id: params.id }
     })
+
+    // Invalidate Next.js cache
+    await revalidateCache(CACHE_TAGS.BLOG_POSTS)
+    await revalidateCache(CACHE_TAGS.BLOG_POST)
+    console.log('[Blog Posts] Cache invalidated after post deletion')
 
     return NextResponse.json({ success: true })
   } catch (error) {

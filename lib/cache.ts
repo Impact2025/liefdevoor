@@ -382,10 +382,10 @@ export const getCachedMatches = unstable_cache(
  * Use this to invalidate specific cache tags after mutations
  */
 export async function revalidateCache(tag: string) {
-  // Note: revalidateTag is available in Next.js 13+
-  // This is a placeholder for the actual implementation
-  // In production, you would use: revalidateTag(tag)
-  console.log(`[Cache] Revalidating tag: ${tag}`)
+  // Use Next.js revalidateTag for cache invalidation
+  const { revalidateTag } = await import('next/cache')
+  revalidateTag(tag)
+  console.log(`[Cache] Revalidated tag: ${tag}`)
 }
 
 /**
