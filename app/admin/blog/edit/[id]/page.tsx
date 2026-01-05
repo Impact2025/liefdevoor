@@ -26,9 +26,18 @@ import {
   Settings,
   X,
   Trash2,
-  Calendar
+  Calendar,
+  TrendingUp,
+  Clock,
+  BarChart3,
+  AlertCircle,
+  CheckCircle,
+  Zap,
+  Hash
 } from 'lucide-react'
 import type { GeneratedBlogContent } from '@/lib/types/blog'
+import SocialMediaPreview from '@/components/admin/SocialMediaPreview'
+import HashtagResearchTool from '@/components/admin/HashtagResearchTool'
 
 const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), {
   ssr: false,
@@ -118,6 +127,14 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   // AI Optimization state
   const [applyAiOptimization, setApplyAiOptimization] = useState(true)  // Default ON
   const [optimizationProgress, setOptimizationProgress] = useState<string | null>(null)
+
+  // Wereldklasse Social Media Features
+  const [activeSocialPlatform, setActiveSocialPlatform] = useState<'instagram' | 'facebook' | 'linkedin' | 'twitter'>('instagram')
+  const [engagementScore, setEngagementScore] = useState<any>(null)
+  const [loadingEngagement, setLoadingEngagement] = useState(false)
+  const [bestTimeData, setBestTimeData] = useState<any>(null)
+  const [loadingBestTime, setLoadingBestTime] = useState(false)
+  const [showHashtagTool, setShowHashtagTool] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -379,6 +396,86 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
     await navigator.clipboard.writeText(text)
     setCopiedField(field)
     setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  // Fetch engagement score for platform
+  const fetchEngagementScore = async (platform: typeof activeSocialPlatform) => {
+    const content = socialMedia[platform]
+    if (!content.trim()) {
+      setError('Voer eerst content in voor deze platform')
+      setTimeout(() => setError(null), 3000)
+      return
+    }
+
+    setLoadingEngagement(true)
+    try {
+      const hashtags = content.match(/#\w+/g) || []
+      const res = await fetch('/api/admin/blog/social/engagement-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform,
+          content,
+          hashtags,
+          imageUrl: featuredImage || undefined
+        })
+      })
+
+      if (!res.ok) throw new Error('Engagement score ophalen mislukt')
+
+      const data = await res.json()
+      setEngagementScore(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Er ging iets mis')
+    } finally {
+      setLoadingEngagement(false)
+    }
+  }
+
+  // Fetch best time to post
+  const fetchBestTime = async (platform: typeof activeSocialPlatform) => {
+    setLoadingBestTime(true)
+    try {
+      const res = await fetch('/api/admin/blog/social/best-time', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform,
+          targetAudience: '25-45 jaar, Nederlandse singles',
+          timezone: 'Europe/Amsterdam'
+        })
+      })
+
+      if (!res.ok) throw new Error('Best time ophalen mislukt')
+
+      const data = await res.json()
+      setBestTimeData(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Er ging iets mis')
+    } finally {
+      setLoadingBestTime(false)
+    }
+  }
+
+  // Add hashtag to current platform
+  const addHashtagToPlatform = (tag: string) => {
+    const platform = activeSocialPlatform
+    const currentContent = socialMedia[platform]
+
+    // Check if hashtag already exists
+    if (currentContent.includes(tag)) {
+      return
+    }
+
+    // Add hashtag at the end
+    const newContent = currentContent.trim() + ' ' + tag
+    setSocialMedia({ ...socialMedia, [platform]: newContent })
+  }
+
+  // Get current hashtags for platform
+  const getCurrentHashtags = (platform: typeof activeSocialPlatform): string[] => {
+    const content = socialMedia[platform]
+    return content.match(/#\w+/g) || []
   }
 
   if (status === 'loading' || loading) {
@@ -706,107 +803,292 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                 </div>
               )}
 
-              {/* Social Media Tab */}
+              {/* Social Media Tab - WERELDKLASSE VERSION */}
               {activeTab === 'social' && (
                 <div className="space-y-6">
-                  {/* Instagram */}
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-white">
-                        <Instagram size={20} />
-                        <span className="font-medium">Instagram</span>
-                      </div>
-                      <button
-                        onClick={() => copyToClipboard(socialMedia.instagram, 'instagram')}
-                        className="text-white/80 hover:text-white"
-                      >
-                        {copiedField === 'instagram' ? <Check size={18} /> : <Copy size={18} />}
-                      </button>
-                    </div>
-                    <textarea
-                      value={socialMedia.instagram}
-                      onChange={(e) => setSocialMedia({ ...socialMedia, instagram: e.target.value })}
-                      placeholder="Instagram caption met hashtags..."
-                      rows={3}
-                      maxLength={150}
-                      className="w-full px-3 py-2 rounded bg-white/20 text-white placeholder-white/60 border-0 focus:ring-2 focus:ring-white/50"
-                    />
-                    <p className="text-white/70 text-xs mt-1">{socialMedia.instagram.length}/150</p>
+                  {/* Platform Selector */}
+                  <div className="flex gap-2 p-2 bg-gray-100 rounded-lg">
+                    {[
+                      { id: 'instagram' as const, icon: Instagram, label: 'Instagram', color: 'from-purple-500 to-pink-500' },
+                      { id: 'facebook' as const, icon: Facebook, label: 'Facebook', color: 'from-blue-600 to-blue-500' },
+                      { id: 'linkedin' as const, icon: Linkedin, label: 'LinkedIn', color: 'from-blue-700 to-blue-600' },
+                      { id: 'twitter' as const, icon: Twitter, label: 'Twitter', color: 'from-gray-900 to-gray-800' }
+                    ].map(platform => {
+                      const Icon = platform.icon
+                      return (
+                        <button
+                          key={platform.id}
+                          onClick={() => {
+                            setActiveSocialPlatform(platform.id)
+                            setEngagementScore(null) // Reset score when switching platforms
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded transition-all ${
+                            activeSocialPlatform === platform.id
+                              ? `bg-gradient-to-r ${platform.color} text-white shadow-lg`
+                              : 'bg-white text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon size={18} />
+                          <span className="text-sm font-medium hidden sm:inline">{platform.label}</span>
+                        </button>
+                      )
+                    })}
                   </div>
 
-                  {/* Facebook */}
-                  <div className="bg-blue-600 p-4 rounded-lg">
+                  {/* Content Editor for Active Platform */}
+                  <div className={`bg-gradient-to-r ${
+                    activeSocialPlatform === 'instagram' ? 'from-purple-500 to-pink-500' :
+                    activeSocialPlatform === 'facebook' ? 'from-blue-600 to-blue-500' :
+                    activeSocialPlatform === 'linkedin' ? 'from-blue-700 to-blue-600' :
+                    'from-gray-900 to-gray-800'
+                  } p-4 rounded-lg`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 text-white">
-                        <Facebook size={20} />
-                        <span className="font-medium">Facebook</span>
+                        {activeSocialPlatform === 'instagram' && <Instagram size={20} />}
+                        {activeSocialPlatform === 'facebook' && <Facebook size={20} />}
+                        {activeSocialPlatform === 'linkedin' && <Linkedin size={20} />}
+                        {activeSocialPlatform === 'twitter' && <Twitter size={20} />}
+                        <span className="font-medium capitalize">{activeSocialPlatform}</span>
                       </div>
                       <button
-                        onClick={() => copyToClipboard(socialMedia.facebook, 'facebook')}
+                        onClick={() => copyToClipboard(socialMedia[activeSocialPlatform], activeSocialPlatform)}
                         className="text-white/80 hover:text-white"
                       >
-                        {copiedField === 'facebook' ? <Check size={18} /> : <Copy size={18} />}
+                        {copiedField === activeSocialPlatform ? <Check size={18} /> : <Copy size={18} />}
                       </button>
                     </div>
                     <textarea
-                      value={socialMedia.facebook}
-                      onChange={(e) => setSocialMedia({ ...socialMedia, facebook: e.target.value })}
-                      placeholder="Facebook post..."
-                      rows={3}
-                      maxLength={250}
+                      value={socialMedia[activeSocialPlatform]}
+                      onChange={(e) => {
+                        setSocialMedia({ ...socialMedia, [activeSocialPlatform]: e.target.value })
+                        setEngagementScore(null) // Reset score when content changes
+                      }}
+                      placeholder={`${activeSocialPlatform.charAt(0).toUpperCase() + activeSocialPlatform.slice(1)} post...`}
+                      rows={4}
+                      maxLength={
+                        activeSocialPlatform === 'instagram' ? 150 :
+                        activeSocialPlatform === 'facebook' ? 250 :
+                        activeSocialPlatform === 'linkedin' ? 200 : 280
+                      }
                       className="w-full px-3 py-2 rounded bg-white/20 text-white placeholder-white/60 border-0 focus:ring-2 focus:ring-white/50"
                     />
-                    <p className="text-white/70 text-xs mt-1">{socialMedia.facebook.length}/250</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-white/70 text-xs">
+                        {socialMedia[activeSocialPlatform].length}/
+                        {activeSocialPlatform === 'instagram' ? 150 :
+                         activeSocialPlatform === 'facebook' ? 250 :
+                         activeSocialPlatform === 'linkedin' ? 200 : 280}
+                      </p>
+                      <button
+                        onClick={() => fetchEngagementScore(activeSocialPlatform)}
+                        disabled={loadingEngagement || !socialMedia[activeSocialPlatform].trim()}
+                        className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs rounded transition-colors disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {loadingEngagement ? (
+                          <>
+                            <RefreshCw size={14} className="animate-spin" />
+                            Analyseren...
+                          </>
+                        ) : (
+                          <>
+                            <Zap size={14} />
+                            Score Ophalen
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  {/* LinkedIn */}
-                  <div className="bg-blue-700 p-4 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-white">
-                        <Linkedin size={20} />
-                        <span className="font-medium">LinkedIn</span>
+                  {/* AI Engagement Score */}
+                  {engagementScore && (
+                    <div className="bg-white border-2 border-purple-200 rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BarChart3 className="text-purple-600" size={20} />
+                          <h4 className="font-semibold text-gray-900">AI Engagement Score</h4>
+                        </div>
+                        <div className={`text-3xl font-bold ${
+                          engagementScore.score >= 80 ? 'text-green-600' :
+                          engagementScore.score >= 60 ? 'text-yellow-600' :
+                          'text-red-600'
+                        }`}>
+                          {engagementScore.score}/100
+                        </div>
                       </div>
-                      <button
-                        onClick={() => copyToClipboard(socialMedia.linkedin, 'linkedin')}
-                        className="text-white/80 hover:text-white"
-                      >
-                        {copiedField === 'linkedin' ? <Check size={18} /> : <Copy size={18} />}
-                      </button>
+
+                      {/* Metrics Breakdown */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {Object.entries(engagementScore.metrics).map(([key, value]: [string, any]) => (
+                          <div key={key} className="bg-gray-50 p-3 rounded">
+                            <div className="text-xs text-gray-600 mb-1 capitalize">
+                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </div>
+                            <div className={`text-lg font-bold ${
+                              value >= 80 ? 'text-green-600' :
+                              value >= 60 ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {value}%
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Strengths */}
+                      {engagementScore.strengths?.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-1">
+                            <CheckCircle size={16} /> Sterke punten
+                          </h5>
+                          <ul className="space-y-1">
+                            {engagementScore.strengths.map((strength: string, idx: number) => (
+                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                <span className="text-green-600">✓</span>
+                                <span>{strength}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Tips */}
+                      {engagementScore.tips?.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1">
+                            <Sparkles size={16} /> Verbeter tips
+                          </h5>
+                          <ul className="space-y-1">
+                            {engagementScore.tips.map((tip: string, idx: number) => (
+                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                <span className="text-blue-600">•</span>
+                                <span>{tip}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Warnings */}
+                      {engagementScore.warnings?.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-1">
+                            <AlertCircle size={16} /> Waarschuwingen
+                          </h5>
+                          <ul className="space-y-1">
+                            {engagementScore.warnings.map((warning: string, idx: number) => (
+                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                <span className="text-red-600">⚠</span>
+                                <span>{warning}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    <textarea
-                      value={socialMedia.linkedin}
-                      onChange={(e) => setSocialMedia({ ...socialMedia, linkedin: e.target.value })}
-                      placeholder="LinkedIn post..."
-                      rows={3}
-                      maxLength={200}
-                      className="w-full px-3 py-2 rounded bg-white/20 text-white placeholder-white/60 border-0 focus:ring-2 focus:ring-white/50"
+                  )}
+
+                  {/* Platform Preview */}
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Eye size={18} className="text-purple-600" />
+                      Preview op {activeSocialPlatform}
+                    </h4>
+                    <SocialMediaPreview
+                      platform={activeSocialPlatform}
+                      content={socialMedia[activeSocialPlatform]}
+                      imageUrl={featuredImage || undefined}
                     />
-                    <p className="text-white/70 text-xs mt-1">{socialMedia.linkedin.length}/200</p>
                   </div>
 
-                  {/* Twitter/X */}
-                  <div className="bg-gray-900 p-4 rounded-lg">
+                  {/* Best Time to Post */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-white">
-                        <Twitter size={20} />
-                        <span className="font-medium">X (Twitter)</span>
+                      <div className="flex items-center gap-2">
+                        <Clock className="text-blue-600" size={18} />
+                        <h4 className="font-semibold text-gray-900">Beste Post Tijden</h4>
                       </div>
                       <button
-                        onClick={() => copyToClipboard(socialMedia.twitter, 'twitter')}
-                        className="text-white/80 hover:text-white"
+                        onClick={() => fetchBestTime(activeSocialPlatform)}
+                        disabled={loadingBestTime}
+                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1"
                       >
-                        {copiedField === 'twitter' ? <Check size={18} /> : <Copy size={18} />}
+                        {loadingBestTime ? (
+                          <>
+                            <RefreshCw size={14} className="animate-spin" />
+                            Laden...
+                          </>
+                        ) : (
+                          <>
+                            <TrendingUp size={14} />
+                            Analyseer
+                          </>
+                        )}
                       </button>
                     </div>
-                    <textarea
-                      value={socialMedia.twitter}
-                      onChange={(e) => setSocialMedia({ ...socialMedia, twitter: e.target.value })}
-                      placeholder="Tweet..."
-                      rows={3}
-                      maxLength={280}
-                      className="w-full px-3 py-2 rounded bg-white/20 text-white placeholder-white/60 border-0 focus:ring-2 focus:ring-white/50"
-                    />
-                    <p className="text-white/70 text-xs mt-1">{socialMedia.twitter.length}/280</p>
+
+                    {bestTimeData && (
+                      <div className="space-y-3">
+                        <div className="bg-white p-3 rounded border border-blue-200">
+                          <div className="text-sm font-semibold text-gray-900 mb-2">
+                            🏆 Peak Tijd: {bestTimeData.peakDay} {bestTimeData.peakTime}
+                          </div>
+                          <p className="text-xs text-gray-600">{bestTimeData.weekdayPattern}</p>
+                        </div>
+
+                        <div>
+                          <h5 className="text-xs font-semibold text-gray-700 mb-2">Top 3 Optimale Tijden:</h5>
+                          <div className="space-y-2">
+                            {bestTimeData.optimal?.slice(0, 3).map((slot: any, idx: number) => (
+                              <div key={idx} className="bg-white p-2 rounded text-xs border border-green-200">
+                                <div className="font-semibold text-gray-900">
+                                  {slot.day} {slot.time} - Score: {slot.score}/100
+                                </div>
+                                <div className="text-gray-600 mt-1">{slot.reason}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {bestTimeData.insights?.length > 0 && (
+                          <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                            <h5 className="text-xs font-semibold text-yellow-800 mb-1">💡 Insights:</h5>
+                            <ul className="text-xs text-gray-700 space-y-1">
+                              {bestTimeData.insights.slice(0, 2).map((insight: string, idx: number) => (
+                                <li key={idx}>• {insight}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hashtag Research Tool */}
+                  <div className="border-t-4 border-purple-200 pt-6">
+                    <button
+                      onClick={() => setShowHashtagTool(!showHashtagTool)}
+                      className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Hash className="text-purple-600" size={20} />
+                        <h4 className="font-semibold text-gray-900">Hashtag Research Tool</h4>
+                        <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">AI-Powered</span>
+                      </div>
+                      <div className={`transition-transform ${showHashtagTool ? 'rotate-180' : ''}`}>
+                        ▼
+                      </div>
+                    </button>
+
+                    {showHashtagTool && (
+                      <div className="mt-4">
+                        <HashtagResearchTool
+                          topic={title || primaryKeyword}
+                          platform={activeSocialPlatform}
+                          onAddHashtag={addHashtagToPlatform}
+                          currentHashtags={getCurrentHashtags(activeSocialPlatform)}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Midjourney Prompt */}
