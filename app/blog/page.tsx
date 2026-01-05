@@ -22,6 +22,7 @@ interface Post {
     color: string
   }
   createdAt: string
+  publishedAt?: string
   readTime?: number
 }
 
@@ -175,7 +176,7 @@ export default function BlogPage() {
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Calendar size={14} className="mr-1" />
-                          {new Date(post.createdAt).toLocaleDateString('nl-NL')}
+                          {new Date(post.publishedAt || post.createdAt).toLocaleDateString('nl-NL')}
                         </div>
                         {post.readTime && (
                           <div className="flex items-center text-gray-500 text-sm">

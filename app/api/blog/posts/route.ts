@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
         author: post.author,
         category: post.category,
         createdAt: typeof post.createdAt === 'string' ? post.createdAt : post.createdAt.toISOString(),
+        publishedAt: (post as any).publishedAt ? (typeof (post as any).publishedAt === 'string' ? (post as any).publishedAt : (post as any).publishedAt.toISOString()) : null,
         likeCount: post.likeCount,
       }))
 
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
             select: { name: true, color: true, icon: true }
           }
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { publishedAt: 'desc' },
         take: limit,
         skip: offset
       }),
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest) {
       author: post.author,
       category: post.category,
       createdAt: post.createdAt.toISOString(),
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       readTime: Math.ceil(post.content.split(' ').length / 200) // Rough estimate
     }))
 

@@ -183,6 +183,7 @@ export const getCachedBlogPosts = unstable_cache(
         featuredImage: true,
         bannerText: true,
         createdAt: true,
+        publishedAt: true,
         updatedAt: true,
         likeCount: true,
         author: {
@@ -201,7 +202,7 @@ export const getCachedBlogPosts = unstable_cache(
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { publishedAt: 'desc' },
       ...(limit && { take: limit }),
     })
 
