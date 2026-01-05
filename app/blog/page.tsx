@@ -13,6 +13,7 @@ interface Post {
   content: string
   slug: string
   featuredImage?: string
+  bannerText?: string
   author: {
     name: string
   }
@@ -148,7 +149,13 @@ export default function BlogPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {posts.map((post) => (
                   <article key={post.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                    {post.featuredImage && (
+                    {post.bannerText ? (
+                      <div className="relative h-48 bg-gradient-to-r from-[#C34C60] to-pink-500 flex items-center justify-center">
+                        <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg text-center px-4">
+                          {post.bannerText}
+                        </span>
+                      </div>
+                    ) : post.featuredImage ? (
                       <div className="relative h-48">
                         <Image
                           src={post.featuredImage}
@@ -157,7 +164,7 @@ export default function BlogPage() {
                           className="object-cover"
                         />
                       </div>
-                    )}
+                    ) : null}
                     <div className="p-6">
                       <div className="flex items-center gap-2 mb-3">
                         <span

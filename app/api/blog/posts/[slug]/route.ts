@@ -43,6 +43,7 @@ export async function GET(
       slug: post.slug,
       excerpt: post.excerpt,
       featuredImage: post.featuredImage,
+      bannerText: post.bannerText,
       published: post.published,
       createdAt: post.createdAt.toISOString(),
       author: post.author,

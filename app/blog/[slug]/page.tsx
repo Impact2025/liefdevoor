@@ -12,6 +12,7 @@ interface Post {
   slug: string
   excerpt: string | null
   featuredImage: string | null
+  bannerText: string | null
   published: boolean
   createdAt: string
   author: {
@@ -166,8 +167,16 @@ export default function BlogPostPage() {
         </div>
       </div>
 
-      {/* Featured Image */}
-      {post.featuredImage && (
+      {/* Featured Image or Banner Text */}
+      {post.bannerText ? (
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="w-full h-64 md:h-80 rounded-xl shadow-lg bg-gradient-to-r from-[#C34C60] to-pink-500 flex items-center justify-center">
+            <span className="text-white text-5xl md:text-6xl font-bold tracking-tight drop-shadow-lg text-center px-8">
+              {post.bannerText}
+            </span>
+          </div>
+        </div>
+      ) : post.featuredImage ? (
         <div className="max-w-4xl mx-auto px-4 py-8">
           <img
             src={post.featuredImage}
@@ -175,7 +184,7 @@ export default function BlogPostPage() {
             className="w-full h-auto rounded-xl shadow-lg"
           />
         </div>
-      )}
+      ) : null}
 
       {/* Content */}
       <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

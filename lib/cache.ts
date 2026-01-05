@@ -181,6 +181,7 @@ export const getCachedBlogPosts = unstable_cache(
         slug: true,
         excerpt: true,
         featuredImage: true,
+        bannerText: true,
         createdAt: true,
         updatedAt: true,
         likeCount: true,
