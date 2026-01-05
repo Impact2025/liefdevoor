@@ -522,6 +522,7 @@ model Post {
   slug        String?   @unique
   excerpt     String?
   featuredImage String?
+  bannerText    String?   // Tekst banner als alternatief voor afbeelding (bijv. "10 Tips")
   published   Boolean   @default(false)
   publishedAt DateTime?           // Custom publish date (null = use createdAt)
   createdAt   DateTime  @default(now())
@@ -2136,5 +2137,64 @@ model ProfessionalTeamMember {
   @@unique([professionalId, email])
   @@index([professionalId])
   @@index([email])
+}
+
+// ============================================
+// 📧 NEWSLETTER SUBSCRIPTION SYSTEM
+// ============================================
+
+enum NewsletterSource {
+  BLOG_PAGE       // Van blog pagina
+  HOMEPAGE        // Van homepage
+  ARTICLE_FOOTER  // Na lezen van artikel
+  POPUP           // Pop-up/modal
+  OTHER           // Overig
+}
+
+model NewsletterSubscription {
+  id            String           @id @default(cuid())
+  email         String           @unique
+
+  // Verificatie (double opt-in voor GDPR)
+  isVerified    Boolean          @default(false)
+  verifiedAt    DateTime?
+  verifyToken   String?          @unique
+  verifyTokenExpires DateTime?
+
+  // Preferences
+  frequency     String           @default("weekly") // weekly, monthly
+  categories    String[]         @default([])       // Welke categorieën interesseren hen
+
+  // Source tracking voor analytics
+  source        NewsletterSource @default(BLOG_PAGE)
+  referralUrl   String?          @db.Text          // Van welke pagina kwamen ze
+
+  // GDPR Compliance
+  ipAddress     String?
+  userAgent     String?          @db.Text
+  consentGiven  Boolean          @default(true)
+  consentDate   DateTime         @default(now())
+
+  // Status
+  isActive      Boolean          @default(true)
+  unsubscribedAt DateTime?
+  unsubscribeToken String?       @unique           // Voor easy unsubscribe links
+
+  // Analytics
+  emailsSent    Int              @default(0)
+  emailsOpened  Int              @default(0)
+  emailsClicked Int              @default(0)
+  lastEmailSent DateTime?
+  lastEmailOpened DateTime?
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([email])
+  @@index([isVerified])
+  @@index([isActive])
+  @@index([source])
+  @@index([createdAt])
+  @@index([isActive, isVerified])
 }
 
