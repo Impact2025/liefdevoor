@@ -524,6 +524,7 @@ model Post {
   featuredImage String?
   bannerText    String?   // Tekst banner als alternatief voor afbeelding (bijv. "10 Tips")
   published   Boolean   @default(false)
+  showOnMainBlog Boolean @default(true)  // Toon op algemeen blog overzicht (false = alleen doelgroep pagina's)
   publishedAt DateTime?           // Custom publish date (null = use createdAt)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

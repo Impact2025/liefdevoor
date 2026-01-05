@@ -173,6 +173,7 @@ export const getCachedBlogPosts = unstable_cache(
     const posts = await prisma.post.findMany({
       where: {
         published: true,
+        showOnMainBlog: true,  // Only cache posts visible on main blog
         ...(categoryId && { categoryId }),
       },
       select: {

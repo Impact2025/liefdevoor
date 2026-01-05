@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
         likeCount: post.likeCount,
       }))
 
-      const totalCount = await prisma.post.count({ where: { published: true } })
+      // Only count posts that should be shown on main blog
+      const totalCount = await prisma.post.count({ where: { published: true, showOnMainBlog: true } })
 
       return NextResponse.json({
         posts: formattedPosts,
@@ -45,6 +46,12 @@ export async function GET(request: NextRequest) {
     // For filtered/paginated requests, use dynamic query
     const where: any = {
       published: true
+    }
+
+    // If no tags are specified (general blog), only show posts with showOnMainBlog: true
+    // If tags are specified (doelgroep pages), show all matching posts regardless of showOnMainBlog
+    if (tags.length === 0) {
+      where.showOnMainBlog = true
     }
 
     if (category) {

@@ -66,12 +66,19 @@ interface Post {
   featuredImage: string | null
   bannerText: string | null
   published: boolean
+  showOnMainBlog?: boolean
   publishedAt: string | null
   categoryId: string
   category: Category
   author: { name: string }
   createdAt: string
   updatedAt: string
+  // SEO fields
+  seoTitle?: string | null
+  seoDescription?: string | null
+  keywords?: string[] | null
+  socialMedia?: Record<string, string> | null
+  imagePrompt?: string | null
 }
 
 type TabType = 'editor' | 'seo' | 'social' | 'settings'
@@ -90,6 +97,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   const [bannerText, setBannerText] = useState('')
   const [useBannerText, setUseBannerText] = useState(false)
   const [published, setPublished] = useState(false)
+  const [showOnMainBlog, setShowOnMainBlog] = useState(true)
   const [publishedAt, setPublishedAt] = useState<string>('')
   const [slug, setSlug] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -179,6 +187,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       setBannerText(post.bannerText || '')
       setUseBannerText(!!post.bannerText)
       setPublished(post.published)
+      setShowOnMainBlog(post.showOnMainBlog ?? true)
       // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
       if (post.publishedAt) {
         const date = new Date(post.publishedAt)
@@ -188,6 +197,25 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         setPublishedAt(date.toISOString().slice(0, 16))
       }
       setSlug(post.slug)
+
+      // Load SEO fields
+      if (post.seoTitle) setSeoTitle(post.seoTitle)
+      if (post.seoDescription) setSeoDescription(post.seoDescription)
+      if (post.keywords && Array.isArray(post.keywords)) setKeywords(post.keywords)
+
+      // Load Social Media fields
+      if (post.socialMedia) {
+        const social = post.socialMedia as any
+        setSocialMedia({
+          instagram: social.instagram || '',
+          facebook: social.facebook || '',
+          linkedin: social.linkedin || '',
+          twitter: social.twitter || ''
+        })
+      }
+
+      // Load AI image prompt
+      if (post.imagePrompt) setMidjourneyPrompt(post.imagePrompt)
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kon artikel niet laden')
@@ -287,6 +315,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
           featuredImage: useBannerText ? null : (featuredImage || null),
           bannerText: useBannerText ? (bannerText || null) : null,
           published,
+          showOnMainBlog,
           publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
           applyAiOptimization  // NEW: Send optimization flag
         })
@@ -1218,6 +1247,21 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                       <div>
                         <span className="font-medium text-gray-900">Gepubliceerd</span>
                         <p className="text-sm text-gray-500">Artikel is zichtbaar op de blog</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showOnMainBlog}
+                        onChange={(e) => setShowOnMainBlog(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900">Toon op algemeen blog</span>
+                        <p className="text-sm text-gray-500">Uit = alleen zichtbaar op doelgroep pagina's (via keywords)</p>
                       </div>
                     </label>
                   </div>
