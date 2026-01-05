@@ -348,7 +348,7 @@ export default function NewBlogPostPage() {
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Nieuw Artikel</h1>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-gray-500">Wereldklasse Blog Editor</p>
+                  <p className="text-sm text-gray-500">Blog Editor</p>
                   {applyAiOptimization && (
                     <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
                       <Sparkles size={12} />

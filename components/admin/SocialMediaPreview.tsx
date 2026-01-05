@@ -14,8 +14,8 @@ export default function SocialMediaPreview({
   platform,
   content,
   imageUrl,
-  profileName = 'Wereldklasse',
-  profileImage = 'https://via.placeholder.com/40x40/ec4899/ffffff?text=W'
+  profileName = 'Liefde voor Iedereen',
+  profileImage = '/logo.png'
 }: SocialMediaPreviewProps) {
 
   // Extract hashtags from content
@@ -169,7 +169,7 @@ export default function SocialMediaPreview({
             />
             <div>
               <div className="font-semibold text-sm">{profileName}</div>
-              <div className="text-xs text-gray-600">Premium Dating Platform voor Singles</div>
+              <div className="text-xs text-gray-600">Dating met een missie - Liefde voor Iedereen</div>
               <div className="text-xs text-gray-500">2u • 🌍</div>
             </div>
           </div>
@@ -243,7 +243,7 @@ export default function SocialMediaPreview({
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm">{profileName}</span>
-                <span className="text-gray-500 text-sm">@wereldklasse</span>
+                <span className="text-gray-500 text-sm">@liefdevoor</span>
                 <span className="text-gray-500 text-sm">• 2u</span>
               </div>
 
