@@ -22,11 +22,26 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Battery, Moon, Coffee, MessageCircle
 }
 
+interface KennisbankArticle {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  articleType: string
+  hasEasyRead: boolean
+  readTime: number
+  category: {
+    name: string
+    slug: string
+  }
+}
+
 export default function DoelgroepLandingPage() {
   const params = useParams()
   const slug = params?.slug as string
   const [data, setData] = useState<DoelgroepData | null>(null)
   const [blogs, setBlogs] = useState<BlogArtikel[]>([])
+  const [kennisbankArticles, setKennisbankArticles] = useState<KennisbankArticle[]>([])
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   useEffect(() => {
@@ -45,6 +60,36 @@ export default function DoelgroepLandingPage() {
           })
         })
         setBlogs(relevantBlogs.slice(0, 3))
+
+        // Haal kennisbank artikelen op
+        const fetchKennisbankArticles = async () => {
+          try {
+            // Map doelgroep slug to audience tag
+            const audienceMap: Record<string, string> = {
+              'dating-met-autisme': 'autisme',
+              'dating-met-adhd': 'adhd',
+              'veilig-daten-lvb': 'lvb',
+              'dating-voor-slechtzienden': 'slechtziend',
+              'dating-met-beperking': 'beperking',
+              'daten-met-burnout': 'burnout',
+              'dating-alleenstaande-ouders': 'ouders',
+              'dating-50-plus': '50plus'
+            }
+
+            const audience = audienceMap[slug]
+            if (audience) {
+              const response = await fetch(`/api/kennisbank/articles?audience=${audience}&limit=6`)
+              if (response.ok) {
+                const result = await response.json()
+                setKennisbankArticles(result.data?.articles || [])
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching kennisbank articles:', error)
+          }
+        }
+
+        fetchKennisbankArticles()
       }
     }
   }, [slug])
@@ -288,13 +333,98 @@ export default function DoelgroepLandingPage() {
         </div>
       </section>
 
-      {/* Blog Content Section */}
-      {blogs.length > 0 && (
+      {/* Kennisbank Articles Section */}
+      {kennisbankArticles.length > 0 && (
         <section className="py-24 bg-stone-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className={`${data.enableSimpleMode ? 'text-3xl' : 'text-3xl md:text-4xl'} font-bold text-slate-900 mb-4`}>
-                {data.enableSimpleMode ? 'Tips & Verhalen' : 'Artikelen voor jou'}
+                {data.enableSimpleMode ? 'Kennisbank voor jou' : 'Kennisbank Artikelen'}
+              </h2>
+              <p className={`${textSize} text-slate-600`}>
+                Uitgebreide gidsen en praktische informatie
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {kennisbankArticles.map((article, index) => (
+                <motion.article
+                  key={article.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+                >
+                  <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200">
+                    <div
+                      className="absolute inset-0 opacity-20"
+                      style={{
+                        background: `linear-gradient(135deg, ${data.gradientFrom}, ${data.gradientTo})`
+                      }}
+                    />
+                    {article.articleType === 'PILLAR' && (
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-sm font-medium" style={{ color: data.primaryColor }}>
+                          Uitgebreide gids
+                        </span>
+                      </div>
+                    )}
+                    {article.hasEasyRead && (
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-sm font-medium text-slate-600">
+                          Easy Read
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <div className="text-xs font-medium mb-2" style={{ color: data.primaryColor }}>
+                      {article.category.name}
+                    </div>
+                    <h3 className={`${data.enableSimpleMode ? 'text-xl' : 'text-lg'} font-bold text-slate-900 mb-3 group-hover:text-rose-500 transition-colors`}>
+                      {article.title}
+                    </h3>
+                    <p className={`${textSize} text-slate-600 mb-4 line-clamp-2`}>
+                      {article.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-500">{article.readTime} min lezen</span>
+                      <Link
+                        href={`/kennisbank/${article.category.slug}/${article.slug}`}
+                        className="flex items-center gap-1 font-medium transition-colors"
+                        style={{ color: data.primaryColor }}
+                      >
+                        Lees meer
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <Link
+                href="/kennisbank"
+                className={`inline-flex items-center gap-2 px-6 py-3 border-2 rounded-xl font-medium transition-colors hover:bg-slate-50 ${data.enableSimpleMode ? 'text-lg' : ''}`}
+                style={{ borderColor: data.primaryColor, color: data.primaryColor }}
+              >
+                Bekijk alle kennisbank artikelen
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Blog Content Section */}
+      {blogs.length > 0 && (
+        <section className="py-24 bg-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className={`${data.enableSimpleMode ? 'text-3xl' : 'text-3xl md:text-4xl'} font-bold text-slate-900 mb-4`}>
+                {data.enableSimpleMode ? 'Tips & Verhalen' : 'Blog Artikelen'}
               </h2>
               <p className={`${textSize} text-slate-600`}>
                 Handige tips en inspirerende verhalen
@@ -354,7 +484,7 @@ export default function DoelgroepLandingPage() {
                 className={`inline-flex items-center gap-2 px-6 py-3 border-2 rounded-xl font-medium transition-colors hover:bg-slate-50 ${data.enableSimpleMode ? 'text-lg' : ''}`}
                 style={{ borderColor: data.primaryColor, color: data.primaryColor }}
               >
-                Bekijk alle artikelen
+                Bekijk alle blog artikelen
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
