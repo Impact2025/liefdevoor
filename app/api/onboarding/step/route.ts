@@ -8,6 +8,11 @@ interface StepData {
   isLivenessVerified?: boolean;
   voiceIntroUrl?: string | null;
   relationshipGoal?: string;
+  // Location data
+  city?: string;
+  postcode?: string;
+  latitude?: number;
+  longitude?: number;
   psychProfile?: {
     introvertScale: number;
     spontaneityScale: number;
@@ -71,6 +76,20 @@ export async function PUT(request: NextRequest) {
 
     if (data?.voiceIntroUrl !== undefined) {
       updateData.voiceIntroUrl = data.voiceIntroUrl;
+    }
+
+    // Handle location data (city, postcode, latitude, longitude)
+    if (data?.city !== undefined) {
+      updateData.city = data.city;
+    }
+    if (data?.postcode !== undefined) {
+      updateData.postcode = data.postcode;
+    }
+    if (data?.latitude !== undefined) {
+      updateData.latitude = data.latitude;
+    }
+    if (data?.longitude !== undefined) {
+      updateData.longitude = data.longitude;
     }
 
     // Handle relationship goal - save to PsychProfile
