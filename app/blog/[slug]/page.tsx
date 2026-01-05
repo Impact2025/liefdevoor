@@ -178,24 +178,121 @@ export default function BlogPostPage() {
       )}
 
       {/* Content */}
-      <article className="max-w-4xl mx-auto px-4 py-8">
+      <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div
-          className="prose prose-lg prose-rose max-w-none
-            prose-headings:font-bold prose-headings:text-gray-900
-            prose-h1:text-4xl prose-h1:mb-4
-            prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-4
-            prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-3
-            prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
-            prose-a:text-rose-600 prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-gray-900 prose-strong:font-semibold
-            prose-ul:my-6 prose-ul:list-disc prose-ul:pl-6
-            prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-6
-            prose-li:mb-2 prose-li:text-gray-700
-            prose-img:rounded-lg prose-img:shadow-md
-            prose-blockquote:border-l-4 prose-blockquote:border-rose-500
-            prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600"
+          className="blog-content"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
+        <style jsx global>{`
+          .blog-content {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #374151;
+          }
+          .blog-content > p:first-of-type::first-letter {
+            float: left;
+            font-size: 4.5rem;
+            line-height: 0.8;
+            padding-right: 0.75rem;
+            padding-top: 0.25rem;
+            font-weight: 700;
+            color: #C34C60;
+            font-family: 'Georgia', serif;
+          }
+          .blog-content p {
+            margin-bottom: 1.75rem;
+            text-align: left;
+          }
+          .blog-content h2 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 3rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid #C34C60;
+            letter-spacing: -0.02em;
+          }
+          .blog-content h3 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+          }
+          .blog-content strong {
+            color: #111827;
+            font-weight: 700;
+          }
+          .blog-content h2 + p {
+            font-size: 1.25rem;
+            color: #4b5563;
+            line-height: 1.7;
+          }
+          .blog-content a {
+            color: #C34C60;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-thickness: 2px;
+            transition: all 0.2s ease;
+          }
+          .blog-content a:hover {
+            color: #a83d4f;
+            text-decoration-color: #a83d4f;
+          }
+          .blog-content ul, .blog-content ol {
+            margin: 1.5rem 0;
+            padding-left: 1.5rem;
+          }
+          .blog-content li {
+            margin-bottom: 0.75rem;
+            padding-left: 0.5rem;
+          }
+          .blog-content ul li::marker { color: #C34C60; }
+          .blog-content ol li::marker { color: #C34C60; font-weight: 600; }
+          .blog-content blockquote {
+            margin: 2rem 0;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #fdf2f4 0%, #fff5f7 100%);
+            border-left: 4px solid #C34C60;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #4b5563;
+          }
+          .blog-content blockquote p { margin-bottom: 0; }
+          .blog-content img {
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+            max-width: 100%;
+            height: auto;
+          }
+          .blog-content code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #C34C60;
+          }
+          .blog-content hr {
+            margin: 3rem auto;
+            border: none;
+            height: 3px;
+            width: 60px;
+            background: linear-gradient(90deg, #C34C60, #ec4899);
+            border-radius: 3px;
+          }
+          @media (max-width: 640px) {
+            .blog-content { font-size: 1rem; }
+            .blog-content > p:first-of-type::first-letter { font-size: 3.5rem; }
+            .blog-content h2 { font-size: 1.5rem; }
+            .blog-content h3 { font-size: 1.25rem; }
+          }
+        `}</style>
       </article>
 
       {/* Share Section */}
