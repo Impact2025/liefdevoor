@@ -22,7 +22,7 @@ import VibeCard, { VibeAnswers } from '@/components/onboarding/steps/VibeCard';
 import LifestyleStep, { LifestyleData } from '@/components/onboarding/steps/LifestyleStep';
 import LoveLanguagesStep, { LoveLanguageData } from '@/components/onboarding/steps/LoveLanguagesStep';
 import DealbreakersStep, { DealbreakersData } from '@/components/onboarding/steps/DealbreakersStep';
-import ProfileGeneratorStep from '@/components/onboarding/steps/ProfileGeneratorStep';
+import BioWithAIOption from '@/components/onboarding/steps/BioWithAIOption';
 import FinishStep from '@/components/onboarding/steps/FinishStep';
 
 // Accessibility Welcome Screen
@@ -47,7 +47,7 @@ const STEPS = [
   { id: 10, name: 'Liefde', description: 'Love Languages' },
   { id: 11, name: 'Voorkeur', description: 'Leeftijdsvoorkeur' },
   { id: 12, name: 'Filters', description: 'Dealbreakers' },
-  { id: 13, name: 'AI Bio', description: 'Profiel generator' },
+  { id: 13, name: 'Bio', description: 'Over jezelf' },
   { id: 14, name: 'Klaar', description: 'Profiel compleet' },
 ];
 
@@ -451,12 +451,12 @@ export default function OnboardingPage() {
                 </ErrorBoundary>
               )}
 
-              {/* Step 13: AI Profile Generator */}
+              {/* Step 13: Bio (with optional AI Generator) */}
               {currentStep === 13 && (
                 <ErrorBoundary
-                  onError={(error) => trackOnboardingDropoff('profile_generator', error.message)}
+                  onError={(error) => trackOnboardingDropoff('bio', error.message)}
                 >
-                  <ProfileGeneratorStep
+                  <BioWithAIOption
                     onComplete={handleProfileGeneratorComplete}
                     onSkip={handleSkipProfileGenerator}
                     userData={{

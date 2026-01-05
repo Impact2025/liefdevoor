@@ -88,7 +88,7 @@ export default function BioStep({ onComplete, onSkip, initialBio = '' }: BioStep
           onClick={onSkip}
           className="w-full py-3 text-slate-500 hover:text-slate-700 transition-colors text-sm"
         >
-          Overslaan - ik gebruik de AI Profile Generator
+          Overslaan - later invullen
         </button>
       )}
 
