@@ -18,6 +18,7 @@ import {
   Shield
 } from 'lucide-react'
 import type { DashboardStats } from '@/lib/admin/stats-aggregator'
+import TechDashboard from './TechDashboard'
 
 interface StatsOverviewProps {
   stats: DashboardStats
@@ -395,6 +396,9 @@ export default function StatsOverview({ stats }: StatsOverviewProps) {
           </div>
         </div>
       </div>
+
+      {/* Technical Dashboard - Veiligheid, Conversie Funnel, Error Log */}
+      <TechDashboard />
     </div>
   )
 }

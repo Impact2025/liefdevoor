@@ -184,6 +184,10 @@ export const rateLimiters = {
   emailVerify: (request: NextRequest) =>
     rateLimit(request, 'email-verify', { maxRequests: 10, windowMs: 60 * 60 * 1000 }),
 
+  // Email Check: 15 requests per minute (prevent enumeration attacks)
+  emailCheck: (request: NextRequest) =>
+    rateLimit(request, 'email-check', { maxRequests: 15, windowMs: 60 * 1000 }),
+
   // API general: 100 requests per minute
   api: (request: NextRequest) =>
     rateLimit(request, 'api', { maxRequests: 100, windowMs: 60 * 1000 }),

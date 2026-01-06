@@ -122,6 +122,8 @@ export async function sendNewPaymentAdminAlert(params: {
  */
 export async function sendNewRegistrationAdminAlert(params: {
   userId: string
+  isHighRisk?: boolean
+  spamScore?: number
 }) {
   try {
     console.log(`[Admin Alert] Sending new registration notification for user ${params.userId}`)
@@ -148,6 +150,10 @@ export async function sendNewRegistrationAdminAlert(params: {
       ? new Date().getFullYear() - new Date(user.birthDate).getFullYear()
       : 0
 
+    // Add spam risk indicator to subject if high risk
+    const riskIndicator = params.isHighRisk ? ' ⚠️ HIGH RISK' : ''
+    const spamInfo = params.spamScore !== undefined ? ` (Spam Score: ${params.spamScore})` : ''
+
     const html = await render(
       NewRegistrationAdminEmail({
         userName: user.name || 'Unknown',
@@ -164,14 +170,14 @@ export async function sendNewRegistrationAdminAlert(params: {
       adminEmails.map(email =>
         sendEmail({
           to: email,
-          subject: `👤 Nieuwe Registratie: ${user.name || 'Unknown User'}`,
+          subject: `👤 Nieuwe Registratie: ${user.name || 'Unknown User'}${riskIndicator}`,
           html,
-          text: `Nieuwe gebruiker geregistreerd: ${user.name || 'Unknown'} (${user.email}), ${user.gender || 'Unknown'}, ${age} jaar, ${user.city || 'Unknown'}`
+          text: `Nieuwe gebruiker geregistreerd: ${user.name || 'Unknown'} (${user.email}), ${user.gender || 'Unknown'}, ${age} jaar, ${user.city || 'Unknown'}${spamInfo}`
         })
       )
     )
 
-    console.log(`[Admin Alert] ✅ Registration notification sent to ${adminEmails.length} admins`)
+    console.log(`[Admin Alert] ✅ Registration notification sent to ${adminEmails.length} admins${params.isHighRisk ? ' (HIGH RISK)' : ''}`)
   } catch (error) {
     console.error('[Admin Alert] Failed to send registration notification:', error)
   }
