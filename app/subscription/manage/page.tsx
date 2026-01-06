@@ -113,19 +113,19 @@ export default function SubscriptionManagePage() {
 
   const planConfig = {
     FREE: {
-      name: 'Basis',
+      name: 'Gratis',
       icon: Heart,
-      features: ['Profiel aanmaken', '10 likes per dag', '1 chat per dag'],
+      features: ['Profiel aanmaken', '8 profielen per dag', '2 berichten per dag'],
     },
-    PLUS: {
-      name: 'Liefde Plus',
+    PREMIUM: {
+      name: 'Premium',
       icon: Sparkles,
-      features: ['Onbeperkt likes', 'Onbeperkt chatten', 'Zien wie jou leuk vindt'],
+      features: ['Onbeperkt likes', 'Onbeperkt chatten', 'Zien wie jou leuk vindt', 'AI DatingAssistent'],
     },
-    COMPLETE: {
-      name: 'Liefde Compleet',
+    GOLD: {
+      name: 'Gold',
       icon: Crown,
-      features: ['Alles van Plus', '3 Superberichten/maand', 'Profiel boost'],
+      features: ['Alles van Premium', '5 Super Likes/week', 'AI Scam Detectie', 'Audio berichten'],
     },
   }
 
@@ -234,13 +234,13 @@ export default function SubscriptionManagePage() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
-            {subscription.plan !== 'COMPLETE' && (
+            {subscription.plan !== 'GOLD' && (
               <button
                 onClick={() => router.push('/prijzen')}
                 className="flex-1 py-4 px-6 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all flex items-center justify-center gap-2"
               >
                 <Crown className="w-5 h-5" />
-                {subscription.plan === 'FREE' ? 'Upgrade naar Premium' : 'Upgrade naar Compleet'}
+                {subscription.plan === 'FREE' ? 'Upgrade naar Premium' : 'Upgrade naar Gold'}
                 <ChevronRight className="w-5 h-5" />
               </button>
             )}

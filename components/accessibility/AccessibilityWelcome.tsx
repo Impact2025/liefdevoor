@@ -40,13 +40,9 @@ export default function AccessibilityWelcome({ source, onDismiss }: Accessibilit
   const { settings, speak, stopSpeaking, isSpeaking } = useAccessibility()
   const [hasPlayed, setHasPlayed] = useState(false)
 
-  // Don't show for non-accessibility sources
-  if (!source || (source !== 'visueel' && source !== 'lvb')) {
-    return null
-  }
-
+  const isValidSource = source === 'visueel' || source === 'lvb'
   const isVisualSource = source === 'visueel'
-  const isLVBSource = source === 'lvb'
+  const _isLVBSource = source === 'lvb'
 
   const features = isVisualSource
     ? [
@@ -105,14 +101,19 @@ export default function AccessibilityWelcome({ source, onDismiss }: Accessibilit
 
   useEffect(() => {
     // Auto-play intro if text-to-speech is enabled (only for visueel)
-    if (isVisualSource && settings.textToSpeech && !hasPlayed) {
+    if (isValidSource && isVisualSource && settings.textToSpeech && !hasPlayed) {
       const timer = setTimeout(() => {
         speak(welcomeMessage)
         setHasPlayed(true)
       }, 1000)
       return () => clearTimeout(timer)
     }
-  }, [isVisualSource, settings.textToSpeech, hasPlayed, speak, welcomeMessage])
+  }, [isValidSource, isVisualSource, settings.textToSpeech, hasPlayed, speak, welcomeMessage])
+
+  // Don't show for non-accessibility sources
+  if (!isValidSource) {
+    return null
+  }
 
   return (
     <AnimatePresence>

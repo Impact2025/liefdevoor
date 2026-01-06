@@ -73,7 +73,7 @@ export function SubscriptionCard({ className = '' }: SubscriptionCardProps) {
 
   const planConfig = {
     FREE: {
-      name: 'Basis',
+      name: 'Gratis',
       color: 'gray',
       gradient: 'from-white to-white',
       icon: Heart,
@@ -82,25 +82,25 @@ export function SubscriptionCard({ className = '' }: SubscriptionCardProps) {
       borderColor: 'border-gray-200',
       accentColor: 'text-gray-900',
     },
-    PLUS: {
-      name: 'Liefde Plus',
-      color: 'teal',
+    PREMIUM: {
+      name: 'Premium',
+      color: 'primary',
       gradient: 'from-white to-white',
       icon: Sparkles,
-      iconBg: 'bg-teal-50',
-      iconColor: 'text-teal-700',
-      borderColor: 'border-teal-200',
-      accentColor: 'text-teal-700',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+      borderColor: 'border-primary/30',
+      accentColor: 'text-primary',
     },
-    COMPLETE: {
-      name: 'Liefde Compleet',
-      color: 'teal',
+    GOLD: {
+      name: 'Gold',
+      color: 'amber',
       gradient: 'from-white to-white',
       icon: Crown,
-      iconBg: 'bg-teal-700',
-      iconColor: 'text-white',
-      borderColor: 'border-teal-300',
-      accentColor: 'text-teal-700',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+      borderColor: 'border-amber-300',
+      accentColor: 'text-amber-600',
     },
   }
 
@@ -133,8 +133,8 @@ export function SubscriptionCard({ className = '' }: SubscriptionCardProps) {
 
             {subscription.status === 'active' && (
               <div className={`px-3 py-1 rounded-md ${
-                subscription.plan === 'COMPLETE' || subscription.plan === 'PLUS'
-                  ? 'bg-teal-50 text-teal-700'
+                subscription.plan === 'GOLD' || subscription.plan === 'PREMIUM'
+                  ? 'bg-primary/10 text-primary'
                   : 'bg-gray-50 text-gray-700'
               } text-sm font-medium`}>
                 Actief
@@ -159,7 +159,7 @@ export function SubscriptionCard({ className = '' }: SubscriptionCardProps) {
         </div>
 
         {/* Daily Limits */}
-        {subscription.plan !== 'COMPLETE' && (
+        {subscription.plan !== 'GOLD' && (
           <div className="px-6 py-4 bg-gray-50">
             <div className="space-y-3">
               <div>
@@ -253,14 +253,14 @@ export function SubscriptionCard({ className = '' }: SubscriptionCardProps) {
         )}
 
         {/* Upgrade CTA */}
-        {subscription.plan !== 'COMPLETE' && (
+        {subscription.plan !== 'GOLD' && (
           <div className="p-6 border-t border-gray-100">
             <button
               onClick={() => router.push('/prijzen')}
-              className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               <Crown className="w-4 h-4" />
-              {subscription.plan === 'FREE' ? 'Upgrade naar Plus' : 'Upgrade naar Compleet'}
+              {subscription.plan === 'FREE' ? 'Upgrade naar Premium' : 'Upgrade naar Gold'}
             </button>
           </div>
         )}

@@ -117,7 +117,7 @@ export async function updateIPReputation(
   const now = new Date().toISOString()
 
   // Haal bestaande data op of maak nieuw
-  let reputation = await getIPReputation(ip) || {
+  const reputation = await getIPReputation(ip) || {
     ip,
     score: 0,
     failedRegistrations: 0,

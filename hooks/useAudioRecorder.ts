@@ -104,7 +104,7 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}): UseAudi
       // Create MediaRecorder with OPUS codec for maximum compression
       // Opus @ 24kbps is optimal for speech quality vs size
       let mimeType = 'audio/webm;codecs=opus'
-      let audioBitsPerSecond = 24000 // 24 kbps - optimal for speech
+      const audioBitsPerSecond = 24000 // 24 kbps - optimal for speech
 
       // Fallback to supported formats
       if (!MediaRecorder.isTypeSupported(mimeType)) {

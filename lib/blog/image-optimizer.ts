@@ -61,8 +61,8 @@ export async function optimizeImage(
   const originalHeight = metadata.height || 1080
 
   // Calculate optimal dimensions (maintain aspect ratio)
-  let targetWidth = Math.min(originalWidth, maxWidth)
-  let targetHeight = Math.round((originalHeight / originalWidth) * targetWidth)
+  const targetWidth = Math.min(originalWidth, maxWidth)
+  const targetHeight = Math.round((originalHeight / originalWidth) * targetWidth)
 
   // Generate base filename without extension
   const baseName = path.basename(filename, path.extname(filename))

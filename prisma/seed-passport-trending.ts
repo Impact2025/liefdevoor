@@ -23,10 +23,10 @@ async function seedPassportTrending() {
   console.log('🌍 Seeding Passport trending data...')
 
   try {
-    // Get all users with COMPLETE subscription (can use Passport)
+    // Get all users with GOLD subscription (can use Passport)
     const users = await prisma.user.findMany({
       where: {
-        subscriptionTier: 'COMPLETE',
+        subscriptionTier: 'GOLD',
       },
       select: {
         id: true,
@@ -35,7 +35,7 @@ async function seedPassportTrending() {
     })
 
     if (users.length === 0) {
-      console.log('⚠️  No COMPLETE users found. Creating demo passport history anyway...')
+      console.log('⚠️  No GOLD users found. Creating demo passport history anyway...')
       // Create dummy user IDs for demonstration
       const dummyUsers = Array.from({ length: 15 }, (_, i) => ({
         id: `demo-user-${i}`
@@ -44,7 +44,7 @@ async function seedPassportTrending() {
       // Use dummy users instead
       await seedHistoryForUsers(dummyUsers)
     } else {
-      console.log(`✅ Found ${users.length} COMPLETE users`)
+      console.log(`✅ Found ${users.length} GOLD users`)
       await seedHistoryForUsers(users)
     }
 

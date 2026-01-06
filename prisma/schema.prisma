@@ -76,11 +76,11 @@ enum AdminPermission {
   VERIFY_PROFESSIONALS
 }
 
-// Subscription Tiers - "Vriend van de Liefde" Model
+// Subscription Tiers - Drielaags Abonnementsmodel
 enum SubscriptionTier {
-  FREE      // Basis - Gratis
-  PLUS      // Liefde Plus - €9,95/maand
-  COMPLETE  // Liefde Compleet - €24,95/3 maanden
+  FREE      // Gratis - Basis features
+  PREMIUM   // Premium - Volledige dating ervaring (€12,99/mnd)
+  GOLD      // Gold - Ultimate veiligheid en features (€14,99/mnd)
 }
 
 // Wie zoekt de gebruiker

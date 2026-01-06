@@ -1,24 +1,47 @@
 /**
- * Prijzen Page - Minimalistisch & Professioneel Design
+ * Prijzen Page - Drielaags Abonnementsmodel
  *
- * Clean pricing met alleen logo kleur #C34C60
+ * Features:
+ * - Gratis / Premium / Gold tiers
+ * - Periode selectie per tier
+ * - Lifetime optie voor Gold
+ * - Feature vergelijkingstabel
+ * - Automatische incasso
  */
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Heart,
   Check,
+  X,
   Sparkles,
   Crown,
+  Shield,
   ArrowRight,
+  Repeat,
+  Bot,
+  Eye,
+  MessageCircle,
+  Infinity,
+  Undo2,
+  Star,
+  Headphones,
+  Volume2,
 } from 'lucide-react'
-import { SUBSCRIPTION_PLANS, formatPrice } from '@/lib/pricing'
+import {
+  SUBSCRIPTION_PLANS,
+  formatPrice,
+  getPlansByTier,
+  getGoldPremiumDifference,
+  type SubscriptionPlan,
+  type BillingPeriod,
+} from '@/lib/pricing'
 import CheckoutModal from '@/components/checkout/CheckoutModal'
 
 interface CheckoutData {
@@ -27,24 +50,35 @@ interface CheckoutData {
   planName?: string
   planPrice?: number
   planPeriod?: string
-  credits?: number
+  supportsDirectDebit?: boolean
 }
+
+// Periode opties
+const PREMIUM_PERIODS: { value: BillingPeriod; label: string; months: number }[] = [
+  { value: 'month', label: '1 maand', months: 1 },
+  { value: '3months', label: '3 maanden', months: 3 },
+  { value: '6months', label: '6 maanden', months: 6 },
+  { value: 'year', label: '12 maanden', months: 12 },
+]
+
+const GOLD_PERIODS: { value: BillingPeriod; label: string }[] = [
+  { value: '3months', label: '3 maanden' },
+  { value: '6months', label: '6 maanden' },
+  { value: 'lifetime', label: 'Lifetime' },
+]
 
 export default function PrijzenPage() {
   const { data: session } = useSession()
   const router = useRouter()
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null)
   const [currentPlan, setCurrentPlan] = useState<string | null>(null)
-  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true)
+  const [premiumPeriod, setPremiumPeriod] = useState<BillingPeriod>('3months')
+  const [goldPeriod, setGoldPeriod] = useState<BillingPeriod>('6months')
 
-  // Fetch current subscription on mount
+  // Fetch current subscription
   useEffect(() => {
     const fetchSubscription = async () => {
-      if (!session?.user) {
-        setIsLoadingSubscription(false)
-        return
-      }
-
+      if (!session?.user) return
       try {
         const response = await fetch('/api/subscription')
         if (response.ok) {
@@ -53,83 +87,38 @@ export default function PrijzenPage() {
         }
       } catch (error) {
         console.error('Error fetching subscription:', error)
-      } finally {
-        setIsLoadingSubscription(false)
       }
     }
-
     fetchSubscription()
   }, [session])
 
-  const handleSubscriptionSelect = (planId: string) => {
-    const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId)
-    if (!plan) return
+  // Get selected plans
+  const freePlan = SUBSCRIPTION_PLANS.find(p => p.id === 'FREE')!
+  const premiumPlans = getPlansByTier('PREMIUM')
+  const goldPlans = getPlansByTier('GOLD')
 
-    // Prevent selecting current plan
-    if (planId === currentPlan) {
-      return
-    }
+  const selectedPremiumPlan = premiumPlans.find(p => p.period === premiumPeriod) || premiumPlans[0]
+  const selectedGoldPlan = goldPlans.find(p => p.period === goldPeriod) || goldPlans[0]
 
-    // Redirect to login if not authenticated
+  const handleSelectPlan = (plan: SubscriptionPlan) => {
+    if (plan.id === currentPlan) return
     if (!session?.user) {
       router.push('/login?redirect=/prijzen')
       return
     }
-
     setCheckoutData({
       type: 'subscription',
       planId: plan.id,
       planName: plan.name,
       planPrice: plan.price,
       planPeriod: plan.periodLabel,
+      supportsDirectDebit: plan.supportsDirectDebit,
     })
   }
 
-  // Minimalist plan configuration
-  const planConfigs = {
-    FREE: {
-      icon: Heart,
-      recommended: false,
-    },
-    PLUS: {
-      icon: Sparkles,
-      recommended: true,
-    },
-    COMPLETE: {
-      icon: Crown,
-      recommended: false,
-    },
-  }
-
-  // Feature lists
-  const planFeatures = {
-    FREE: [
-      'Profiel aanmaken',
-      '10 likes per dag',
-      '1 chat per dag starten',
-    ],
-    PLUS: [
-      'Onbeperkt likes',
-      'Onbeperkt chatten',
-      'Zie wie jou leuk vindt',
-      'Audioberichten',
-      'Leesbevestigingen',
-      'Geen advertenties',
-    ],
-    COMPLETE: [
-      'Alles van Liefde Plus',
-      '3 Superberichten per maand',
-      'Profiel boost (1x/maand)',
-      'Prioriteit in zoeken',
-      'Geavanceerde filters',
-      'Passport (swipe overal)',
-      'Incognito modus',
-    ],
-  }
-
   return (
-    <div className="min-h-screen bg-white lg:ml-64 lg:pt-6">
-      {/* Header - Hidden on desktop */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white lg:ml-64">
+      {/* Header - Mobile */}
       <header className="lg:hidden bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -138,17 +127,11 @@ export default function PrijzenPage() {
               <span className="text-xl font-semibold text-gray-900">Liefde Voor Iedereen</span>
             </Link>
             {session ? (
-              <Link
-                href="/discover"
-                className="text-primary font-medium hover:underline"
-              >
-                Terug naar app
+              <Link href="/discover" className="text-primary font-medium">
+                Terug
               </Link>
             ) : (
-              <Link
-                href="/login"
-                className="px-5 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-colors"
-              >
+              <Link href="/login" className="px-4 py-2 bg-primary text-white rounded-lg">
                 Inloggen
               </Link>
             )}
@@ -156,137 +139,297 @@ export default function PrijzenPage() {
         </div>
       </header>
 
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        {/* Hero Section */}
-        <div className="text-center mb-12 lg:mb-20">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Kies het plan dat bij jou past
+      <main className="max-w-7xl mx-auto px-4 py-12 lg:py-16">
+        {/* Hero */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Kies jouw abonnement
           </h1>
-          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
-            Upgrade voor meer features, betere matches en onbeperkte mogelijkheden
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Van gratis starten tot ultieme veiligheid - er is altijd een plan dat bij jou past
           </p>
         </div>
 
-        {/* Subscription Plans */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-16 lg:mb-20">
-          {SUBSCRIPTION_PLANS.map((plan) => {
-            const config = planConfigs[plan.id as keyof typeof planConfigs]
-            const features = planFeatures[plan.id as keyof typeof planFeatures]
-            const isCurrentPlan = plan.id === currentPlan
-            const Icon = config.icon
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
+          {/* GRATIS */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl border-2 border-gray-200 p-6 lg:p-8 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                <Heart className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Gratis</h2>
+                <p className="text-sm text-gray-600">Kennismaken met daten</p>
+              </div>
+            </div>
 
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`relative ${config.recommended ? 'lg:-mt-6 lg:mb-6' : ''}`}
-              >
-                {/* Recommended Badge */}
-                {config.recommended && (
-                  <div className="absolute -top-4 lg:-top-5 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-primary text-white text-sm lg:text-base font-semibold px-4 lg:px-5 py-1 lg:py-1.5 rounded-full shadow-lg whitespace-nowrap">
-                      Aanbevolen
-                    </div>
-                  </div>
-                )}
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-gray-900">€0</span>
+              <span className="text-gray-500 ml-2">/ altijd</span>
+            </div>
 
-                {/* Current Plan Badge */}
-                {isCurrentPlan && (
-                  <div className="absolute -top-4 lg:-top-5 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-gray-900 text-white text-sm lg:text-base font-semibold px-4 lg:px-5 py-1 lg:py-1.5 rounded-full shadow-lg whitespace-nowrap">
-                      Huidig plan
-                    </div>
-                  </div>
-                )}
+            <ul className="space-y-3 mb-8">
+              {freePlan.features.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700 text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
 
-                {/* Card */}
-                <div
-                  className={`h-full bg-white rounded-2xl lg:rounded-3xl border-2 ${
-                    config.recommended
-                      ? 'border-primary shadow-xl lg:shadow-2xl'
-                      : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
-                  } transition-all p-8 lg:p-10`}
+            <button
+              onClick={() => handleSelectPlan(freePlan)}
+              disabled={currentPlan === 'FREE'}
+              className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                currentPlan === 'FREE'
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-900 text-white hover:bg-gray-800'
+              }`}
+            >
+              {currentPlan === 'FREE' ? 'Huidig plan' : 'Gratis starten'}
+            </button>
+          </motion.div>
+
+          {/* PREMIUM */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="relative bg-white rounded-2xl border-2 border-rose-300 p-6 lg:p-8 shadow-xl lg:-mt-4 lg:mb-4"
+          >
+            {selectedPremiumPlan.badge && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-rose-500 text-white text-sm font-semibold px-4 py-1 rounded-full">
+                  {selectedPremiumPlan.badge}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-rose-500 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Premium</h2>
+                <p className="text-sm text-gray-600">Volledige ervaring</p>
+              </div>
+            </div>
+
+            {/* Period selector */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {PREMIUM_PERIODS.map((period) => (
+                <button
+                  key={period.value}
+                  onClick={() => setPremiumPeriod(period.value)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    premiumPeriod === period.value
+                      ? 'bg-rose-100 text-rose-700 ring-2 ring-rose-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
-                  {/* Icon */}
-                  <div className="mb-6 lg:mb-8">
-                    <div className={`inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl ${
-                      config.recommended ? 'bg-primary' : 'bg-gray-100'
-                    }`}>
-                      <Icon className={`w-7 h-7 lg:w-8 lg:h-8 ${config.recommended ? 'text-white' : 'text-gray-600'}`} />
-                    </div>
-                  </div>
+                  {period.label}
+                </button>
+              ))}
+            </div>
 
-                  {/* Plan Name */}
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
-                    {plan.name}
-                  </h2>
-                  <p className="text-gray-600 lg:text-lg mb-8">{plan.description}</p>
+            <div className="mb-2">
+              <span className="text-4xl font-bold text-gray-900">{formatPrice(selectedPremiumPlan.price)}</span>
+              <span className="text-gray-500 ml-2">/ {selectedPremiumPlan.periodLabel}</span>
+            </div>
 
-                  {/* Price */}
-                  <div className="mb-8 lg:mb-10">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl lg:text-5xl font-bold text-gray-900">
-                        {formatPrice(plan.price)}
-                      </span>
-                      {plan.price > 0 && (
-                        <span className="text-gray-600 lg:text-lg">/{plan.periodLabel}</span>
-                      )}
-                    </div>
-                    {plan.id === 'FREE' && (
-                      <p className="text-sm text-gray-500 mt-1">Altijd gratis</p>
-                    )}
-                    {plan.id === 'COMPLETE' && (
-                      <p className="text-sm text-green-600 mt-1 font-medium">
-                        Je bespaart bijna 5 euro
-                      </p>
-                    )}
-                  </div>
+            {selectedPremiumPlan.pricePerMonth > 0 && selectedPremiumPlan.period !== 'month' && (
+              <p className="text-sm text-gray-600 mb-1">
+                = {formatPrice(selectedPremiumPlan.pricePerMonth)} per maand
+              </p>
+            )}
 
-                  {/* Features */}
-                  <ul className="space-y-4 mb-10">
-                    {features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 lg:w-6 lg:h-6 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700 lg:text-lg">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+            {selectedPremiumPlan.savings && (
+              <p className="text-sm font-semibold text-green-600 mb-4 flex items-center gap-1">
+                <Check className="w-4 h-4" />
+                {selectedPremiumPlan.savings}
+              </p>
+            )}
 
-                  {/* CTA Button */}
-                  <button
-                    onClick={() => handleSubscriptionSelect(plan.id)}
-                    disabled={isCurrentPlan}
-                    className={`w-full py-3.5 lg:py-4 px-6 rounded-xl lg:rounded-2xl font-semibold lg:text-lg transition-all flex items-center justify-center gap-2 ${
-                      isCurrentPlan
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : config.recommended
-                        ? 'bg-primary text-white hover:bg-primary-hover shadow-lg hover:shadow-xl hover:scale-105'
-                        : 'bg-gray-900 text-white hover:bg-gray-800 hover:scale-105'
-                    }`}
-                  >
-                    {isCurrentPlan ? 'Huidig plan' : plan.id === 'FREE' ? 'Gratis beginnen' : 'Kies dit plan'}
-                    {!isCurrentPlan && <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6" />}
-                  </button>
-                </div>
-              </motion.div>
-            )
-          })}
+            <ul className="space-y-3 mb-8">
+              {selectedPremiumPlan.features.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700 text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            {selectedPremiumPlan.supportsDirectDebit && (
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                <Repeat className="w-4 h-4" />
+                <span>Automatische incasso mogelijk</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => handleSelectPlan(selectedPremiumPlan)}
+              disabled={currentPlan?.startsWith('PREMIUM')}
+              className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                currentPlan?.startsWith('PREMIUM')
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-rose-500 text-white hover:bg-rose-600 shadow-lg hover:shadow-xl'
+              }`}
+            >
+              {currentPlan?.startsWith('PREMIUM') ? 'Huidig plan' : 'Kies Premium'}
+              {!currentPlan?.startsWith('PREMIUM') && <ArrowRight className="w-5 h-5" />}
+            </button>
+          </motion.div>
+
+          {/* GOLD */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-400 p-6 lg:p-8 shadow-xl lg:-mt-6 lg:mb-6"
+          >
+            {selectedGoldPlan.badge && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold px-4 py-1 rounded-full shadow-lg">
+                  {selectedGoldPlan.badge}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                <Crown className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Gold</h2>
+                <p className="text-sm text-gray-600">Ultimate veiligheid</p>
+              </div>
+            </div>
+
+            {/* Period selector */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {GOLD_PERIODS.map((period) => (
+                <button
+                  key={period.value}
+                  onClick={() => setGoldPeriod(period.value)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    goldPeriod === period.value
+                      ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400'
+                      : 'bg-white/70 text-gray-600 hover:bg-white'
+                  }`}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mb-2">
+              <span className="text-4xl font-bold text-gray-900">{formatPrice(selectedGoldPlan.price)}</span>
+              <span className="text-gray-500 ml-2">/ {selectedGoldPlan.periodLabel}</span>
+            </div>
+
+            {selectedGoldPlan.pricePerMonth > 0 && (
+              <p className="text-sm text-gray-600 mb-1">
+                = {formatPrice(selectedGoldPlan.pricePerMonth)} per maand
+              </p>
+            )}
+
+            {selectedGoldPlan.savings && (
+              <p className="text-sm font-semibold text-green-600 mb-4 flex items-center gap-1">
+                <Check className="w-4 h-4" />
+                {selectedGoldPlan.savings}
+              </p>
+            )}
+
+            {selectedGoldPlan.isLifetime && (
+              <p className="text-sm font-semibold text-amber-700 mb-4 flex items-center gap-1">
+                <Infinity className="w-4 h-4" />
+                Eenmalige betaling, voor altijd toegang
+              </p>
+            )}
+
+            <ul className="space-y-3 mb-8">
+              {selectedGoldPlan.features.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700 text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            {selectedGoldPlan.supportsDirectDebit && (
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                <Repeat className="w-4 h-4" />
+                <span>Automatische incasso mogelijk</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => handleSelectPlan(selectedGoldPlan)}
+              disabled={currentPlan?.startsWith('GOLD')}
+              className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                currentPlan?.startsWith('GOLD')
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-lg hover:shadow-xl'
+              }`}
+            >
+              {currentPlan?.startsWith('GOLD') ? 'Huidig plan' : 'Kies Gold'}
+              {!currentPlan?.startsWith('GOLD') && <ArrowRight className="w-5 h-5" />}
+            </button>
+          </motion.div>
         </div>
 
-        {/* Trust Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 text-sm lg:text-base text-gray-600 py-10 lg:py-12 border-t border-gray-200">
-          <div className="flex items-center gap-3">
-            <Heart className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
-            <span className="font-medium">10.000+ actieve gebruikers</span>
+        {/* Feature Comparison */}
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-12">
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900">Vergelijk alle features</h3>
           </div>
-          <div className="flex items-center gap-3">
-            <Check className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
-            <span className="font-medium">100% veilig betalen</span>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left p-4 font-semibold text-gray-900">Feature</th>
+                  <th className="text-center p-4 font-semibold text-gray-600">Gratis</th>
+                  <th className="text-center p-4 font-semibold text-rose-600">Premium</th>
+                  <th className="text-center p-4 font-semibold text-amber-600">Gold</th>
+                </tr>
+              </thead>
+              <tbody>
+                <FeatureRow icon={MessageCircle} name="Berichten per dag" free="3" premium="Onbeperkt" gold="Onbeperkt" />
+                <FeatureRow icon={Eye} name="Profielen bekijken per dag" free="10" premium="Onbeperkt" gold="Onbeperkt" />
+                <FeatureRow icon={Eye} name="Zie wie jou leuk vindt" free={false} premium={true} gold={true} />
+                <FeatureRow icon={Bot} name="AI DatingAssistent" free={false} premium={true} gold={true} />
+                <FeatureRow icon={Bot} name="Geavanceerde AI Coaching" free={false} premium={false} gold={true} />
+                <FeatureRow icon={Shield} name="AI Romance Scam Detectie" free={false} premium={false} gold={true} />
+                <FeatureRow icon={Shield} name="Veiligheidsscore Dashboard" free={false} premium={false} gold={true} />
+                <FeatureRow icon={Volume2} name="Audio berichten" free={false} premium={false} gold={true} />
+                <FeatureRow icon={Undo2} name="Onbeperkt terugdraaien" free={false} premium={false} gold={true} />
+                <FeatureRow icon={Star} name="Super Likes per week" free="0" premium="0" gold="5" />
+                <FeatureRow icon={Crown} name="Gold badge" free={false} premium={false} gold={true} />
+                <FeatureRow icon={Headphones} name="Prioriteit support (24u)" free={false} premium={false} gold={true} />
+              </tbody>
+            </table>
           </div>
-          <div className="flex items-center gap-3">
-            <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
-            <span className="font-medium">Opzeggen wanneer je wilt</span>
+        </div>
+
+        {/* Trust */}
+        <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600 py-8 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <Check className="w-5 h-5 text-green-500" />
+            <span>100% veilig betalen</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Check className="w-5 h-5 text-green-500" />
+            <span>Opzeggen wanneer je wilt</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Repeat className="w-5 h-5 text-green-500" />
+            <span>Automatische incasso</span>
           </div>
         </div>
       </main>
@@ -301,9 +444,49 @@ export default function PrijzenPage() {
           planName={checkoutData.planName}
           planPrice={checkoutData.planPrice}
           planPeriod={checkoutData.planPeriod}
-          credits={checkoutData.credits}
+          supportsDirectDebit={checkoutData.supportsDirectDebit}
         />
       )}
     </div>
+  )
+}
+
+// Feature row component
+function FeatureRow({
+  icon: Icon,
+  name,
+  free,
+  premium,
+  gold,
+}: {
+  icon: typeof Check
+  name: string
+  free: boolean | string
+  premium: boolean | string
+  gold: boolean | string
+}) {
+  const renderValue = (value: boolean | string, color: string) => {
+    if (typeof value === 'boolean') {
+      return value ? (
+        <Check className={`w-5 h-5 ${color}`} />
+      ) : (
+        <X className="w-5 h-5 text-gray-300" />
+      )
+    }
+    return <span className={`font-semibold ${color}`}>{value}</span>
+  }
+
+  return (
+    <tr className="border-b border-gray-100 hover:bg-gray-50">
+      <td className="p-4">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-gray-400" />
+          <span className="text-gray-700">{name}</span>
+        </div>
+      </td>
+      <td className="p-4 text-center">{renderValue(free, 'text-gray-600')}</td>
+      <td className="p-4 text-center">{renderValue(premium, 'text-rose-600')}</td>
+      <td className="p-4 text-center">{renderValue(gold, 'text-amber-600')}</td>
+    </tr>
   )
 }

@@ -152,7 +152,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    let updateData: any = {}
+    const updateData: any = {}
 
     switch (action) {
       case 'ban':

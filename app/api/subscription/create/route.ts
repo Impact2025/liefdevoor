@@ -5,16 +5,16 @@ import { prisma } from '@/lib/prisma'
 import { SubscriptionTier } from '@prisma/client'
 import {
   createSubscriptionPayment,
-  SUBSCRIPTION_PLANS,
+  createDirectDebitMandate,
   type PlanId,
+  type PaymentMethod,
 } from '@/lib/services/payment/multisafepay'
-
-// Duur van abonnementen in dagen
-const PLAN_DURATION: Record<string, number> = {
-  FREE: 0, // Geen einddatum
-  PLUS: 30, // 1 maand
-  COMPLETE: 90, // 3 maanden
-}
+import {
+  getPlanById,
+  getPlanDurationDays,
+  SUBSCRIPTION_PLANS,
+  LEGACY_PLAN_MAP,
+} from '@/lib/pricing'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,27 +25,30 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { planId, amount, couponCode } = body
+    const { planId: rawPlanId, amount, couponCode, paymentMethod = 'ideal' } = body
 
-    console.log('[Subscription Create] Request body:', { planId, amount, couponCode })
+    // Map legacy plan IDs to new format
+    const planId = LEGACY_PLAN_MAP[rawPlanId] || rawPlanId
 
-    if (!planId || !(planId in SUBSCRIPTION_PLANS)) {
-      console.error('[Subscription Create] Invalid planId:', planId, 'Available plans:', Object.keys(SUBSCRIPTION_PLANS))
+    console.log('[Subscription Create] Request body:', { rawPlanId, planId, amount, couponCode, paymentMethod })
+
+    // Get plan from central pricing
+    const plan = getPlanById(planId)
+
+    if (!plan) {
+      console.error('[Subscription Create] Invalid planId:', planId)
+      const availablePlans = SUBSCRIPTION_PLANS.map(p => p.id).join(', ')
       return NextResponse.json({
         error: 'Ongeldig abonnement',
-        details: `Plan ID '${planId}' is niet geldig. Beschikbare plans: ${Object.keys(SUBSCRIPTION_PLANS).join(', ')}`
+        details: `Plan ID '${planId}' is niet geldig. Beschikbare plans: ${availablePlans}`
       }, { status: 400 })
     }
 
-    const plan = SUBSCRIPTION_PLANS[planId as PlanId]
+    // Get the subscription tier from the plan
+    const tier: SubscriptionTier = plan.tier
 
     // Handle free plan OR 100% discount with coupon
     if (plan.price === 0 || amount === 0) {
-      // Determine subscription tier based on plan
-      let tier: SubscriptionTier = 'FREE'
-      if (planId === 'PLUS') tier = 'PLUS'
-      if (planId === 'COMPLETE') tier = 'COMPLETE'
-
       // Cancel any existing subscription first
       await prisma.subscription.updateMany({
         where: { userId: session.user.id, status: 'active' },
@@ -60,9 +63,10 @@ export async function POST(request: NextRequest) {
 
       // Calculate end date for paid plans
       let endDate: Date | undefined
-      if (planId !== 'FREE') {
+      if (tier !== 'FREE') {
+        const durationDays = getPlanDurationDays(planId)
         endDate = new Date()
-        endDate.setDate(endDate.getDate() + PLAN_DURATION[planId])
+        endDate.setDate(endDate.getDate() + durationDays)
       }
 
       // Create subscription record
@@ -90,8 +94,8 @@ export async function POST(request: NextRequest) {
                 userId: session.user.id,
                 orderType: 'subscription',
                 orderId: subscription.id,
-                originalAmount: plan.price / 100,
-                discountAmount: plan.price / 100,
+                originalAmount: plan.price,
+                discountAmount: plan.price,
                 finalAmount: 0,
               }
             })
@@ -117,17 +121,20 @@ export async function POST(request: NextRequest) {
       where: {
         userId: session.user.id,
         status: 'active',
-        plan: { in: ['PLUS', 'COMPLETE'] },
       },
     })
 
     if (existingSubscription) {
+      const existingPlan = getPlanById(existingSubscription.plan)
+
       console.log('[Subscription Create] Existing subscription found:', {
         existingPlan: existingSubscription.plan,
-        requestedPlan: planId
+        existingTier: existingPlan?.tier,
+        requestedPlan: planId,
+        requestedTier: tier
       })
 
-      // Check if same plan
+      // Check if same tier and period
       if (existingSubscription.plan === planId) {
         return NextResponse.json(
           { error: 'Je hebt dit abonnement al' },
@@ -135,18 +142,19 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Allow upgrade from PLUS to COMPLETE
-      if (existingSubscription.plan === 'COMPLETE' && planId === 'PLUS') {
+      // Prevent downgrade from GOLD to PREMIUM
+      if (existingPlan?.tier === 'GOLD' && tier === 'PREMIUM') {
         return NextResponse.json(
-          { error: 'Downgrade naar Liefde Plus is niet mogelijk. Annuleer eerst je Liefde Compleet abonnement.' },
+          { error: 'Downgrade naar Premium is niet mogelijk. Annuleer eerst je Gold abonnement.' },
           { status: 400 }
         )
       }
     }
 
-    // Calculate end date
+    // Calculate end date based on billing period
+    const durationDays = getPlanDurationDays(planId)
     const endDate = new Date()
-    endDate.setDate(endDate.getDate() + PLAN_DURATION[planId])
+    endDate.setDate(endDate.getDate() + durationDays)
 
     // Create pending subscription
     const subscription = await prisma.subscription.create({
@@ -158,22 +166,43 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create payment with MultiSafepay
-    const { paymentUrl, orderId } = await createSubscriptionPayment(
-      session.user.id,
-      session.user.email,
-      session.user.name || null,
-      planId as PlanId,
-      subscription.id
-    )
+    // Create payment based on method
+    let paymentResult: { paymentUrl: string; orderId: string; isDirectDebit?: boolean }
 
-    // Update subscription with MultiSafepay order ID
+    if (paymentMethod === 'directdebit') {
+      // SEPA Direct Debit - automatische incasso
+      paymentResult = await createDirectDebitMandate(
+        session.user.id,
+        session.user.email,
+        session.user.name || null,
+        planId,
+        subscription.id
+      )
+    } else {
+      // Regular payment (iDEAL, creditcard, Bancontact)
+      paymentResult = await createSubscriptionPayment(
+        session.user.id,
+        session.user.email,
+        session.user.name || null,
+        planId as PlanId,
+        subscription.id,
+        paymentMethod as PaymentMethod
+      )
+    }
+
+    // Update subscription with MultiSafepay order ID and payment method
     await prisma.subscription.update({
       where: { id: subscription.id },
-      data: { multisafepayId: orderId },
+      data: {
+        multisafepayId: paymentResult.orderId,
+        // Store if it's a direct debit subscription for recurring handling
+      },
     })
 
-    return NextResponse.json({ paymentUrl })
+    return NextResponse.json({
+      paymentUrl: paymentResult.paymentUrl,
+      isDirectDebit: paymentResult.isDirectDebit,
+    })
   } catch (error) {
     console.error('[Subscription] Error creating subscription:', error)
     return NextResponse.json(
@@ -189,13 +218,22 @@ export async function POST(request: NextRequest) {
  * Get available subscription plans
  */
 export async function GET() {
-  const plans = Object.entries(SUBSCRIPTION_PLANS).map(([id, plan]) => ({
-    id,
+  const plans = SUBSCRIPTION_PLANS.map(plan => ({
+    id: plan.id,
+    tier: plan.tier,
     name: plan.name,
-    price: plan.price / 100, // Convert to euros
+    description: plan.description,
+    price: plan.price,
     period: plan.period,
-    pricePerMonth: plan.period === '3months' ? (plan.price / 100) / 3 : plan.price / 100,
+    periodLabel: plan.periodLabel,
+    pricePerMonth: plan.pricePerMonth,
+    savings: plan.savings,
+    savingsPercent: plan.savingsPercent,
     features: plan.features,
+    highlighted: plan.highlighted,
+    badge: plan.badge,
+    supportsDirectDebit: plan.supportsDirectDebit,
+    isLifetime: plan.isLifetime,
   }))
 
   return NextResponse.json({ plans })

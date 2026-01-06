@@ -520,7 +520,7 @@ Alle API endpoints (behalve publieke endpoints) vereisen authenticatie via NextA
                 properties: {
                   plan: {
                     type: 'string',
-                    enum: ['PLUS', 'COMPLETE']
+                    enum: ['PREMIUM', 'GOLD']
                   },
                   couponCode: { type: 'string' },
                 },
@@ -735,7 +735,7 @@ Alle API endpoints (behalve publieke endpoints) vereisen authenticatie via NextA
             items: { $ref: '#/components/schemas/Photo' },
           },
           isVerified: { type: 'boolean' },
-          subscriptionTier: { type: 'string', enum: ['FREE', 'PLUS', 'COMPLETE'] },
+          subscriptionTier: { type: 'string', enum: ['FREE', 'PREMIUM', 'GOLD'] },
         },
       },
       DiscoverUser: {
@@ -818,7 +818,7 @@ Alle API endpoints (behalve publieke endpoints) vereisen authenticatie via NextA
       SubscriptionInfo: {
         type: 'object',
         properties: {
-          plan: { type: 'string', enum: ['FREE', 'PLUS', 'COMPLETE'] },
+          plan: { type: 'string', enum: ['FREE', 'PREMIUM', 'GOLD'] },
           status: { type: 'string', enum: ['active', 'cancelled', 'expired', 'pending'] },
           isActive: { type: 'boolean' },
           expiresAt: { type: 'string', format: 'date-time' },
@@ -925,8 +925,8 @@ Alle API endpoints (behalve publieke endpoints) vereisen authenticatie via NextA
             example: {
               success: false,
               error: 'Premium functie',
-              message: 'Deze functie is beschikbaar met Liefde Plus.',
-              requiredPlan: 'PLUS',
+              message: 'Deze functie is beschikbaar met Premium.',
+              requiredPlan: 'PREMIUM',
               upgradeUrl: '/prijzen',
             },
           },

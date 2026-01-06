@@ -149,7 +149,8 @@
       "Bash(set NEXTAUTH_URL=http://localhost:9000)",
       "Bash(git -C D:/Datingsite2026 diff next.config.mjs)",
       "Bash(git -C D:/Datingsite2026 diff HEAD next.config.mjs)",
-      "Bash(git -C:*)"
+      "Bash(git -C:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

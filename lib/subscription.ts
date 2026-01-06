@@ -10,7 +10,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SubscriptionTier } from '@prisma/client'
 
-export type SubscriptionPlan = 'FREE' | 'PLUS' | 'COMPLETE'
+export type SubscriptionPlan = 'FREE' | 'PREMIUM' | 'GOLD'
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'pending'
 
 export interface SubscriptionInfo {
@@ -18,6 +18,9 @@ export interface SubscriptionInfo {
   tier: SubscriptionTier
   status: SubscriptionStatus
   isActive: boolean
+  isPremium: boolean
+  isGold: boolean
+  // Legacy aliases for backwards compatibility
   isPlus: boolean
   isComplete: boolean
   expiresAt: Date | null
@@ -42,11 +45,11 @@ export interface PlanFeatures {
   canUseIncognito: boolean // Browse anonymously
 }
 
-// Feature limits per plan - "Vriend van de Liefde" Model
+// Feature limits per plan - Drielaags Abonnementsmodel
 const PLAN_FEATURES: Record<SubscriptionPlan, PlanFeatures> = {
   FREE: {
-    dailyLikes: 10,
-    dailyChats: 1,
+    dailyLikes: 8,
+    dailyChats: 2,
     canSeeWhoLikedYou: false,
     canSendAudio: false,
     canBoost: false,
@@ -59,22 +62,22 @@ const PLAN_FEATURES: Record<SubscriptionPlan, PlanFeatures> = {
     canUsePassport: false,
     canUseIncognito: false,
   },
-  PLUS: {
+  PREMIUM: {
     dailyLikes: -1, // unlimited
     dailyChats: -1, // unlimited
     canSeeWhoLikedYou: true,
-    canSendAudio: true,
+    canSendAudio: false, // Only Gold can send audio
     canBoost: false,
     boostsPerMonth: 0,
-    advancedFilters: false,
+    advancedFilters: true,
     readReceipts: true,
-    priorityInSearch: false,
+    priorityInSearch: true,
     noAds: true,
     monthlySupermessages: 0,
     canUsePassport: false,
     canUseIncognito: false,
   },
-  COMPLETE: {
+  GOLD: {
     dailyLikes: -1, // unlimited
     dailyChats: -1, // unlimited
     canSeeWhoLikedYou: true,
@@ -85,9 +88,9 @@ const PLAN_FEATURES: Record<SubscriptionPlan, PlanFeatures> = {
     readReceipts: true,
     priorityInSearch: true,
     noAds: true,
-    monthlySupermessages: 3,
-    canUsePassport: true, // Only COMPLETE can use passport
-    canUseIncognito: true, // Only COMPLETE can use incognito
+    monthlySupermessages: 5, // 5 Super Likes per week
+    canUsePassport: true,
+    canUseIncognito: true,
   },
 }
 
@@ -123,16 +126,19 @@ export async function getSubscriptionInfo(userId: string): Promise<SubscriptionI
     isExpired ? 'expired' : (subscription?.status as SubscriptionStatus) || 'active'
 
   const isActive = (status === 'active' && !isExpired) || tier === 'FREE'
-  const isPlus = isActive && (tier === 'PLUS' || tier === 'COMPLETE')
-  const isComplete = isActive && tier === 'COMPLETE'
+  const isPremium = isActive && (tier === 'PREMIUM' || tier === 'GOLD')
+  const isGold = isActive && tier === 'GOLD'
 
   return {
     plan,
     tier,
     status,
     isActive,
-    isPlus,
-    isComplete,
+    isPremium,
+    isGold,
+    // Legacy aliases for backwards compatibility
+    isPlus: isPremium,
+    isComplete: isGold,
     expiresAt: subscription?.endDate || null,
     features: PLAN_FEATURES[plan],
     credits: user?.credits || 0,
@@ -264,11 +270,11 @@ export async function canStartChat(userId: string): Promise<{ allowed: boolean; 
 /**
  * Feature gate error response
  */
-export function featureGateError(feature: string, requiredPlan: SubscriptionPlan = 'PLUS') {
+export function featureGateError(feature: string, requiredPlan: SubscriptionPlan = 'PREMIUM') {
   const planNames: Record<SubscriptionPlan, string> = {
-    FREE: 'Basis',
-    PLUS: 'Liefde Plus',
-    COMPLETE: 'Liefde Compleet',
+    FREE: 'Gratis',
+    PREMIUM: 'Premium',
+    GOLD: 'Gold',
   }
 
   return {

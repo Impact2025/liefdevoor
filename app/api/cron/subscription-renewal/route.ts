@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import {
-  processRecurringPayment,
-  SUBSCRIPTION_PLANS,
-  type PlanId,
-} from '@/lib/services/payment/multisafepay'
+import { processRecurringPayment } from '@/lib/services/payment/multisafepay'
+import { getPlanById, getPlanDurationDays, BILLING_PERIODS } from '@/lib/pricing'
 import {
   sendSubscriptionRenewedEmail,
   sendPaymentFailedEmail,
@@ -66,24 +63,28 @@ export async function POST(request: NextRequest) {
     for (const subscription of expiringSubscriptions) {
       results.processed++
 
-      const plan = SUBSCRIPTION_PLANS[subscription.plan as PlanId]
+      const plan = getPlanById(subscription.plan)
       if (!plan || plan.price === 0) {
         console.warn(`[Cron] Invalid plan for subscription ${subscription.id}`)
         continue
       }
 
+      // Convert price to cents for payment processing
+      const priceInCents = Math.round(plan.price * 100)
+
       try {
         // Process recurring payment
         const result = await processRecurringPayment(
           subscription.recurringId!,
-          plan.price,
+          priceInCents,
           `renewal_${subscription.id}_${Date.now()}`,
-          `${plan.name} Abonnement Verlenging - Liefde Voor Iedereen`
+          `${plan.name} (${plan.periodLabel}) Abonnement Verlenging - Liefde Voor Iedereen`
         )
 
         if (result.success) {
-          // Calculate new end date
-          const newEndDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
+          // Calculate new end date based on plan period
+          const durationDays = getPlanDurationDays(subscription.plan)
+          const newEndDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
 
           // Update subscription with new end date
           await prisma.subscription.update({
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
               userId: subscription.userId,
               type: 'subscription',
               title: 'Abonnement Verlengd',
-              message: `Je ${plan.name} abonnement is automatisch verlengd voor een nieuwe maand.`,
+              message: `Je ${plan.name} abonnement is automatisch verlengd ${plan.periodLabel}.`,
             },
           })
 
@@ -176,7 +177,7 @@ export async function POST(request: NextRequest) {
     // Send expiring soon emails
     for (const subscription of expiringSoonSubscriptions) {
       try {
-        const plan = SUBSCRIPTION_PLANS[subscription.plan.toLowerCase() as PlanId]
+        const plan = getPlanById(subscription.plan)
         if (plan && subscription.endDate) {
           await sendSubscriptionExpiringEmail({
             userId: subscription.userId,
@@ -231,7 +232,13 @@ async function handleRenewalFailure(
 
   // Send payment failed email
   try {
-    const plan = SUBSCRIPTION_PLANS[planName.toLowerCase() as PlanId]
+    // Get subscription to find the plan ID
+    const subscription = await prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+      select: { plan: true }
+    })
+
+    const plan = subscription ? getPlanById(subscription.plan) : null
     if (plan) {
       await sendPaymentFailedEmail({
         userId,
@@ -280,7 +287,7 @@ async function handleExpiredSubscription(subscriptionId: string, userId: string)
   // Send expired email
   if (subscription) {
     try {
-      const plan = SUBSCRIPTION_PLANS[subscription.plan.toLowerCase() as PlanId]
+      const plan = getPlanById(subscription.plan)
       if (plan) {
         await sendSubscriptionExpiredEmail({
           userId,

@@ -132,7 +132,7 @@ export function VideoVerification() {
 
     // Record for each challenge
     const { challenges } = state
-    let totalDuration = challenges.reduce((sum, c) => sum + c.duration, 0)
+    const totalDuration = challenges.reduce((sum, c) => sum + c.duration, 0)
     let elapsed = 0
 
     for (let i = 0; i < challenges.length; i++) {

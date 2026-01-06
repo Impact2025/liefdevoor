@@ -2,7 +2,8 @@
  * MultiSafepay Payment Service
  *
  * Handles all payment operations:
- * - Creating orders
+ * - Creating orders (iDEAL, creditcard, Bancontact)
+ * - SEPA Direct Debit (automatische incasso)
  * - Webhook verification
  * - Transaction status checks
  * - Recurring subscriptions
@@ -10,14 +11,18 @@
  */
 
 import crypto from 'crypto'
+import { BILLING_PERIODS, type BillingPeriod } from '@/lib/pricing'
 
 // Types
+export type PaymentMethod = 'ideal' | 'creditcard' | 'bancontact' | 'directdebit'
+
 export interface MultiSafepayOrder {
   type: 'redirect' | 'direct' | 'recurring'
   order_id: string
   currency: 'EUR'
   amount: number
   description: string
+  gateway?: PaymentMethod // Specifieke betaalmethode
   payment_options: {
     notification_url: string
     redirect_url: string
@@ -28,9 +33,23 @@ export interface MultiSafepayOrder {
     first_name?: string
     last_name?: string
     locale?: string
+    address1?: string
+    city?: string
+    country?: string
+    phone?: string
+  }
+  gateway_info?: {
+    // Voor SEPA Direct Debit
+    account_id?: string // IBAN
+    account_holder_name?: string
+    account_holder_iban?: string
+    emandate?: string // E-mandate reference
   }
   recurring_model?: 'cardOnFile' | 'subscription' | 'unscheduled'
   recurring_id?: string
+  // Voor recurring SEPA
+  recurring_flow?: 'token'
+  days_active?: number // Aantal dagen dat de betaallink actief is
 }
 
 export interface MultiSafepayResponse {
@@ -67,45 +86,21 @@ export interface MultiSafepayWebhookPayload {
   var3?: string
 }
 
-// Plan configuration - "Vriend van de Liefde" Model
+// Import plan configuration from central pricing file
+import { getPlanById, type SubscriptionPlan, LEGACY_PLAN_MAP } from '@/lib/pricing'
+
+// Re-export for backwards compatibility
+export { getPlanById, type SubscriptionPlan }
+
+// Legacy SUBSCRIPTION_PLANS export for backwards compatibility
+// New code should use getPlanById() from @/lib/pricing
 export const SUBSCRIPTION_PLANS = {
-  FREE: {
-    id: 'FREE',
-    name: 'Basis',
-    price: 0, // cents
-    period: 'month' as const,
-    features: ['Profiel aanmaken', '10 likes per dag', '1 chat per dag starten', 'Basis zoekfilters'],
-  },
-  PLUS: {
-    id: 'PLUS',
-    name: 'Liefde Plus',
-    price: 995, // €9,95 in cents
-    period: 'month' as const,
-    features: [
-      'Onbeperkt chatten',
-      'Onbeperkt likes',
-      'Zien wie jou leuk vindt',
-      'Audioberichten sturen',
-      'Leesbevestigingen',
-      'Geen advertenties',
-    ],
-  },
-  COMPLETE: {
-    id: 'COMPLETE',
-    name: 'Liefde Compleet',
-    price: 2495, // €24,95 in cents (voor 3 maanden)
-    period: '3months' as const,
-    features: [
-      'Alles van Liefde Plus',
-      '3 Superberichten per maand',
-      'Profiel boost (1x per maand)',
-      'Prioriteit in zoekresultaten',
-      'Geavanceerde filters',
-    ],
-  },
+  FREE: { id: 'FREE', name: 'Gratis', price: 0, period: 'month' as const, features: [] },
+  PREMIUM: { id: 'PREMIUM_QUARTER', name: 'Premium', price: 2999, period: '3months' as const, features: [] },
+  GOLD: { id: 'GOLD_QUARTER', name: 'Gold', price: 4499, period: '3months' as const, features: [] },
 } as const
 
-export type PlanId = keyof typeof SUBSCRIPTION_PLANS
+export type PlanId = 'FREE' | 'PREMIUM' | 'GOLD' | string // Extended to support new plan IDs
 
 /**
  * MultiSafepay API Client
@@ -294,33 +289,48 @@ export function getMultiSafepayClient(): MultiSafepayClient {
 
 /**
  * Create subscription payment
+ *
+ * @param userId - User ID
+ * @param userEmail - User email
+ * @param userName - User name
+ * @param planId - Plan ID (new format: PLUS_MONTH, COMPLETE_YEAR, etc. or legacy: PLUS, COMPLETE)
+ * @param subscriptionId - Subscription ID
+ * @param paymentMethod - Payment method (ideal, creditcard, bancontact, directdebit)
  */
 export async function createSubscriptionPayment(
   userId: string,
   userEmail: string,
   userName: string | null,
   planId: PlanId,
-  subscriptionId: string
-): Promise<{ paymentUrl: string; orderId: string }> {
-  const plan = SUBSCRIPTION_PLANS[planId]
+  subscriptionId: string,
+  paymentMethod: PaymentMethod = 'ideal'
+): Promise<{ paymentUrl: string; orderId: string; isDirectDebit?: boolean }> {
+  // Get plan from central pricing (supports legacy IDs)
+  const plan = getPlanById(planId)
+
   if (!plan || plan.price === 0) {
     throw new Error('Invalid or free plan')
   }
 
   const client = getMultiSafepayClient()
-
   const nameParts = userName?.split(' ') || ['']
+  const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
 
+  // Convert price from euros to cents
+  const amountInCents = Math.round(plan.price * 100)
+
+  // Base order configuration
   const order: MultiSafepayOrder = {
-    type: 'redirect',
+    type: paymentMethod === 'directdebit' ? 'redirect' : 'redirect',
     order_id: subscriptionId,
     currency: 'EUR',
-    amount: plan.price,
-    description: `${plan.name} Abonnement - Liefde Voor Iedereen`,
+    amount: amountInCents,
+    description: `${plan.name} (${plan.periodLabel}) - Liefde Voor Iedereen`,
+    gateway: paymentMethod === 'directdebit' ? 'directdebit' : undefined,
     payment_options: {
-      notification_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/api/subscription/webhook`,
-      redirect_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/subscription/success?order_id=${subscriptionId}`,
-      cancel_url: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/subscription/cancel`,
+      notification_url: `${baseUrl}/api/subscription/webhook`,
+      redirect_url: `${baseUrl}/subscription/success?order_id=${subscriptionId}`,
+      cancel_url: `${baseUrl}/subscription/cancel`,
     },
     customer: {
       email: userEmail,
@@ -329,6 +339,15 @@ export async function createSubscriptionPayment(
       locale: 'nl_NL',
     },
     recurring_model: 'subscription',
+    days_active: 7, // Link is 7 dagen geldig
+  }
+
+  // SEPA Direct Debit specifieke configuratie
+  if (paymentMethod === 'directdebit') {
+    // Voor SEPA moeten we een e-mandate aanmaken
+    // De klant geeft toestemming voor automatische incasso
+    order.gateway = 'directdebit'
+    order.recurring_flow = 'token' // Gebruik tokenisatie voor recurring
   }
 
   const response = await client.createOrder(order)
@@ -340,6 +359,74 @@ export async function createSubscriptionPayment(
   return {
     paymentUrl: response.data.payment_url,
     orderId: response.data.order_id,
+    isDirectDebit: paymentMethod === 'directdebit',
+  }
+}
+
+/**
+ * Create a SEPA Direct Debit mandate
+ * Dit is een eerste betaling waarbij de klant toestemming geeft voor automatische incasso
+ */
+export async function createDirectDebitMandate(
+  userId: string,
+  userEmail: string,
+  userName: string | null,
+  planId: string,
+  subscriptionId: string,
+  iban?: string,
+  accountHolderName?: string
+): Promise<{ paymentUrl: string; orderId: string; mandateId?: string }> {
+  const plan = getPlanById(planId)
+
+  if (!plan || plan.price === 0) {
+    throw new Error('Invalid or free plan')
+  }
+
+  const client = getMultiSafepayClient()
+  const nameParts = userName?.split(' ') || ['']
+  const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const amountInCents = Math.round(plan.price * 100)
+
+  const order: MultiSafepayOrder = {
+    type: 'redirect',
+    order_id: subscriptionId,
+    currency: 'EUR',
+    amount: amountInCents,
+    description: `Automatische incasso machtiging - ${plan.name} (${plan.periodLabel})`,
+    gateway: 'directdebit',
+    payment_options: {
+      notification_url: `${baseUrl}/api/subscription/webhook`,
+      redirect_url: `${baseUrl}/subscription/success?order_id=${subscriptionId}&direct_debit=true`,
+      cancel_url: `${baseUrl}/subscription/cancel`,
+    },
+    customer: {
+      email: userEmail,
+      first_name: nameParts[0],
+      last_name: nameParts.slice(1).join(' ') || undefined,
+      locale: 'nl_NL',
+    },
+    recurring_model: 'subscription',
+    recurring_flow: 'token',
+  }
+
+  // Als IBAN al bekend is, voeg toe aan gateway_info
+  if (iban && accountHolderName) {
+    order.gateway_info = {
+      account_holder_name: accountHolderName,
+      account_holder_iban: iban,
+    }
+  }
+
+  const response = await client.createOrder(order)
+
+  if (!response.data?.payment_url) {
+    throw new Error('No payment URL received')
+  }
+
+  return {
+    paymentUrl: response.data.payment_url,
+    orderId: response.data.order_id,
+    mandateId: response.data.payment_details?.recurring_id,
   }
 }
 

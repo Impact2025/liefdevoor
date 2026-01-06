@@ -112,13 +112,13 @@ export async function POST(request: NextRequest) {
     let useMonthlyCredit = false
     let usePurchasedCredit = false
 
-    // Check maandelijkse credits (voor COMPLETE abonnees)
+    // Check maandelijkse credits (voor GOLD abonnees)
     const now = new Date()
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
     // Reset maandelijkse credits indien nodig
     if (
-      sender.subscriptionTier === 'COMPLETE' &&
+      sender.subscriptionTier === 'GOLD' &&
       (!sender.monthlySupermessagesReset || new Date(sender.monthlySupermessagesReset) < firstOfMonth)
     ) {
       await prisma.user.update({

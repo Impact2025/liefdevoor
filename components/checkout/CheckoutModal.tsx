@@ -6,7 +6,8 @@
  * Features:
  * - Coupon integration
  * - Real-time price updates
- * - Payment method selection
+ * - Payment method selection (iDEAL, Credit Card, Bancontact, SEPA Direct Debit)
+ * - Automatische incasso (SEPA Direct Debit) support
  * - Loading states & animations
  * - Success/error handling
  */
@@ -15,9 +16,11 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, CreditCard, Building2, Smartphone, Check,
-  Lock, ArrowRight, Loader2, Sparkles
+  Lock, ArrowRight, Loader2, Sparkles, Repeat, Info
 } from 'lucide-react'
 import CouponInput from './CouponInput'
+
+type PaymentMethod = 'ideal' | 'creditcard' | 'bancontact' | 'directdebit'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -28,6 +31,7 @@ interface CheckoutModalProps {
   planPrice?: number
   planPeriod?: string
   credits?: number
+  supportsDirectDebit?: boolean
 }
 
 interface DiscountInfo {
@@ -49,12 +53,14 @@ export default function CheckoutModal({
   planName,
   planPrice = 0,
   planPeriod,
-  credits
+  credits,
+  supportsDirectDebit = false
 }: CheckoutModalProps) {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'ideal' | 'creditcard' | 'bancontact'>('ideal')
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('ideal')
   const [appliedDiscount, setAppliedDiscount] = useState<DiscountInfo | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [showDirectDebitInfo, setShowDirectDebitInfo] = useState(false)
 
   const originalAmount = planPrice
   const finalAmount = appliedDiscount ? appliedDiscount.finalAmount : originalAmount
@@ -64,8 +70,6 @@ export default function CheckoutModal({
     setIsProcessing(true)
 
     try {
-      // Create subscription/credit purchase
-      // Note: Coupon will be applied and recorded by the backend
       const endpoint = type === 'subscription' ? '/api/subscription/create' : '/api/credits/purchase'
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -110,6 +114,23 @@ export default function CheckoutModal({
   }
 
   if (!isOpen) return null
+
+  // Payment methods configuration
+  const paymentMethods: { id: PaymentMethod; name: string; icon: typeof CreditCard; description?: string }[] = [
+    { id: 'ideal', name: 'iDEAL', icon: Building2 },
+    { id: 'creditcard', name: 'Kaart', icon: CreditCard },
+    { id: 'bancontact', name: 'Bancontact', icon: Smartphone },
+  ]
+
+  // Add direct debit if supported
+  if (supportsDirectDebit && type === 'subscription') {
+    paymentMethods.push({
+      id: 'directdebit',
+      name: 'Incasso',
+      icon: Repeat,
+      description: 'Automatisch'
+    })
+  }
 
   return (
     <AnimatePresence>
@@ -215,53 +236,100 @@ export default function CheckoutModal({
               <label className="block text-sm font-semibold text-slate-900 mb-3">
                 Betaalmethode
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                {/* iDEAL */}
-                <button
-                  onClick={() => setSelectedPaymentMethod('ideal')}
-                  className={`p-4 border-2 rounded-xl transition-all ${
-                    selectedPaymentMethod === 'ideal'
-                      ? 'border-rose-500 bg-stone-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <Building2 className={`w-8 h-8 mx-auto mb-2 ${
-                    selectedPaymentMethod === 'ideal' ? 'text-rose-600' : 'text-slate-400'
-                  }`} />
-                  <p className="text-sm font-medium text-slate-900">iDEAL</p>
-                </button>
+              <div className={`grid gap-3 ${paymentMethods.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                {paymentMethods.map((method) => {
+                  const Icon = method.icon
+                  const isSelected = selectedPaymentMethod === method.id
 
-                {/* Credit Card */}
-                <button
-                  onClick={() => setSelectedPaymentMethod('creditcard')}
-                  className={`p-4 border-2 rounded-xl transition-all ${
-                    selectedPaymentMethod === 'creditcard'
-                      ? 'border-rose-500 bg-stone-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <CreditCard className={`w-8 h-8 mx-auto mb-2 ${
-                    selectedPaymentMethod === 'creditcard' ? 'text-rose-600' : 'text-slate-400'
-                  }`} />
-                  <p className="text-sm font-medium text-slate-900">Kaart</p>
-                </button>
-
-                {/* Bancontact */}
-                <button
-                  onClick={() => setSelectedPaymentMethod('bancontact')}
-                  className={`p-4 border-2 rounded-xl transition-all ${
-                    selectedPaymentMethod === 'bancontact'
-                      ? 'border-rose-500 bg-stone-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <Smartphone className={`w-8 h-8 mx-auto mb-2 ${
-                    selectedPaymentMethod === 'bancontact' ? 'text-rose-600' : 'text-slate-400'
-                  }`} />
-                  <p className="text-sm font-medium text-slate-900">Bancontact</p>
-                </button>
+                  return (
+                    <button
+                      key={method.id}
+                      onClick={() => setSelectedPaymentMethod(method.id)}
+                      className={`p-4 border-2 rounded-xl transition-all ${
+                        isSelected
+                          ? method.id === 'directdebit'
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-rose-500 bg-stone-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <Icon className={`w-7 h-7 mx-auto mb-2 ${
+                        isSelected
+                          ? method.id === 'directdebit'
+                            ? 'text-green-600'
+                            : 'text-rose-600'
+                          : 'text-slate-400'
+                      }`} />
+                      <p className="text-sm font-medium text-slate-900">{method.name}</p>
+                      {method.description && (
+                        <p className="text-xs text-slate-500 mt-0.5">{method.description}</p>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
+
+            {/* Direct Debit Info */}
+            {selectedPaymentMethod === 'directdebit' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-green-50 border border-green-200 rounded-xl p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <Repeat className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-green-900 mb-1">
+                      Automatische incasso (SEPA)
+                    </p>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li className="flex items-start gap-2">
+                        <Check className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>Betaal automatisch, geen gedoe met facturen</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>Wordt {planPeriod?.toLowerCase()} afgeschreven</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>Altijd opzegbaar, 8 weken terugboekrecht</span>
+                      </li>
+                    </ul>
+
+                    <button
+                      onClick={() => setShowDirectDebitInfo(!showDirectDebitInfo)}
+                      className="mt-3 text-sm text-green-700 hover:text-green-900 flex items-center gap-1"
+                    >
+                      <Info className="w-4 h-4" />
+                      {showDirectDebitInfo ? 'Verberg details' : 'Meer informatie'}
+                    </button>
+
+                    {showDirectDebitInfo && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-3 text-xs text-green-700 bg-green-100 rounded-lg p-3"
+                      >
+                        <p className="mb-2">
+                          <strong>Hoe werkt automatische incasso?</strong>
+                        </p>
+                        <p className="mb-2">
+                          Na je goedkeuring schrijven we {planPeriod?.toLowerCase()} €{finalAmount.toFixed(2)} af van je rekening.
+                          Je ontvangt altijd vooraf een e-mail herinnering.
+                        </p>
+                        <p>
+                          Je kunt de machtiging op elk moment intrekken via je profielinstellingen.
+                          Na intrekking loopt je huidige periode gewoon af.
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Security Notice */}
             <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl">
@@ -271,7 +339,10 @@ export default function CheckoutModal({
                   Veilig betalen
                 </p>
                 <p className="text-xs text-blue-700 mt-1">
-                  Je betaling wordt veilig verwerkt via SSL-encryptie. We slaan geen betalingsgegevens op.
+                  {selectedPaymentMethod === 'directdebit'
+                    ? 'Je SEPA machtiging wordt veilig verwerkt. Je hebt 8 weken terugboekrecht bij je bank.'
+                    : 'Je betaling wordt veilig verwerkt via SSL-encryptie. We slaan geen betalingsgegevens op.'
+                  }
                 </p>
               </div>
             </div>
@@ -280,7 +351,11 @@ export default function CheckoutModal({
             <button
               onClick={handleCheckout}
               disabled={isProcessing}
-              className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className={`w-full py-4 font-bold text-lg rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                selectedPaymentMethod === 'directdebit'
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-rose-500 hover:bg-rose-600 text-white'
+              }`}
             >
               {isProcessing ? (
                 <>
@@ -289,16 +364,25 @@ export default function CheckoutModal({
                 </>
               ) : (
                 <>
-                  <Lock className="w-5 h-5" />
-                  {finalAmount === 0 ? 'Gratis activeren' : `Betaal €${finalAmount.toFixed(2)}`}
-                  <ArrowRight className="w-5 h-5" />
+                  {selectedPaymentMethod === 'directdebit' ? (
+                    <>
+                      <Repeat className="w-5 h-5" />
+                      Machtiging geven voor €{finalAmount.toFixed(2)}{planPeriod ? ` ${planPeriod}` : ''}
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5" />
+                      {finalAmount === 0 ? 'Gratis activeren' : `Betaal €${finalAmount.toFixed(2)}`}
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
                 </>
               )}
             </button>
 
             {/* Terms */}
             <p className="text-xs text-center text-slate-500">
-              Door te betalen ga je akkoord met onze{' '}
+              Door te {selectedPaymentMethod === 'directdebit' ? 'machtigen' : 'betalen'} ga je akkoord met onze{' '}
               <a href="/terms" className="text-rose-600 hover:underline">
                 algemene voorwaarden
               </a>{' '}
@@ -306,6 +390,14 @@ export default function CheckoutModal({
               <a href="/privacy" className="text-rose-600 hover:underline">
                 privacybeleid
               </a>
+              {selectedPaymentMethod === 'directdebit' && (
+                <>
+                  {' '}inclusief de{' '}
+                  <a href="/terms#sepa" className="text-rose-600 hover:underline">
+                    SEPA incasso voorwaarden
+                  </a>
+                </>
+              )}
             </p>
           </div>
         </motion.div>

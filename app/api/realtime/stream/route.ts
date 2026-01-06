@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   // Set up SSE stream
   const encoder = new TextEncoder()
-  let unsubscribes: Array<() => void> = []
+  const unsubscribes: Array<() => void> = []
   let isConnected = true
 
   const stream = new ReadableStream({

@@ -1,5 +1,5 @@
 /**
- * Upgrade admin user to COMPLETE tier for testing Passport
+ * Upgrade admin user to GOLD tier for testing Passport
  */
 
 import { PrismaClient } from '@prisma/client'
@@ -7,7 +7,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function upgradeAdmin() {
-  console.log('🔧 Upgrading admin to COMPLETE tier...')
+  console.log('🔧 Upgrading admin to GOLD tier...')
 
   try {
     // Find admin user
@@ -22,15 +22,15 @@ async function upgradeAdmin() {
       return
     }
 
-    // Upgrade to COMPLETE (just update tier, subscription is separate)
+    // Upgrade to GOLD (just update tier, subscription is separate)
     const updated = await prisma.user.update({
       where: { id: admin.id },
       data: {
-        subscriptionTier: 'COMPLETE',
+        subscriptionTier: 'GOLD',
       },
     })
 
-    console.log(`✅ Upgraded ${updated.email} to COMPLETE tier!`)
+    console.log(`✅ Upgraded ${updated.email} to GOLD tier!`)
     console.log(`   Now you can test Passport features!`)
 
     // Create some passport history for this user

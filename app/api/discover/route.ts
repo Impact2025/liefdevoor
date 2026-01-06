@@ -281,7 +281,7 @@ export async function GET(request: NextRequest) {
     // Use passport location if active, otherwise use real location
     let effectiveLatitude = isPassportActive ? currentUser.passportLatitude : currentUser.latitude
     let effectiveLongitude = isPassportActive ? currentUser.passportLongitude : currentUser.longitude
-    let effectiveCity = isPassportActive ? currentUser.passportCity : currentUser.city
+    const effectiveCity = isPassportActive ? currentUser.passportCity : currentUser.city
 
     // Parse filters and pagination
     const { searchParams } = new URL(request.url)
