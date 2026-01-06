@@ -161,6 +161,11 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
   })
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
 
+  // Honeypot state voor bot protection (onzichtbaar veld dat bots invullen)
+  const [honeypot, setHoneypot] = useState('')
+  // Form start time voor timing analysis
+  const [formStartTime] = useState(() => Date.now())
+
   // Turnstile state voor bot protection
   const {
     token: turnstileToken,
@@ -325,6 +330,9 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
       password: formData.password,
       turnstileToken: tokenToUse, // Turnstile verification token
       source: source || undefined, // Track doelgroep source for auto-enabling accessibility
+      // SpamGuard fields
+      honeypot: honeypot, // Should be empty - bots fill this in
+      timingToken: `${formStartTime}_${Math.random().toString(36).substring(2, 10)}`, // For timing analysis
     })
   }
 
@@ -482,6 +490,33 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Honeypot field - invisible to users, bots will fill this in */}
+      <div
+        aria-hidden="true"
+        tabIndex={-1}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: '-9999px',
+          opacity: 0,
+          height: 0,
+          width: 0,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}
+      >
+        <label htmlFor="website_url">Website</label>
+        <input
+          type="text"
+          id="website_url"
+          name="website_url"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          autoComplete="off"
+          tabIndex={-1}
+        />
+      </div>
 
       {/* Form Steps */}
       <div className="relative overflow-hidden" style={{ minHeight: '280px' }}>

@@ -14,6 +14,7 @@ import NewPaymentAdminEmail from './templates/admin/new-payment'
 import NewRegistrationAdminEmail from './templates/admin/new-registration'
 import SafetyAlertAdminEmail from './templates/admin/safety-alert'
 import PaymentFailedAdminEmail from './templates/admin/payment-failed-admin'
+import DailyManagementReport from './templates/admin/daily-management-report'
 import { sendNewTicketToAdminEmail, sendNewTicketReplyToAdminEmail } from './helpdesk-templates'
 
 /**
