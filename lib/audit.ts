@@ -25,6 +25,7 @@ export type AuditAction =
   | 'EMAIL_VERIFICATION_FAILED'
   | 'EMAIL_VERIFICATION_RATE_LIMITED'
   | 'EMAIL_SCANNER_BLOCKED'
+  | 'EMAIL_SEND_FAILED'
   // Spam Prevention System (SpamGuard)
   | 'SPAM_BLOCKED'
   | 'SPAM_DETECTED'

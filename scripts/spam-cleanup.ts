@@ -74,10 +74,7 @@ async function calculateSpamScore(user: {
   // Check audit log for spam markers
   const auditLogs = await prisma.auditLog.findMany({
     where: {
-      OR: [
-        { userId: user.id },
-        { ip: { not: null } } // Can't easily match email in metadata with current schema
-      ],
+      userId: user.id,
       action: {
         in: [
           'REGISTER_HONEYPOT_TRIGGERED',

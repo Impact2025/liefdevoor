@@ -41,6 +41,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     data: {
       email: to,
       userId: userId || null,
+      type: category, // Type matches category for now
       category,
       subject,
       status: 'pending',
