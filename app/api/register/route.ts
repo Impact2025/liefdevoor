@@ -319,30 +319,39 @@ export async function POST(request: NextRequest) {
     const verificationUrl = `${baseUrl}/verify-email/confirm?token=${token}`
 
     // 14. Send verification email
-    try {
-      await sendEmail({
-        to: user.email!,
-        subject: 'Activeer je Liefde Voor Iedereen account',
-        html: getVerificationEmailHtml({
-          name: user.name || 'daar',
-          verificationUrl,
-        }),
-        text: getVerificationEmailText({
-          name: user.name || 'daar',
-          verificationUrl,
-        }),
-      })
+    const emailResult = await sendEmail({
+      to: user.email!,
+      subject: 'Activeer je Liefde Voor Iedereen account',
+      html: getVerificationEmailHtml({
+        name: user.name || 'daar',
+        verificationUrl,
+      }),
+      text: getVerificationEmailText({
+        name: user.name || 'daar',
+        verificationUrl,
+      }),
+      category: 'VERIFICATION',
+      userId: user.id,
+    })
 
-      // Send admin notification (non-blocking)
-      sendNewRegistrationAdminAlert({
+    if (!emailResult.success) {
+      console.error('[Register] Failed to send verification email:', emailResult.error)
+      // Don't fail registration - user can request resend
+      auditLog('EMAIL_SEND_FAILED', {
         userId: user.id,
-        isHighRisk: spamCheck.isHighRisk,
-        spamScore: spamCheck.overallScore,
-      }).catch(err => console.error('[Register] Admin alert failed:', err))
-    } catch (emailError) {
-      console.error('[Register] Failed to send verification email:', emailError)
-      // Don't fail registration if email fails - user can request resend
+        details: `Verification email failed: ${emailResult.error}`,
+        success: false
+      })
+    } else {
+      console.log('[Register] ✅ Verification email sent successfully')
     }
+
+    // Send admin notification (non-blocking)
+    sendNewRegistrationAdminAlert({
+      userId: user.id,
+      isHighRisk: spamCheck.isHighRisk,
+      spamScore: spamCheck.overallScore,
+    }).catch(err => console.error('[Register] Admin alert failed:', err))
 
     return NextResponse.json({
       success: true,
