@@ -73,11 +73,11 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       let tokenToUse = turnstileToken
       if (!tokenToUse && process.env.NODE_ENV !== 'development') {
         setIsWaitingForVerification(true)
-        tokenToUse = await waitForToken(5000) // Max 5 seconden wachten (sneller)
+        tokenToUse = await waitForToken(15000) // Max 15 seconden wachten
         setIsWaitingForVerification(false)
 
         if (!tokenToUse) {
-          setError('Beveiligingsverificatie duurde te lang. Probeer opnieuw.')
+          setError('Beveiligingsverificatie duurde te lang. Controleer je internetverbinding en probeer opnieuw.')
           setIsLoading(false)
           return
         }
@@ -305,7 +305,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
         size="lg"
         disabled={isLoading}
       >
-        {isWaitingForVerification ? 'Beveiliging controleren...' : isLoading ? 'Inloggen...' : 'Inloggen'}
+        {isWaitingForVerification ? 'Even geduld - verificatie loopt...' : isLoading ? 'Inloggen...' : 'Inloggen'}
       </Button>
 
       {/* Social Login Divider */}

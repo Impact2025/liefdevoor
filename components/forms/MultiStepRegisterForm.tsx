@@ -312,13 +312,13 @@ export function MultiStepRegisterForm({ onSuccess }: MultiStepRegisterFormProps)
 
     if (shouldEnforce && !tokenToUse) {
       setIsWaitingForVerification(true)
-      tokenToUse = await waitForToken(10000) // Max 10 seconden wachten
+      tokenToUse = await waitForToken(15000) // Max 15 seconden wachten
       setIsWaitingForVerification(false)
 
       if (!tokenToUse) {
         setErrors(prev => ({
           ...prev,
-          turnstile: 'Beveiligingsverificatie duurde te lang. Probeer opnieuw.'
+          turnstile: 'Beveiligingsverificatie duurde te lang. Controleer je internetverbinding en probeer opnieuw.'
         }))
         return
       }
