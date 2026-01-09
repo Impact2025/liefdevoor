@@ -134,11 +134,24 @@ export async function GET(request: Request) {
         }
       }),
 
-      // Error count from audit log
+      // Error count from audit log (only real system errors, not security events)
       prisma.auditLog.count({
         where: {
           success: false,
-          createdAt: { gte: yesterday }
+          createdAt: { gte: yesterday },
+          // Exclude normal security events - these are expected behavior
+          action: {
+            notIn: [
+              'LOGIN_FAILED',
+              'REGISTER_HONEYPOT_TRIGGERED',
+              'REGISTER_BLOCKED_EMAIL',
+              'REGISTER_SPAM_DETECTED',
+              'REGISTER_BLOCKED_DOMAIN',
+              'PASSWORD_RESET_INVALID_TOKEN',
+              'EMAIL_VERIFICATION_FAILED',
+              'SUSPICIOUS_ACTIVITY_BLOCKED'
+            ]
+          }
         }
       }),
 
@@ -188,11 +201,11 @@ export async function GET(request: Request) {
     // In production, you would get this from your payment provider
     const revenueYesterday = (premiumUsers * 14.95 / 30) + (goldUsers * 24.95 / 30)
 
-    // Determine system status
+    // Determine system status (based on real system errors, not security events)
     let systemStatus: 'OK' | 'WARNING' | 'CRITICAL' = 'OK'
-    if (activeErrors > 10 || pendingReports > 20) {
+    if (activeErrors > 5 || pendingReports > 20) {
       systemStatus = 'CRITICAL'
-    } else if (activeErrors > 3 || pendingReports > 10) {
+    } else if (activeErrors > 0 || pendingReports > 10) {
       systemStatus = 'WARNING'
     }
 
@@ -231,7 +244,8 @@ export async function GET(request: Request) {
     const textVersion = `
 Dagelijks Management Rapport - ${now.toLocaleDateString('nl-NL')}
 
-SYSTEEM STATUS: ${systemStatus} ${activeErrors > 0 ? `(${activeErrors} actieve errors)` : ''}
+SYSTEEM STATUS: ${systemStatus} ${activeErrors > 0 ? `(${activeErrors} systeem errors)` : ''}
+${activeErrors === 0 ? '✅ Geen systeem errors (login failures en spam blocks worden niet geteld)' : ''}
 
 GEBRUIKERS
 - Totaal: ${totalUsers.toLocaleString()}

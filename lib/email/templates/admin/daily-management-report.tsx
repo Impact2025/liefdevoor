@@ -165,8 +165,13 @@ export default function DailyManagementReport({
                 color: getStatusColor(systemStatus)
               }}>
                 {getStatusEmoji(systemStatus)} Systeem Status: {systemStatus}
-                {activeErrors > 0 && ` (${activeErrors} actieve errors)`}
+                {activeErrors > 0 ? ` (${activeErrors} systeem errors)` : ' - Alles OK ✓'}
               </Text>
+              {activeErrors === 0 && (
+                <Text style={{...styles.statusSubtext, margin: '4px 0 0'}}>
+                  Login failures en spam blocks worden niet als errors geteld
+                </Text>
+              )}
             </Section>
 
             {/* Quick Stats Grid */}
@@ -400,6 +405,12 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     margin: '0'
+  },
+  statusSubtext: {
+    fontSize: '11px',
+    fontWeight: '400',
+    margin: '0',
+    opacity: 0.8
   },
   statsGrid: {
     margin: '0 0 24px'
