@@ -445,7 +445,9 @@ async function renderMigrationEmail(
     throw new Error(`Unknown email type: ${emailType}`)
   }
 
-  return render(Template(props))
+  // Use createElement to avoid TypeScript callable error
+  const React = require('react')
+  return render(React.createElement(Template, props))
 }
 
 /**
