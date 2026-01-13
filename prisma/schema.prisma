@@ -2199,3 +2199,138 @@ model NewsletterSubscription {
   @@index([isActive, isVerified])
 }
 
+// ============================================
+// 🚀 MIGRATION CAMPAIGN SYSTEM
+// OogvoorLiefde.nl → LiefdevoorIedereen.nl
+// ============================================
+
+enum MigrationSegment {
+  VIP       // Super actief (laatste 3 maanden + foto's)
+  GOLD      // Had gold membership
+  ACTIVE    // Actief (3-12 maanden geleden)
+  DORMANT   // Slapend (1-2 jaar)
+  INACTIVE  // Inactief (>2 jaar)
+}
+
+enum MigrationEmailType {
+  WELCOME           // Dag 0: Eerste uitnodiging
+  MATCHES_WAITING   // Dag 3: "X mensen wachten op je"
+  REMINDER          // Dag 7: Herinnering
+  FEATURES          // Dag 10: Nieuwe features
+  SOCIAL_PROOF      // Dag 14: "Maria activeerde ook"
+  LAST_CHANCE       // Dag 21: Laatste kans
+  GOODBYE           // Dag 28: Data wordt verwijderd
+  EXPIRED           // Dag 30: Coupon verlopen
+}
+
+enum MigrationStatus {
+  PENDING           // Nog niet gecontacteerd
+  EMAIL_SENT        // Eerste email verzonden
+  EMAIL_OPENED      // Email geopend
+  LINK_CLICKED      // Link geklikt
+  LANDING_VISITED   // Landing pagina bezocht
+  CLAIM_STARTED     // Claim proces gestart
+  CLAIMED           // Account geclaimd
+  ACTIVATED         // Onboarding voltooid
+  EXPIRED           // Niet gereageerd, data verwijderd
+}
+
+model MigrationUser {
+  id                  String            @id @default(cuid())
+
+  // Old system data
+  oldUserId           Int               @unique
+  oldEmail            String
+  firstName           String
+  lastName            String?
+
+  // Profile snapshot
+  oldProfilePhoto     String?
+  memberSince         DateTime
+  lastActiveOld       DateTime?
+  hadGoldMembership   Boolean           @default(false)
+  photoCount          Int               @default(0)
+  messageCount        Int               @default(0)
+  matchCount          Int               @default(0)
+
+  // Segmentation
+  segment             MigrationSegment
+
+  // New system reference
+  newUserId           String?           @unique
+
+  // Campaign status
+  status              MigrationStatus   @default(PENDING)
+
+  // Coupon
+  couponCode          String?           @unique
+  couponExpiresAt     DateTime?
+  couponRedeemedAt    DateTime?
+
+  // Claim token
+  claimToken          String?           @unique
+  claimTokenExpiresAt DateTime?
+  claimedAt           DateTime?
+
+  // Email tracking
+  emailsSent          MigrationEmail[]
+  lastEmailSentAt     DateTime?
+  lastEmailOpenedAt   DateTime?
+  lastEmailClickedAt  DateTime?
+  totalEmailsOpened   Int               @default(0)
+
+  // Landing page tracking
+  landingVisitedAt    DateTime?
+  landingVisits       Int               @default(0)
+
+  // Timestamps
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@index([oldEmail])
+  @@index([segment])
+  @@index([status])
+  @@index([couponCode])
+  @@index([claimToken])
+  @@index([lastEmailSentAt])
+}
+
+model MigrationEmail {
+  id                String              @id @default(cuid())
+
+  // Relations
+  migrationUserId   String
+  migrationUser     MigrationUser       @relation(fields: [migrationUserId], references: [id], onDelete: Cascade)
+
+  // Email details
+  emailType         MigrationEmailType
+  subject           String
+
+  // A/B Testing
+  abVariant         String?             // 'A' or 'B'
+
+  // Tracking
+  sentAt            DateTime            @default(now())
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+  openCount         Int                 @default(0)
+  clickCount        Int                 @default(0)
+
+  // Resend tracking
+  resendId          String?
+
+  // Error handling
+  errorMessage      String?
+  retryCount        Int                 @default(0)
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([migrationUserId])
+  @@index([emailType])
+  @@index([sentAt])
+  @@index([openedAt])
+}
+
