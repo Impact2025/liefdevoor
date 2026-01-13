@@ -737,11 +737,10 @@ async function applyMigrationCoupon(userId: string, couponCode: string): Promise
     await prisma.subscription.create({
       data: {
         userId,
-        plan: 'PREMIUM',
+        plan: 'PREMIUM_MIGRATION_BONUS',
         status: 'active',
         startDate: new Date(),
-        endDate: expiresAt,
-        isTrial: true
+        endDate: expiresAt
       }
     })
 
