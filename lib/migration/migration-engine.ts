@@ -13,7 +13,12 @@
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email/send'
 import { render } from '@react-email/render'
-import { generateToken } from '@/lib/tokens'
+import * as crypto from 'crypto'
+
+// Generate random token
+function generateToken(length: number = 16): string {
+  return crypto.randomBytes(length).toString('hex')
+}
 
 // Import email templates
 import MigrationWelcomeEmail from '@/lib/email/templates/migration/welcome'
