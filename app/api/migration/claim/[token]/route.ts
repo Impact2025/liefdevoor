@@ -84,15 +84,20 @@ export async function GET(
     `
 
     // Get stats for social proof
-    const stats = await prisma.$queryRaw<any[]>`
-      SELECT
-        COUNT(*) FILTER (WHERE status IN ('CLAIMED', 'ACTIVATED')) as "activatedCount",
-        COUNT(*) FILTER (WHERE status = 'ACTIVATED' AND "activatedAt" > NOW() - INTERVAL '7 days') as "recentCount"
-      FROM "MigrationUser"
-    `
-
-    const activatedCount = stats[0]?.activatedCount || 0
-    const recentCount = stats[0]?.recentCount || 0
+    let activatedCount = 0
+    let recentCount = 0
+    try {
+      const stats = await prisma.$queryRaw<any[]>`
+        SELECT
+          COUNT(CASE WHEN status IN ('CLAIMED', 'ACTIVATED') THEN 1 END) as "activatedCount",
+          COUNT(CASE WHEN status IN ('CLAIMED', 'ACTIVATED') AND "claimedAt" > NOW() - INTERVAL '7 days' THEN 1 END) as "recentCount"
+        FROM "MigrationUser"
+      `
+      activatedCount = Number(stats[0]?.activatedCount) || 0
+      recentCount = Number(stats[0]?.recentCount) || 0
+    } catch (e) {
+      // Ignore stats error, use defaults
+    }
 
     // Calculate days remaining for coupon
     const daysRemaining = user.couponExpiresAt
