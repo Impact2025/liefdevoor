@@ -126,6 +126,10 @@ export const EMAIL_SEQUENCE = {
     GOODBYE: {
       A: 'Vaarwel {firstName} - je data is verwijderd',
       B: 'We hebben afscheid genomen van je profiel'
+    },
+    EXPIRED: {
+      A: '{firstName}, je welkomstcode is verlopen',
+      B: 'Je migratie periode is afgelopen'
     }
   },
 
