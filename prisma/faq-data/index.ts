@@ -9,6 +9,7 @@ export type { FAQCategoryData } from './categories'
 export { gettingStartedArticles } from './articles-getting-started'
 export type { FAQArticleData } from './articles-getting-started'
 
+export { rebrandingArticles } from './articles-rebranding'
 export { profileArticles } from './articles-profile'
 export { discoverArticles } from './articles-discover'
 export { messagesArticles } from './articles-messages'
@@ -21,6 +22,7 @@ export { accessibilityArticles } from './articles-accessibility'
 
 // Combined export
 export const allArticles = [
+  ...require('./articles-rebranding').rebrandingArticles,
   ...require('./articles-getting-started').gettingStartedArticles,
   ...require('./articles-profile').profileArticles,
   ...require('./articles-discover').discoverArticles,

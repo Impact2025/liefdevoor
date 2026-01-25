@@ -15,6 +15,15 @@ export interface FAQCategoryData {
 
 export const faqCategories: FAQCategoryData[] = [
   {
+    name: 'Rebranding 2026',
+    nameNl: 'Naamswijziging 2026',
+    description: 'Alles over de naamswijziging van OogvoorLiefde naar Liefde Voor Iedereen',
+    icon: '📝',
+    slug: 'naamswijziging-2026',
+    order: 0,
+    isVisible: true
+  },
+  {
     name: 'Getting Started',
     nameNl: 'Aan de slag',
     description: 'Alles over registreren, onboarding en je eerste stappen op Liefde Voor Iedereen',
