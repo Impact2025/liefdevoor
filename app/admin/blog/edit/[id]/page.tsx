@@ -188,13 +188,21 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       setUseBannerText(!!post.bannerText)
       setPublished(post.published)
       setShowOnMainBlog(post.showOnMainBlog ?? true)
-      // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
+      // Format date for datetime-local input (YYYY-MM-DDTHH:MM) in LOCAL timezone
+      const formatLocalDateTime = (dateStr: string) => {
+        const date = new Date(dateStr)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        return `${year}-${month}-${day}T${hours}:${minutes}`
+      }
+
       if (post.publishedAt) {
-        const date = new Date(post.publishedAt)
-        setPublishedAt(date.toISOString().slice(0, 16))
+        setPublishedAt(formatLocalDateTime(post.publishedAt))
       } else if (post.createdAt) {
-        const date = new Date(post.createdAt)
-        setPublishedAt(date.toISOString().slice(0, 16))
+        setPublishedAt(formatLocalDateTime(post.createdAt))
       }
       setSlug(post.slug)
 
