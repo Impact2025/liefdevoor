@@ -430,7 +430,7 @@ export default function OverOnsPage() {
 
             <div className="mt-8 text-center">
               <Link
-                href="/veiligheid"
+                href="/safety"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-slate-100 transition-colors"
               >
                 Lees onze complete gids tegen oplichting
@@ -525,10 +525,10 @@ export default function OverOnsPage() {
 
           <div className="text-center mt-10">
             <Link
-              href="/succesverhalen"
+              href="/blog"
               className="inline-flex items-center gap-2 text-rose-600 font-semibold hover:text-rose-700 transition-colors"
             >
-              Lees meer succesverhalen
+              Lees meer verhalen op ons blog
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
@@ -610,17 +610,17 @@ export default function OverOnsPage() {
             <h3 className="text-xl font-bold text-slate-900 mb-4">Interesse voor jouw organisatie?</h3>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/zakelijk/demo"
+                href="/professionals/aanmelden"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
               >
                 Plan een gratis demo
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
-                href="/zakelijk/brochure"
+                href="/professionals"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl transition-colors border-2 border-slate-200"
               >
-                Download informatiefolder (PDF)
+                Meer informatie voor professionals
               </Link>
             </div>
           </div>
@@ -876,7 +876,7 @@ export default function OverOnsPage() {
 
           <div className="text-center mt-10 space-y-4">
             <Link
-              href="/faq"
+              href="/support/faq"
               className="inline-flex items-center gap-2 text-rose-600 font-semibold hover:text-rose-700 transition-colors"
             >
               Bekijk alle veelgestelde vragen
@@ -884,7 +884,7 @@ export default function OverOnsPage() {
             </Link>
             <p className="text-slate-600">
               Of{' '}
-              <Link href="/contact" className="text-rose-600 hover:underline">
+              <Link href="/support" className="text-rose-600 hover:underline">
                 stuur ons een bericht
               </Link>
             </p>

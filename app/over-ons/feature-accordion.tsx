@@ -18,7 +18,7 @@ const features = [
     ],
     link: {
       text: 'Lees hoe we je beschermen tegen oplichting',
-      href: '/veiligheid'
+      href: '/safety'
     }
   },
   {
@@ -63,7 +63,7 @@ const features = [
     footer: 'Je bepaalt zelf wat je wilt. De assistent geeft alleen tips. Jij blijft de baas.',
     link: {
       text: 'Zo werkt de AI DatingAssistent',
-      href: '/features/ai-assistent'
+      href: '/kennisbank'
     }
   }
 ]
