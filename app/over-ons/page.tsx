@@ -183,12 +183,12 @@ export default function OverOnsPage() {
                 <div className="aspect-[4/5] relative rounded-2xl overflow-hidden shadow-xl">
                   <Image
                     src="/images/remco-slop.jpg"
-                    alt="Remco Slop (1968-2015) - Medeoprichter Stichting WW Toegankelijk"
+                    alt="Remco Slop (†2015) - Medeoprichter Stichting WW Toegankelijk"
                     fill
                     className="object-cover"
                   />
                 </div>
-                <p className="text-center mt-4 text-slate-600 font-medium">Remco Slop (1968-2015)</p>
+                <p className="text-center mt-4 text-slate-600 font-medium">Remco Slop (†2015)</p>
               </div>
 
               <div>
@@ -265,7 +265,7 @@ export default function OverOnsPage() {
               Iedereen verdient liefde."
             </blockquote>
             <p className="text-center text-rose-100">
-              — Remco Slop (1968 - 2015)
+              — Remco Slop (†2015)
             </p>
           </div>
 
