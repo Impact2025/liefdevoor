@@ -53,6 +53,7 @@ async function getBlogPost(slug: string) {
     keywords,
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString(),
+    publishedAt: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
   }
 }
 
@@ -80,7 +81,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     keywords,
     canonicalUrl,
     featuredImage: post.featuredImage || undefined,
-    publishedTime: new Date(post.createdAt),
+    publishedTime: post.publishedAt ? new Date(post.publishedAt) : new Date(post.createdAt),
     modifiedTime: new Date(post.updatedAt),
     author: post.author?.name || 'Liefde Voor Iedereen',
     section: post.category?.name,
@@ -107,7 +108,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     headline: post.title,
     description: post.excerpt || post.title,
     image: post.featuredImage || undefined,
-    datePublished: new Date(post.createdAt),
+    datePublished: post.publishedAt ? new Date(post.publishedAt) : new Date(post.createdAt),
     dateModified: new Date(post.updatedAt),
     author: post.author?.name || 'Liefde Voor Iedereen',
     keywords,

@@ -13,6 +13,7 @@ interface Post {
   bannerText: string | null
   published: boolean
   createdAt: string
+  publishedAt: string
   author: {
     name: string | null
     profileImage: string | null
@@ -95,7 +96,7 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
             )}
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>{new Date(post.createdAt).toLocaleDateString('nl-NL', {
+              <span>{new Date(post.publishedAt).toLocaleDateString('nl-NL', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
