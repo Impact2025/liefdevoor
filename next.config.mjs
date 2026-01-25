@@ -176,6 +176,17 @@ const nextConfig = {
         destination: '/over-ons',
         permanent: true,
       },
+      // Common typo redirects
+      {
+        source: '/administrattor',
+        destination: '/admin',
+        permanent: false,
+      },
+      {
+        source: '/administrator',
+        destination: '/admin',
+        permanent: false,
+      },
     ];
   },
 

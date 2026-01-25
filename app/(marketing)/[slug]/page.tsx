@@ -59,6 +59,8 @@ export default function DoelgroepLandingPage() {
   const [kennisbankArticles, setKennisbankArticles] = useState<KennisbankArticle[]>([])
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
+  const [notFound, setNotFound] = useState(false)
+
   useEffect(() => {
     if (slug) {
       const doelgroep = getDoelgroepBySlug(slug)
@@ -110,9 +112,42 @@ export default function DoelgroepLandingPage() {
         }
 
         fetchKennisbankArticles()
+      } else {
+        // Slug bestaat niet - toon not found
+        setNotFound(true)
       }
     }
   }, [slug])
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Heart className="w-10 h-10 text-rose-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Pagina niet gevonden</h1>
+          <p className="text-slate-600 mb-6">
+            Deze pagina bestaat niet. Misschien bedoelde je een van onze community pagina&apos;s?
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/"
+              className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors"
+            >
+              Naar homepage
+            </Link>
+            <Link
+              href="/dating-met-autisme"
+              className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
+            >
+              Bekijk communities
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!data) {
     return (
