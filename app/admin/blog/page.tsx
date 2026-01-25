@@ -18,6 +18,7 @@ interface Post {
     name: string
   }
   createdAt: string
+  publishedAt: string | null
 }
 
 interface Category {
@@ -226,7 +227,7 @@ export default function AdminBlogPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(post.createdAt).toLocaleDateString('nl-NL')}
+                        {new Date(post.publishedAt || post.createdAt).toLocaleDateString('nl-NL')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
