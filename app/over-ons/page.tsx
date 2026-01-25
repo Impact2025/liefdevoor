@@ -54,53 +54,69 @@ export default function OverOnsPage() {
         <div className="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-10 left-10 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="text-center">
-            {/* Main Headline */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Dating zonder spelletjes.
-              <br />
-              <span className="text-rose-100">Voor iedereen in Nederland en België.</span>
-            </h1>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Text Content */}
+            <div className="text-center lg:text-left">
+              {/* Main Headline */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                Dating zonder spelletjes.
+                <br />
+                <span className="text-rose-100">Voor iedereen in Nederland en België.</span>
+              </h1>
 
-            {/* Subheading */}
-            <p className="text-xl md:text-2xl text-rose-100 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Sinds 2009 helpen we mensen elkaar vinden.
-              <br />
-              Veilig. Eerlijk. Zonder gedoe.
-            </p>
+              {/* Subheading */}
+              <p className="text-xl md:text-2xl text-rose-100 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                Sinds 2009 helpen we mensen elkaar vinden.
+                <br />
+                Veilig. Eerlijk. Zonder gedoe.
+              </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link
-                href="/register?promo=2maanden"
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold rounded-2xl transition-all shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                Probeer 2 maanden gratis
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                href="#hoe-het-werkt"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-2xl transition-all backdrop-blur-sm border border-white/30"
-              >
-                Bekijk hoe het werkt
-              </Link>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                <Link
+                  href="/register?promo=2maanden"
+                  className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold rounded-2xl transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                >
+                  Probeer 2 maanden gratis
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="#verhaal"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/20 hover:bg-white/30 text-white text-lg font-semibold rounded-2xl transition-all backdrop-blur-sm border border-white/30"
+                >
+                  Lees ons verhaal
+                </Link>
+              </div>
+
+              {/* Trust Signals */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-rose-100 text-sm">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-300" />
+                  <span>1.500+ actieve leden</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-300" />
+                  <span>1.000+ koppels sinds 2009</span>
+                </div>
+              </div>
             </div>
 
-            {/* Trust Signals */}
-            <div className="flex flex-wrap items-center justify-center gap-6 text-rose-100">
-              <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-emerald-300" />
-                <span>Al 1.500+ actieve leden</span>
+            {/* Hero Image - Hands Connection */}
+            <div className="relative hidden lg:block">
+              <div className="aspect-square relative rounded-3xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/images/hands-connection.jpg"
+                  alt="Verbinding - twee handen die elkaar vasthouden"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-emerald-300" />
-                <span>Sinds 2009 meer dan 1.000 koppels</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-emerald-300" />
-                <span>2 maanden gratis Premium</span>
-              </div>
+              {/* Caption */}
+              <p className="text-center mt-4 text-rose-200 text-sm italic">
+                Verbinding zonder grenzen
+              </p>
             </div>
           </div>
         </div>
@@ -167,12 +183,12 @@ export default function OverOnsPage() {
                 <div className="aspect-[4/5] relative rounded-2xl overflow-hidden shadow-xl">
                   <Image
                     src="/images/remco-slop.jpg"
-                    alt="Remco Slop - De persoon die Vincent inspireerde"
+                    alt="Remco Slop (1968-2015) - Medeoprichter Stichting WW Toegankelijk"
                     fill
                     className="object-cover"
                   />
                 </div>
-                <p className="text-center mt-4 text-slate-600 font-medium">Remco Slop</p>
+                <p className="text-center mt-4 text-slate-600 font-medium">Remco Slop (1968-2015)</p>
               </div>
 
               <div>
@@ -186,6 +202,33 @@ export default function OverOnsPage() {
                   <p>Remco was zwaar spastisch.</p>
                   <p>Hij was gay.</p>
                   <p className="font-semibold text-slate-900">Maar vooral: hij was een fantastisch mens.</p>
+                </div>
+
+                <div className="mt-6 space-y-4 text-lg text-slate-700 leading-relaxed">
+                  <p>
+                    Remco was medeoprichter van{' '}
+                    <a
+                      href="https://stichtingwwtoegankelijk.nl/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-rose-600 hover:text-rose-700 underline"
+                    >
+                      Stichting WW Toegankelijk
+                    </a>.
+                  </p>
+                  <p>Jarenlang was hij actief als vrijwilliger.</p>
+                  <p>Elk jaar ging hij naar Gambia.</p>
+                  <p>Daar hielp hij bij projecten voor kinderen.</p>
+                  <p>Die kinderen hadden zijn bijzondere aandacht.</p>
+                  <p>Tot het laatste moment bleef hij zich inzetten voor anderen.</p>
+                </div>
+
+                <div className="mt-6 p-4 bg-slate-100 rounded-xl">
+                  <p className="text-slate-600 italic">
+                    Op 20 oktober 2015 is Remco overleden.
+                    <br />
+                    Zijn gedachtegoed leeft voort in alles wat wij doen.
+                  </p>
                 </div>
 
                 <div className="mt-8 p-6 bg-white rounded-2xl border-2 border-rose-200">
@@ -222,7 +265,7 @@ export default function OverOnsPage() {
               Iedereen verdient liefde."
             </blockquote>
             <p className="text-center text-rose-100">
-              — Remco Slop, die Vincent inspireerde in 2009
+              — Remco Slop (1968 - 2015)
             </p>
           </div>
 
@@ -234,6 +277,8 @@ export default function OverOnsPage() {
                 <p>Remco had passie.</p>
                 <p>Remco was eerlijk.</p>
                 <p>Remco had zoveel energie.</p>
+                <p>Ondanks zijn beperking hielp hij anderen.</p>
+                <p>In Nederland. In Gambia. Overal.</p>
                 <p className="pt-4">Hij liet me zien:</p>
                 <p className="font-semibold text-slate-900">Het gaat niet om wat je níet kunt.</p>
                 <p className="font-semibold text-slate-900">Het gaat om wie je bent.</p>
