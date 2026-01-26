@@ -698,11 +698,8 @@ export async function processAccountClaim(
       WHERE id = ${user.id}
     `
 
-    // Apply coupon if exists
-    if (user.couponCode) {
-      // Auto-apply the coupon
-      await applyMigrationCoupon(newUser.id, user.couponCode)
-    }
+    // Apply premium based on segment (directly, without relying on Coupon table)
+    await applyMigrationPremium(newUser.id, user.segment)
 
     return { success: true, userId: newUser.id }
   } catch (error) {
@@ -712,33 +709,24 @@ export async function processAccountClaim(
 }
 
 /**
- * Apply migration coupon to user
+ * Apply migration premium directly based on segment
+ * No longer relies on Coupon table - uses segment to determine months
  */
-async function applyMigrationCoupon(userId: string, couponCode: string): Promise<void> {
+async function applyMigrationPremium(userId: string, segment: MigrationSegment): Promise<void> {
   try {
-    const coupon = await prisma.coupon.findUnique({
-      where: { code: couponCode }
-    })
+    const incentive = EMAIL_SEQUENCE.incentives[segment]
+    const premiumMonths = incentive?.premiumMonths || 1
 
-    if (!coupon || !coupon.isActive) return
+    // Skip if no premium months for this segment
+    if (premiumMonths <= 0) {
+      console.log(`[Migration] No premium for segment ${segment}`)
+      return
+    }
 
-    // Create coupon usage
-    await prisma.couponUsage.create({
-      data: {
-        couponId: coupon.id,
-        userId,
-        orderType: 'migration_bonus',
-        discountAmount: 0,
-        originalAmount: 0,
-        finalAmount: 0
-      }
-    })
-
-    // Update user subscription
-    const premiumMonths = coupon.value
     const expiresAt = new Date()
     expiresAt.setMonth(expiresAt.getMonth() + premiumMonths)
 
+    // Update user subscription tier
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -757,8 +745,10 @@ async function applyMigrationCoupon(userId: string, couponCode: string): Promise
       }
     })
 
+    console.log(`[Migration] Applied ${premiumMonths} months premium for ${segment} user ${userId}`)
+
   } catch (error) {
-    console.error('[Migration] Failed to apply coupon:', error)
+    console.error('[Migration] Failed to apply premium:', error)
   }
 }
 
