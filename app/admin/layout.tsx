@@ -9,7 +9,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { Home, Shield } from 'lucide-react'
+import { Home, Shield, LayoutDashboard, UserPlus, Ticket, FileText, Camera, Building2 } from 'lucide-react'
 
 export default async function AdminLayout({
   children,
@@ -61,12 +61,60 @@ export default async function AdminLayout({
       <div className="bg-slate-900 text-white border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="w-5 h-5 text-rose-400" />
-              <span className="font-semibold">Admin Dashboard</span>
+            <div className="flex items-center gap-6">
+              <Link href="/admin" className="flex items-center gap-2 hover:text-rose-400 transition-colors">
+                <Shield className="w-5 h-5 text-rose-400" />
+                <span className="font-semibold">Admin</span>
+              </Link>
+
+              {/* Navigation */}
+              <nav className="hidden md:flex items-center gap-1">
+                <Link
+                  href="/admin/dashboard"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/admin/migration"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 rounded-lg transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Migratie
+                </Link>
+                <Link
+                  href="/admin/professionals"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 rounded-lg transition-colors"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Professionals
+                </Link>
+                <Link
+                  href="/admin/verifications"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                  Verificatie
+                </Link>
+                <Link
+                  href="/admin/coupons"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <Ticket className="w-4 h-4" />
+                  Coupons
+                </Link>
+                <Link
+                  href="/admin/blog"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  Blog
+                </Link>
+              </nav>
             </div>
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-slate-400">{user.name || user.email}</span>
+              <span className="text-slate-400 hidden sm:block">{user.name || user.email}</span>
               <Link
                 href="/"
                 className="text-slate-300 hover:text-white transition-colors"

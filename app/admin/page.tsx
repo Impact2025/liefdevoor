@@ -19,7 +19,8 @@ import {
   Lock,
   TrendingUp,
   Camera,
-  AlertTriangle
+  AlertTriangle,
+  UserPlus
 } from 'lucide-react'
 
 interface AdminCard {
@@ -71,6 +72,14 @@ const adminSections: AdminCard[] = [
     icon: Lock,
     color: 'from-amber-500 to-orange-600',
     stats: 'Extra beveiliging'
+  },
+  {
+    title: 'Migratie Dashboard',
+    description: 'Monitor de OogvoorLiefde → LiefdevoorIedereen migratie campagne',
+    href: '/admin/migration',
+    icon: UserPlus,
+    color: 'from-emerald-500 to-green-600',
+    stats: 'Live campaign'
   },
 ]
 
