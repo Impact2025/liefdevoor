@@ -5,6 +5,7 @@ import { sendMessageNotification } from '@/lib/email/notification-service'
 import { sendMessageNotification as sendMessagePush } from '@/lib/services/push/push-notifications'
 import { analyzeMessageSafety, isSpammingMessages } from '@/lib/ai/safetySentinel'
 import { checkLVBMessageSafety, updateLastMessageSent } from '@/lib/safety/lvbSafetyMode'
+import { checkVerificationStatus } from '@/lib/verification/restricted-mode'
 import type { Message } from '@/lib/types'
 
 interface SendMessageRequest {
@@ -174,6 +175,19 @@ export async function POST(request: NextRequest) {
   try {
     await requireCSRF(request)
     const user = await requireAuth()
+
+    // Check if INACTIVE migration user needs verification
+    const verificationCheck = await checkVerificationStatus(user.id)
+    if (!verificationCheck.allowed) {
+      return Response.json({
+        success: false,
+        error: 'VERIFICATION_REQUIRED',
+        message: verificationCheck.error?.message || 'Verificatie vereist om berichten te sturen',
+        verificationRequired: true,
+        verificationUrl: verificationCheck.error?.verificationUrl || '/verificatie',
+        missingVerifications: verificationCheck.error?.missingVerifications || [],
+      }, { status: 403 })
+    }
 
     const body: SendMessageRequest = await request.json()
     const { matchId, content, audioUrl, gifUrl } = body

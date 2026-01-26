@@ -9,6 +9,7 @@
 import React, { useState, useRef, KeyboardEvent } from 'react'
 import { Button, Textarea } from '@/components/ui'
 import { SafetyWarningModal, type WarningType } from '@/components/safety/SafetyWarningModal'
+import { VerificationRequiredModal } from '@/components/verification/VerificationRequiredModal'
 import { useAccessibility } from '@/contexts/AccessibilityContext'
 
 export interface MessageInputProps {
@@ -33,6 +34,11 @@ export function MessageInput({ matchId, onMessageSent, disabled }: MessageInputP
   const [showWarningModal, setShowWarningModal] = useState(false)
   const [lvbWarning, setLvbWarning] = useState<LVBWarning | null>(null)
   const [pendingMessage, setPendingMessage] = useState<string | null>(null)
+
+  // Verification required modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [missingVerifications, setMissingVerifications] = useState<('photo' | 'liveness')[]>([])
+  const [verificationUrl, setVerificationUrl] = useState('/verificatie')
 
   const { settings } = useAccessibility()
 
@@ -65,6 +71,15 @@ export function MessageInput({ matchId, onMessageSent, disabled }: MessageInputP
           detections: data.warning?.detections,
         })
         setShowWarningModal(true)
+        setIsLoading(false)
+        return
+      }
+
+      // Handle verification required (403 status for INACTIVE migration users)
+      if (response.status === 403 && data.verificationRequired) {
+        setMissingVerifications(data.missingVerifications || ['photo', 'liveness'])
+        setVerificationUrl(data.verificationUrl || '/verificatie')
+        setShowVerificationModal(true)
         setIsLoading(false)
         return
       }
@@ -188,6 +203,15 @@ export function MessageInput({ matchId, onMessageSent, disabled }: MessageInputP
             ? (lvbWarning.detections as { detections?: { value?: string }[] })?.detections?.[0]?.value
             : undefined
         }
+      />
+
+      {/* Verification Required Modal (for INACTIVE migration users) */}
+      <VerificationRequiredModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        action="message"
+        missingVerifications={missingVerifications}
+        verificationUrl={verificationUrl}
       />
     </>
   )

@@ -57,6 +57,9 @@ export interface SwipeResult {
   }
   error?: string
   message?: string
+  verificationRequired?: boolean
+  missingVerifications?: ('photo' | 'liveness')[]
+  verificationUrl?: string
 }
 
 export interface SwipeAction {
@@ -80,6 +83,7 @@ export interface SwipeStackState {
 export interface UseSwipeStackOptions {
   onMatch?: (match: any) => void
   onSwipeLimitReached?: () => void
+  onVerificationRequired?: (missingVerifications: ('photo' | 'liveness')[], verificationUrl: string) => void
   onError?: (error: Error) => void
   enableKeyboard?: boolean
   enablePreload?: boolean
@@ -135,6 +139,7 @@ export function useSwipeStack(
   const {
     onMatch,
     onSwipeLimitReached,
+    onVerificationRequired,
     onError,
     enableKeyboard = true,
     enablePreload = true,
@@ -197,6 +202,21 @@ export function useSwipeStack(
             onSwipeLimitReached?.()
             return { success: false, error: data.error, message: data.message }
           }
+          // Check for verification required (INACTIVE migration users)
+          if (data.verificationRequired || data.error === 'VERIFICATION_REQUIRED') {
+            onVerificationRequired?.(
+              data.missingVerifications || ['photo', 'liveness'],
+              data.verificationUrl || '/verificatie'
+            )
+            return {
+              success: false,
+              error: 'VERIFICATION_REQUIRED',
+              message: data.message,
+              verificationRequired: true,
+              missingVerifications: data.missingVerifications,
+              verificationUrl: data.verificationUrl,
+            }
+          }
         }
         throw new Error(data.message || 'Swipe failed')
       }
@@ -225,7 +245,7 @@ export function useSwipeStack(
       onError?.(error as Error)
       return { success: false, error: (error as Error).message }
     }
-  }, [maxRetries, retryDelayMs, onSwipeLimitReached, onError])
+  }, [maxRetries, retryDelayMs, onSwipeLimitReached, onVerificationRequired, onError])
 
   // ============================================================================
   // CORE SWIPE FUNCTION
@@ -350,6 +370,12 @@ export function useSwipeStack(
     } else if (result.error === 'superlike_limit_reached') {
       // Super like limit reached - roll back but don't show error (user can still normal swipe)
       console.log('[SwipeStack] Super like limit reached, rolling back')
+      hapticWarning()
+      setProfilesState(prev => [swipedProfile, ...prev])
+      setSwipeHistory(prev => prev.slice(0, -1))
+    } else if (result.verificationRequired) {
+      // Verification required (INACTIVE migration users) - roll back
+      console.log('[SwipeStack] Verification required, rolling back')
       hapticWarning()
       setProfilesState(prev => [swipedProfile, ...prev])
       setSwipeHistory(prev => prev.slice(0, -1))

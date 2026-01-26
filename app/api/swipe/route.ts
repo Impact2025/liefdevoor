@@ -8,6 +8,7 @@ import {
   sendSuperLikeNotification,
 } from '@/lib/services/push/push-notifications'
 import { canSwipe, canSuperLike, getSubscriptionInfo } from '@/lib/subscription'
+import { checkVerificationStatus } from '@/lib/verification/restricted-mode'
 import type { SwipeAction, SwipeResult } from '@/lib/types'
 import { trackSwipeAction, trackMatchCreation } from '@/lib/analytics-events'
 
@@ -21,6 +22,19 @@ export async function POST(request: NextRequest) {
 
     // Authentication (throws 401 if not authenticated)
     const user = await requireAuth()
+
+    // Check if INACTIVE migration user needs verification
+    const verificationCheck = await checkVerificationStatus(user.id)
+    if (!verificationCheck.allowed) {
+      return NextResponse.json({
+        success: false,
+        error: 'VERIFICATION_REQUIRED',
+        message: verificationCheck.error?.message || 'Verificatie vereist om te liken',
+        verificationRequired: true,
+        verificationUrl: verificationCheck.error?.verificationUrl || '/verificatie',
+        missingVerifications: verificationCheck.error?.missingVerifications || [],
+      }, { status: 403 })
+    }
 
     // Parse and validate request body
     const body: SwipeAction = await request.json()

@@ -37,6 +37,7 @@ import { useDiscoverUsers, useCurrentUser } from '@/hooks'
 import { useSwipeStack } from '@/hooks/useSwipeStack'
 import { usePassport } from '@/hooks/usePassport'
 import { Modal, Button, Alert } from '@/components/ui'
+import { VerificationRequiredModal } from '@/components/verification/VerificationRequiredModal'
 import type { DiscoverFilters } from '@/lib/types'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
@@ -86,6 +87,8 @@ export default function DiscoverPage() {
   const [swipesRemaining, setSwipesRemaining] = useState<number | null>(null)
   const [isUnlimited, setIsUnlimited] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [verificationMissing, setVerificationMissing] = useState<('photo' | 'liveness')[]>([])
   const [canRewind, setCanRewind] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
   const [showKeyboardHint, setShowKeyboardHint] = useState(false)
@@ -117,6 +120,15 @@ export default function DiscoverPage() {
   // Handle swipe limit reached
   const handleSwipeLimitReached = useCallback(() => {
     setShowUpgradeModal(true)
+  }, [])
+
+  // Handle verification required (INACTIVE migration users)
+  const handleVerificationRequired = useCallback((
+    missingVerifications: ('photo' | 'liveness')[],
+    _verificationUrl: string
+  ) => {
+    setVerificationMissing(missingVerifications)
+    setShowVerificationModal(true)
   }, [])
 
   // Convert users to swipe stack format
@@ -191,6 +203,7 @@ export default function DiscoverPage() {
   } = useSwipeStack(swipeProfiles, {
     onMatch: handleMatch,
     onSwipeLimitReached: handleSwipeLimitReached,
+    onVerificationRequired: handleVerificationRequired,
     enableKeyboard: true,
     enablePreload: true,
   })
@@ -756,6 +769,15 @@ export default function DiscoverPage() {
           onSkip={() => setShowDailyPrompter(false)}
         />
       )}
+
+      {/* Verification Required Modal (for INACTIVE migration users) */}
+      <VerificationRequiredModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        action="swipe"
+        missingVerifications={verificationMissing}
+        verificationUrl="/verificatie"
+      />
     </div>
   )
 }

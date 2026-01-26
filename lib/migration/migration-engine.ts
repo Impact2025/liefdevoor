@@ -139,7 +139,7 @@ export const EMAIL_SEQUENCE = {
     GOLD: { premiumMonths: 2, superMessages: 5, badge: 'gold_veteran' },
     ACTIVE: { premiumMonths: 1, superMessages: 3, badge: null },
     DORMANT: { premiumMonths: 1, superMessages: 5, badge: 'comeback_hero' },
-    INACTIVE: { premiumMonths: 0, superMessages: 3, badge: null }
+    INACTIVE: { premiumMonths: 1, superMessages: 3, badge: null }
   }
 }
 
@@ -180,7 +180,7 @@ export async function processDailyMigrationEmails(): Promise<{
 
   for (const user of users) {
     try {
-      const emailToSend = determineNextEmail(user, now)
+      const emailToSend = await determineNextEmail(user, now)
 
       if (!emailToSend) {
         results.skipped++
@@ -224,15 +224,23 @@ export async function processDailyMigrationEmails(): Promise<{
 /**
  * Determine which email to send next based on user state
  */
-function determineNextEmail(user: MigrationUser, now: Date): MigrationEmailType | null {
+async function determineNextEmail(user: MigrationUser, now: Date): Promise<MigrationEmailType | null> {
   // If never emailed, start with WELCOME
   if (!user.lastEmailSentAt || user.status === 'PENDING') {
     return 'WELCOME'
   }
 
-  // Calculate days since first email
+  // Calculate days since first email (from the first email, not last)
+  const firstEmail = await prisma.$queryRaw<{ sentAt: Date }[]>`
+    SELECT "sentAt" FROM "MigrationEmail"
+    WHERE "migrationUserId" = ${user.id}
+    ORDER BY "sentAt" ASC
+    LIMIT 1
+  `
+
+  const startDate = firstEmail.length > 0 ? new Date(firstEmail[0].sentAt) : new Date(user.lastEmailSentAt)
   const daysSinceStart = Math.floor(
-    (now.getTime() - new Date(user.lastEmailSentAt).getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
   )
 
   // Check coupon expiry
@@ -241,9 +249,12 @@ function determineNextEmail(user: MigrationUser, now: Date): MigrationEmailType 
     return 'GOODBYE'
   }
 
-  // Get sent email types for this user
-  // Note: In real implementation, query MigrationEmail table
-  const sentTypes: MigrationEmailType[] = [] // Would be fetched from DB
+  // Get sent email types for this user from database
+  const sentEmails = await prisma.$queryRaw<{ emailType: MigrationEmailType }[]>`
+    SELECT "emailType" FROM "MigrationEmail"
+    WHERE "migrationUserId" = ${user.id}
+  `
+  const sentTypes = sentEmails.map(e => e.emailType)
 
   // Determine next email based on schedule
   const schedule = EMAIL_SEQUENCE.schedule
@@ -321,9 +332,9 @@ async function sendMigrationEmail(
       // Log email sent
       await prisma.$executeRaw`
         INSERT INTO "MigrationEmail" (
-          id, "migrationUserId", "emailType", subject, "abVariant", "sentAt", "resendId"
+          id, "migrationUserId", "emailType", subject, "abVariant", "sentAt", "resendId", "createdAt", "updatedAt"
         ) VALUES (
-          ${generateToken(16)}, ${user.id}, ${emailType}, ${subject}, ${variant}, NOW(), ${result.emailId}
+          ${generateToken(16)}, ${user.id}, ${emailType}, ${subject}, ${variant}, NOW(), ${result.emailId}, NOW(), NOW()
         )
       `
 
@@ -669,7 +680,9 @@ export async function processAccountClaim(
         emailVerified: new Date(),
         isOnboarded: false,
         onboardingStep: 1,
-        registrationSource: 'oogvoorliefde_migration',
+        registrationSource: user.segment === 'INACTIVE'
+          ? 'oogvoorliefde_migration_inactive'
+          : 'oogvoorliefde_migration',
         createdAt: user.memberSince // Preserve original join date
       }
     })
@@ -821,7 +834,7 @@ export async function trackLandingVisit(userId: string): Promise<void> {
     UPDATE "MigrationUser"
     SET
       "landingVisits" = "landingVisits" + 1,
-      "lastLandingVisit" = NOW(),
+      "landingVisitedAt" = NOW(),
       status = CASE
         WHEN status IN ('EMAIL_SENT', 'EMAIL_OPENED', 'LINK_CLICKED') THEN 'LANDING_VISITED'
         ELSE status
