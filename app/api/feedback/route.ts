@@ -40,8 +40,11 @@ export async function POST(request: NextRequest) {
       segment = migrationUser[0]?.segment || null
     }
 
-    // Save to database
-    await prisma.$executeRaw`
+    // Save to database - use Prisma.raw for JSONB casting
+    const missingFeaturesJson = JSON.stringify(missingFeatures || [])
+    const questionTimesJson = JSON.stringify(questionTimes || {})
+
+    await prisma.$executeRawUnsafe(`
       INSERT INTO "FeedbackSurvey" (
         id,
         "userId",
@@ -60,22 +63,36 @@ export async function POST(request: NextRequest) {
         "createdAt"
       ) VALUES (
         gen_random_uuid(),
-        ${session?.user?.id || null},
-        ${satisfaction},
-        ${easeOfUse},
-        ${designRating},
-        ${JSON.stringify(missingFeatures || [])}::jsonb,
-        ${otherMissing || null},
-        ${bestFeature || null},
-        ${improvements || null},
-        ${wouldRecommend},
-        ${additionalComments || null},
-        ${completionTime || null},
-        ${JSON.stringify(questionTimes || {})}::jsonb,
-        ${segment},
+        $1,
+        $2,
+        $3,
+        $4,
+        $5::jsonb,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11,
+        $12::jsonb,
+        $13,
         NOW()
       )
-    `
+    `,
+      session?.user?.id || null,
+      satisfaction,
+      easeOfUse,
+      designRating,
+      missingFeaturesJson,
+      otherMissing || null,
+      bestFeature || null,
+      improvements || null,
+      wouldRecommend,
+      additionalComments || null,
+      completionTime || null,
+      questionTimesJson,
+      segment
+    )
 
     // Award 5 SuperMessages if user is logged in
     if (session?.user?.id) {
