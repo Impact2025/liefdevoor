@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (session?.user?.id) {
       const migrationUser = await prisma.$queryRaw<any[]>`
         SELECT segment FROM "MigrationUser"
-        WHERE "claimedUserId" = ${session.user.id}
+        WHERE "newUserId" = ${session.user.id}
         LIMIT 1
       `
       segment = migrationUser[0]?.segment || null
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
         fs.*,
         mu.segment as "migrationSegment"
       FROM "FeedbackSurvey" fs
-      LEFT JOIN "MigrationUser" mu ON mu."claimedUserId" = fs."userId"
+      LEFT JOIN "MigrationUser" mu ON mu."newUserId" = fs."userId"
       ORDER BY fs."createdAt" DESC
     `
 
@@ -194,7 +194,7 @@ export async function GET(request: NextRequest) {
         COUNT(CASE WHEN fs."wouldRecommend" >= 9 THEN 1 END)::int as promoters,
         COUNT(CASE WHEN fs."wouldRecommend" <= 6 THEN 1 END)::int as detractors
       FROM "FeedbackSurvey" fs
-      LEFT JOIN "MigrationUser" mu ON mu."claimedUserId" = fs."userId"
+      LEFT JOIN "MigrationUser" mu ON mu."newUserId" = fs."userId"
       GROUP BY COALESCE(mu.segment, 'UNKNOWN')
       ORDER BY total DESC
     `
