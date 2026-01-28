@@ -162,7 +162,7 @@ export default function FeedbackPage() {
       case 'welcome':
         return true
       case 'rating':
-        return data[question.field as keyof SurveyData] > 0
+        return (data[question.field as keyof SurveyData] as number) > 0
       case 'nps':
         return data.wouldRecommend >= 0
       case 'multiselect':
