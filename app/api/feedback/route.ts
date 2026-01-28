@@ -244,7 +244,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[Feedback API] Error:', error)
     return NextResponse.json(
-      { success: false, error: 'Kon stats niet ophalen' },
+      {
+        success: false,
+        error: 'Kon stats niet ophalen',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }
