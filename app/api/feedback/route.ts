@@ -1,8 +1,8 @@
 /**
- * Feedback Survey API
+ * Feedback Survey API (World-Class Version)
  *
- * POST: Save survey response
- * GET: Get survey stats (admin)
+ * POST: Save survey response with analytics tracking
+ * GET: Get survey stats and responses (admin only)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -24,10 +24,23 @@ export async function POST(request: NextRequest) {
       bestFeature,
       improvements,
       wouldRecommend,
-      additionalComments
+      additionalComments,
+      completionTime,
+      questionTimes
     } = body
 
-    // Save to database using raw query (table may not be in Prisma schema yet)
+    // Get user's migration segment if logged in
+    let segment = null
+    if (session?.user?.id) {
+      const migrationUser = await prisma.$queryRaw<any[]>`
+        SELECT segment FROM "MigrationUser"
+        WHERE "claimedUserId" = ${session.user.id}
+        LIMIT 1
+      `
+      segment = migrationUser[0]?.segment || null
+    }
+
+    // Save to database
     await prisma.$executeRaw`
       INSERT INTO "FeedbackSurvey" (
         id,
@@ -41,6 +54,9 @@ export async function POST(request: NextRequest) {
         improvements,
         "wouldRecommend",
         "additionalComments",
+        "completionTime",
+        "questionTimes",
+        segment,
         "createdAt"
       ) VALUES (
         gen_random_uuid(),
@@ -48,12 +64,15 @@ export async function POST(request: NextRequest) {
         ${satisfaction},
         ${easeOfUse},
         ${designRating},
-        ${JSON.stringify(missingFeatures)},
+        ${JSON.stringify(missingFeatures || [])}::jsonb,
         ${otherMissing || null},
         ${bestFeature || null},
         ${improvements || null},
         ${wouldRecommend},
         ${additionalComments || null},
+        ${completionTime || null},
+        ${JSON.stringify(questionTimes || {})}::jsonb,
+        ${segment},
         NOW()
       )
     `
@@ -71,9 +90,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check if detractor and schedule follow-up
+    if (wouldRecommend <= 6 && session?.user?.id) {
+      // Could trigger a follow-up email here
+      console.log(`[Feedback] Detractor alert: User ${session.user.id} gave NPS ${wouldRecommend}`)
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Feedback opgeslagen!'
+      message: 'Feedback opgeslagen!',
+      reward: {
+        type: 'superMessages',
+        amount: 5
+      }
     })
   } catch (error) {
     console.error('[Feedback API] Error:', error)
@@ -102,19 +131,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Get survey stats
+    // Get all responses
     const responses = await prisma.$queryRaw<any[]>`
-      SELECT * FROM "FeedbackSurvey"
-      ORDER BY "createdAt" DESC
+      SELECT
+        fs.*,
+        mu.segment as "migrationSegment"
+      FROM "FeedbackSurvey" fs
+      LEFT JOIN "MigrationUser" mu ON mu."claimedUserId" = fs."userId"
+      ORDER BY fs."createdAt" DESC
     `
 
+    // Get overall stats
     const stats = await prisma.$queryRaw<any[]>`
       SELECT
         COUNT(*)::int as total,
         AVG(satisfaction)::numeric(3,2) as avg_satisfaction,
         AVG("easeOfUse")::numeric(3,2) as avg_ease,
         AVG("designRating")::numeric(3,2) as avg_design,
-        AVG("wouldRecommend")::numeric(3,2) as avg_nps
+        AVG("wouldRecommend")::numeric(3,2) as avg_nps,
+        AVG("completionTime")::int as avg_completion_time
       FROM "FeedbackSurvey"
     `
 
@@ -133,6 +168,46 @@ export async function GET(request: NextRequest) {
       ? Math.round(((nps.promoters - nps.detractors) / nps.total) * 100)
       : 0
 
+    // Get stats by segment
+    const segmentStats = await prisma.$queryRaw<any[]>`
+      SELECT
+        COALESCE(mu.segment, 'UNKNOWN') as segment,
+        COUNT(*)::int as total,
+        AVG(fs."wouldRecommend")::numeric(3,2) as avg_nps,
+        COUNT(CASE WHEN fs."wouldRecommend" >= 9 THEN 1 END)::int as promoters,
+        COUNT(CASE WHEN fs."wouldRecommend" <= 6 THEN 1 END)::int as detractors
+      FROM "FeedbackSurvey" fs
+      LEFT JOIN "MigrationUser" mu ON mu."claimedUserId" = fs."userId"
+      GROUP BY COALESCE(mu.segment, 'UNKNOWN')
+      ORDER BY total DESC
+    `
+
+    // Get daily responses
+    const dailyResponses = await prisma.$queryRaw<any[]>`
+      SELECT
+        DATE("createdAt") as date,
+        COUNT(*)::int as count
+      FROM "FeedbackSurvey"
+      WHERE "createdAt" > NOW() - INTERVAL '30 days'
+      GROUP BY DATE("createdAt")
+      ORDER BY date ASC
+    `
+
+    // Get missing features breakdown
+    const missingFeaturesRaw = await prisma.$queryRaw<any[]>`
+      SELECT "missingFeatures"
+      FROM "FeedbackSurvey"
+      WHERE "missingFeatures" IS NOT NULL
+    `
+
+    const missingFeaturesCounts: Record<string, number> = {}
+    missingFeaturesRaw.forEach(row => {
+      const features = row.missingFeatures || []
+      features.forEach((f: string) => {
+        missingFeaturesCounts[f] = (missingFeaturesCounts[f] || 0) + 1
+      })
+    })
+
     return NextResponse.json({
       success: true,
       data: {
@@ -143,6 +218,9 @@ export async function GET(request: NextRequest) {
           passives: nps.passives,
           detractors: nps.detractors
         },
+        segmentStats,
+        dailyResponses,
+        missingFeaturesCounts,
         responses
       }
     })

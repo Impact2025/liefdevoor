@@ -9,7 +9,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { Home, Shield, LayoutDashboard, UserPlus, Ticket, FileText, Camera, Building2 } from 'lucide-react'
+import { Home, Shield, LayoutDashboard, UserPlus, Ticket, FileText, Camera, Building2, MessageSquare } from 'lucide-react'
 
 export default async function AdminLayout({
   children,
@@ -110,6 +110,13 @@ export default async function AdminLayout({
                 >
                   <FileText className="w-4 h-4" />
                   Blog
+                </Link>
+                <Link
+                  href="/admin/feedback"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 rounded-lg transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Feedback
                 </Link>
               </nav>
             </div>
