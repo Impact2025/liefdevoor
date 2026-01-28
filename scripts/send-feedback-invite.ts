@@ -26,27 +26,30 @@ async function sendFeedbackInvites(limit?: number, testMode = false) {
 
   // Get activated migration users who haven't received feedback invite yet
   // (Users who activated at least 2 days ago)
-  const users = await prisma.$queryRaw<any[]>`
+  // Note: Track sent invites via EmailLog with category 'feedback-invite' instead of MigrationEmail
+  const baseQuery = `
     SELECT
       mu.id,
       mu."firstName",
       mu."oldEmail",
       mu."claimedAt",
-      mu."claimedUserId",
+      mu."newUserId",
       u.email
     FROM "MigrationUser" mu
-    LEFT JOIN "User" u ON u.id = mu."claimedUserId"
+    LEFT JOIN "User" u ON u.id = mu."newUserId"
     WHERE mu.status IN ('CLAIMED', 'ACTIVATED')
     AND mu."claimedAt" < NOW() - INTERVAL '2 days'
     AND mu."claimedAt" > NOW() - INTERVAL '14 days'
-    AND mu.id NOT IN (
-      SELECT DISTINCT "migrationUserId"
-      FROM "MigrationEmail"
-      WHERE "emailType" = 'FEEDBACK_INVITE'
+    AND u.email IS NOT NULL
+    AND u.email NOT IN (
+      SELECT DISTINCT email
+      FROM "EmailLog"
+      WHERE category = 'feedback-invite'
     )
     ORDER BY mu."claimedAt" DESC
-    ${limit ? prisma.$queryRaw`LIMIT ${limit}` : prisma.$queryRaw``}
+    ${limit ? `LIMIT ${limit}` : ''}
   `
+  const users = await prisma.$queryRawUnsafe<any[]>(baseQuery)
 
   if (users.length === 0) {
     console.log('\n⚠️  Geen gebruikers gevonden om uit te nodigen')
@@ -89,32 +92,17 @@ async function sendFeedbackInvites(limit?: number, testMode = false) {
         })
       )
 
-      // Send email
+      // Send email (category 'feedback-invite' is used to track sent invites)
       const result = await sendEmail({
         to: email,
         subject: `${user.firstName}, hoe bevalt Liefde Voor Iedereen?`,
         html,
         text: `Hoi ${user.firstName},\n\nJe bent nu ${daysActive} dagen actief op Liefde Voor Iedereen. We zijn super benieuwd naar jouw ervaring!\n\nDeel je mening: ${SURVEY_URL}\n\nAls dank krijg je 5 gratis SuperBerichten!\n\nGroet,\nVincent`,
-        category: 'feedback'
+        category: 'feedback-invite'
       })
 
       if (result.success) {
-        // Log the email
-        await prisma.$executeRaw`
-          INSERT INTO "MigrationEmail" (
-            id, "migrationUserId", "emailType", subject, "sentAt", "resendId", "createdAt", "updatedAt"
-          ) VALUES (
-            gen_random_uuid(),
-            ${user.id},
-            'FEEDBACK_INVITE',
-            ${`${user.firstName}, hoe bevalt Liefde Voor Iedereen?`},
-            NOW(),
-            ${result.emailId || null},
-            NOW(),
-            NOW()
-          )
-        `
-
+        // Email is automatically logged in EmailLog by sendEmail with category 'feedback-invite'
         console.log(`${progress} ✅ ${user.firstName} (${email})`)
         success++
       } else {

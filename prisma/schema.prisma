@@ -2140,6 +2140,82 @@ model ProfessionalTeamMember {
   @@index([email])
 }
 
+// Admin notities voor professionals
+model ProfessionalAdminNote {
+  id              String   @id @default(cuid())
+  professionalId  String
+
+  // Note content
+  content         String   @db.Text
+  noteType        ProfessionalNoteType @default(GENERAL)
+
+  // Author tracking
+  authorId        String   // Admin user ID
+  authorName      String   // Cached for display
+
+  // Status
+  isPinned        Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([professionalId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+enum ProfessionalNoteType {
+  GENERAL         // Algemene notitie
+  VERIFICATION    // Over verificatie
+  SUPPORT         // Support gerelateerd
+  BILLING         // Facturatie/betaling
+  WARNING         // Waarschuwing
+}
+
+// Activity log voor professionals
+model ProfessionalActivityLog {
+  id              String   @id @default(cuid())
+  professionalId  String
+
+  // Activity details
+  action          ProfessionalAction
+  description     String?
+  metadata        Json?    // Extra data (article ID, tool name, etc.)
+
+  // Context
+  ipAddress       String?
+  userAgent       String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([professionalId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([professionalId, createdAt])
+}
+
+enum ProfessionalAction {
+  // Account
+  LOGIN
+  LOGOUT
+  PROFILE_UPDATE
+  TEAM_MEMBER_INVITED
+  TEAM_MEMBER_REMOVED
+
+  // Content
+  ARTICLE_VIEWED
+  ARTICLE_DOWNLOADED
+  TOOL_USED
+  WEBINAR_REGISTERED
+  WEBINAR_ATTENDED
+
+  // Subscription
+  TIER_UPGRADED
+  TIER_DOWNGRADED
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_CANCELLED
+}
+
 // ============================================
 // 📧 NEWSLETTER SUBSCRIPTION SYSTEM
 // ============================================
@@ -2221,6 +2297,7 @@ enum MigrationEmailType {
   LAST_CHANCE       // Dag 21: Laatste kans
   GOODBYE           // Dag 28: Data wordt verwijderd
   EXPIRED           // Dag 30: Coupon verlopen
+  FEEDBACK_INVITE   // Feedback survey uitnodiging
 }
 
 enum MigrationStatus {
