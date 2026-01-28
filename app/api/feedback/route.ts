@@ -162,10 +162,10 @@ export async function GET(request: NextRequest) {
     const stats = await prisma.$queryRaw<any[]>`
       SELECT
         COUNT(*)::int as total,
-        AVG(satisfaction)::numeric(3,2) as avg_satisfaction,
-        AVG("easeOfUse")::numeric(3,2) as avg_ease,
-        AVG("designRating")::numeric(3,2) as avg_design,
-        AVG("wouldRecommend")::numeric(3,2) as avg_nps,
+        ROUND(AVG(satisfaction)::numeric, 2) as avg_satisfaction,
+        ROUND(AVG("easeOfUse")::numeric, 2) as avg_ease,
+        ROUND(AVG("designRating")::numeric, 2) as avg_design,
+        ROUND(AVG("wouldRecommend")::numeric, 2) as avg_nps,
         AVG("completionTime")::int as avg_completion_time
       FROM "FeedbackSurvey"
     `
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
       SELECT
         COALESCE(mu.segment, 'UNKNOWN') as segment,
         COUNT(*)::int as total,
-        AVG(fs."wouldRecommend")::numeric(3,2) as avg_nps,
+        ROUND(AVG(fs."wouldRecommend")::numeric, 2) as avg_nps,
         COUNT(CASE WHEN fs."wouldRecommend" >= 9 THEN 1 END)::int as promoters,
         COUNT(CASE WHEN fs."wouldRecommend" <= 6 THEN 1 END)::int as detractors
       FROM "FeedbackSurvey" fs
