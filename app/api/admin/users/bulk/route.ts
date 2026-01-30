@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
         case 'reject':
           await requirePermission(session.user.id, AdminPermission.RESOLVE_REPORTS)
           break
+        case 'delete':
+          await requirePermission(session.user.id, AdminPermission.DELETE_USERS)
+          break
       }
     } catch (permissionError) {
       return NextResponse.json({
@@ -82,47 +85,58 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Prevent banning other admins
-    if (action === 'ban') {
+    // Prevent banning or deleting other admins
+    if (action === 'ban' || action === 'delete') {
       const adminUsers = users.filter(u => u.role === 'ADMIN')
       if (adminUsers.length > 0) {
         return NextResponse.json({
-          error: 'Cannot ban admin users',
+          error: `Cannot ${action} admin users`,
           adminUsers: adminUsers.map(u => u.email)
         }, { status: 403 })
       }
     }
 
     // Perform bulk action
-    let updateData: any = {}
+    let result: { count: number }
     let actionDescription = ''
 
-    switch (action) {
-      case 'ban':
-        updateData = { isBanned: true, role: 'BANNED' }
-        actionDescription = 'BULK_BAN'
-        break
-      case 'unban':
-        updateData = { isBanned: false, role: 'USER' }
-        actionDescription = 'BULK_UNBAN'
-        break
-      case 'approve':
-        updateData = { isVerified: true }
-        actionDescription = 'BULK_APPROVE'
-        break
-      case 'reject':
-        updateData = { isVerified: false }
-        actionDescription = 'BULK_REJECT'
-        break
-      default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
-    }
+    if (action === 'delete') {
+      // Special handling for delete - permanently remove users
+      actionDescription = 'BULK_DELETE'
+      result = await prisma.user.deleteMany({
+        where: { id: { in: userIds } }
+      })
+    } else {
+      // Regular update actions
+      let updateData: any = {}
 
-    // Execute bulk update
-    const result = await prisma.user.updateMany({
-      where: { id: { in: userIds } },
-      data: updateData
-    })
+      switch (action) {
+        case 'ban':
+          updateData = { role: 'BANNED' }
+          actionDescription = 'BULK_BAN'
+          break
+        case 'unban':
+          updateData = { role: 'USER' }
+          actionDescription = 'BULK_UNBAN'
+          break
+        case 'approve':
+          updateData = { isVerified: true }
+          actionDescription = 'BULK_APPROVE'
+          break
+        case 'reject':
+          updateData = { isVerified: false }
+          actionDescription = 'BULK_REJECT'
+          break
+        default:
+          return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+      }
+
+      // Execute bulk update
+      result = await prisma.user.updateMany({
+        where: { id: { in: userIds } },
+        data: updateData
+      })
+    }
 
     // Audit log
     const clientInfo = getClientInfo(request)

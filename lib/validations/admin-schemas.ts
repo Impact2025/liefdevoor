@@ -15,22 +15,47 @@ export { validateBody, validateQuery } from '@/lib/api-helpers'
  */
 export const userActionSchema = z.object({
   userId: z.string().cuid('Invalid user ID format'),
-  action: z.enum(['ban', 'unban', 'promote', 'demote']),
+  action: z.enum(['ban', 'unban', 'promote', 'demote', 'delete']),
   reason: z.string()
     .min(10, 'Reason must be at least 10 characters')
     .max(500, 'Reason must not exceed 500 characters')
     .optional()
-})
+}).refine(
+  (data) => {
+    // Reason required for ban and delete actions
+    if (['ban', 'delete'].includes(data.action) && !data.reason) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Reason is required for ban and delete actions',
+    path: ['reason']
+  }
+)
 
 export const bulkUserActionSchema = z.object({
   userIds: z.array(z.string().cuid())
     .min(1, 'At least one user ID required')
     .max(50, 'Cannot perform bulk action on more than 50 users at once'),
-  action: z.enum(['ban', 'unban', 'approve', 'reject']),
+  action: z.enum(['ban', 'unban', 'approve', 'reject', 'delete']),
   reason: z.string()
     .min(10, 'Reason must be at least 10 characters for audit trail')
     .max(500, 'Reason must not exceed 500 characters')
-})
+    .optional()
+}).refine(
+  (data) => {
+    // Reason required for ban, reject, and delete actions
+    if (['ban', 'reject', 'delete'].includes(data.action) && !data.reason) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Reason is required for ban, reject, and delete actions',
+    path: ['reason']
+  }
+)
 
 export const userSearchSchema = z.object({
   search: z.string().max(100).optional(),

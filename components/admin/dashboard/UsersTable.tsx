@@ -98,7 +98,7 @@ export default function UsersTable({
     }
   }
 
-  const handleBulkAction = async (action: 'ban' | 'unban' | 'approve' | 'reject', reason?: string) => {
+  const handleBulkAction = async (action: 'ban' | 'unban' | 'approve' | 'reject' | 'delete', reason?: string) => {
     const userIds = Array.from(selectedUsers)
 
     const response = await fetch('/api/admin/users/bulk', {
@@ -367,7 +367,7 @@ export default function UsersTable({
         selectedCount={selectedUsers.size}
         onClearSelection={() => setSelectedUsers(new Set())}
         onBulkAction={handleBulkAction}
-        actions={['ban', 'unban', 'approve', 'reject']}
+        actions={['ban', 'unban', 'approve', 'reject', 'delete']}
       />
 
       {/* Activity Timeline Modal */}

@@ -152,41 +152,62 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const updateData: any = {}
+    let user: { id: string; name: string | null; email: string | null; role: string } | null = null
 
-    switch (action) {
-      case 'ban':
-        updateData.role = 'BANNED'
-        break
-      case 'unban':
-        updateData.role = 'USER'
-        break
-      case 'promote':
-        updateData.role = 'ADMIN'
-        break
-      case 'demote':
-        updateData.role = 'USER'
-        break
-      default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
-    }
-
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true
+    if (action === 'delete') {
+      // Prevent deleting admin users
+      if (existingUser.role === 'ADMIN') {
+        return NextResponse.json({
+          error: 'Cannot delete admin users'
+        }, { status: 403 })
       }
-    })
+
+      // Permanently delete the user
+      await prisma.user.delete({
+        where: { id: userId }
+      })
+
+      // User object for audit log
+      user = existingUser
+    } else {
+      // Regular update actions
+      const updateData: any = {}
+
+      switch (action) {
+        case 'ban':
+          updateData.role = 'BANNED'
+          break
+        case 'unban':
+          updateData.role = 'USER'
+          break
+        case 'promote':
+          updateData.role = 'ADMIN'
+          break
+        case 'demote':
+          updateData.role = 'USER'
+          break
+        default:
+          return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+      }
+
+      user = await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true
+        }
+      })
+    }
 
     // Immediate audit log for critical action
     const clientInfo = getClientInfo(request)
     const userActionType = action === 'ban' ? 'USER_BANNED' :
                         action === 'unban' ? 'USER_UNBANNED' :
-                        action === 'promote' ? 'USER_PROMOTED' : 'USER_DEMOTED'
+                        action === 'promote' ? 'USER_PROMOTED' :
+                        action === 'delete' ? 'USER_DELETED' : 'USER_DEMOTED'
 
     await auditLogImmediate('ADMIN_ACTION', {
       userId: session.user.id,
@@ -199,7 +220,7 @@ export async function PATCH(request: NextRequest) {
         reason: reason || 'No reason provided',
         targetEmail: user.email,
         previousRole: existingUser.role,
-        newRole: user.role
+        newRole: action === 'delete' ? 'DELETED' : user.role
       },
       success: true
     })
@@ -209,7 +230,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user,
+      user: action === 'delete' ? null : user,
       message: `User ${action} successful`
     })
   } catch (error) {

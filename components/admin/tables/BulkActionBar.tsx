@@ -7,8 +7,8 @@ import { toast } from 'sonner'
 interface BulkActionBarProps {
   selectedCount: number
   onClearSelection: () => void
-  onBulkAction: (action: 'ban' | 'unban' | 'approve' | 'reject', reason?: string) => Promise<void>
-  actions: Array<'ban' | 'unban' | 'approve' | 'reject'>
+  onBulkAction: (action: 'ban' | 'unban' | 'approve' | 'reject' | 'delete', reason?: string) => Promise<void>
+  actions: Array<'ban' | 'unban' | 'approve' | 'reject' | 'delete'>
 }
 
 /**
@@ -24,7 +24,7 @@ export default function BulkActionBar({
 }: BulkActionBarProps) {
   const [showReasonInput, setShowReasonInput] = useState(false)
   const [reason, setReason] = useState('')
-  const [currentAction, setCurrentAction] = useState<'ban' | 'unban' | 'approve' | 'reject' | null>(null)
+  const [currentAction, setCurrentAction] = useState<'ban' | 'unban' | 'approve' | 'reject' | 'delete' | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [showProgress, setShowProgress] = useState(false)
@@ -50,8 +50,8 @@ export default function BulkActionBar({
 
   if (selectedCount === 0 && !showProgress) return null
 
-  const handleActionClick = (action: 'ban' | 'unban' | 'approve' | 'reject') => {
-    if (action === 'ban' || action === 'reject') {
+  const handleActionClick = (action: 'ban' | 'unban' | 'approve' | 'reject' | 'delete') => {
+    if (action === 'ban' || action === 'reject' || action === 'delete') {
       setCurrentAction(action)
       setShowReasonInput(true)
     } else {
@@ -59,7 +59,7 @@ export default function BulkActionBar({
     }
   }
 
-  const executeAction = async (action: 'ban' | 'unban' | 'approve' | 'reject', actionReason?: string) => {
+  const executeAction = async (action: 'ban' | 'unban' | 'approve' | 'reject' | 'delete', actionReason?: string) => {
     setIsProcessing(true)
     setShowProgress(true)
     setProgress(0)
@@ -68,7 +68,8 @@ export default function BulkActionBar({
       ban: { loading: 'Gebruikers blokkeren', success: 'geblokkeerd', error: 'blokkeren' },
       unban: { loading: 'Gebruikers deblokkeren', success: 'gedeblokkeerd', error: 'deblokkeren' },
       approve: { loading: 'Gebruikers goedkeuren', success: 'goedgekeurd', error: 'goedkeuren' },
-      reject: { loading: 'Gebruikers afwijzen', success: 'afgewezen', error: 'afwijzen' }
+      reject: { loading: 'Gebruikers afwijzen', success: 'afgewezen', error: 'afwijzen' },
+      delete: { loading: 'Gebruikers verwijderen', success: 'verwijderd', error: 'verwijderen' }
     }
 
     const labels = actionLabels[action]
@@ -135,6 +136,12 @@ export default function BulkActionBar({
       icon: XCircle,
       label: 'Afwijzen',
       color: 'bg-orange-600 hover:bg-orange-700',
+      requiresReason: true
+    },
+    delete: {
+      icon: Trash2,
+      label: 'Verwijderen',
+      color: 'bg-gray-900 hover:bg-black',
       requiresReason: true
     }
   }
@@ -215,8 +222,25 @@ export default function BulkActionBar({
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]">
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4">
-              {currentAction === 'ban' ? 'Blokkeer' : 'Wijs af'} {selectedCount} gebruikers
+              {currentAction === 'ban' ? 'Blokkeer' :
+               currentAction === 'delete' ? 'Verwijder' :
+               'Wijs af'} {selectedCount} gebruikers
             </h3>
+            {currentAction === 'delete' && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-500 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-semibold text-red-800">Waarschuwing: Permanente verwijdering</p>
+                    <p className="text-xs text-red-700 mt-1">
+                      Deze actie kan niet ongedaan worden gemaakt. Alle gebruikersdata wordt permanent verwijderd.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <p className="text-sm text-gray-600 mb-4">
               Geef een reden voor deze actie (minimaal 10 tekens):
             </p>
@@ -263,13 +287,21 @@ export default function BulkActionBar({
               <button
                 onClick={handleSubmitReason}
                 disabled={reason.length < 10 || reason.length > 500 || isProcessing}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                className={`px-4 py-2 ${
+                  currentAction === 'delete'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2`}
               >
                 {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
                 <span>
                   {isProcessing
                     ? 'Verwerken...'
-                    : `Bevestig ${currentAction === 'ban' ? 'Blokkeren' : 'Afwijzen'}`
+                    : `Bevestig ${
+                        currentAction === 'ban' ? 'Blokkeren' :
+                        currentAction === 'delete' ? 'Verwijderen' :
+                        'Afwijzen'
+                      }`
                   }
                 </span>
               </button>
