@@ -1,0 +1,37 @@
+Aan: Andy De Bodt <andydebodt1@gmail.com>
+Van: info@liefdevooriederen.nl
+Onderwerp: 🎉 Probleem opgelost! Belgische postcodes werken nu!
+
+Hoi Andy,
+
+Wat een fantastisch nieuws - je had helemaal gelijk! 🎯
+
+We hebben het probleem onderzocht en ontdekt dat onze app inderdaad alleen Nederlandse postcodes (1234 AB formaat) accepteerde. Belgische postcodes (1000 formaat) werden helemaal niet ondersteund.
+
+**Maar... we hebben het nu gefixt! 🚀**
+
+Vanaf nu werkt de app met:
+- 🇳🇱 Nederlandse postcodes: 1012 AB (4 cijfers + 2 letters)
+- 🇧🇪 Belgische postcodes: 1000 (4 cijfers)
+
+**Wat kun je nu doen:**
+1. Ga terug naar de registratie pagina
+2. Bij stap 4 (Postcode en Stad) vul je gewoon je Belgische postcode in (bijv. 1000, 2000, 9000, etc.)
+3. De app herkent nu automatisch dat het een Belgische postcode is
+4. Je stad verschijnt op de kaart
+5. De knop "Verder" wordt actief
+6. Je kunt gewoon doorgaan met je profiel! ✨
+
+De fix is vanaf nu live, dus je kunt het meteen proberen!
+
+**Dank je wel** voor je melding - zonder jouw bericht hadden we niet geweten dat Belgische gebruikers dit probleem hadden. Door jouw feedback hebben we de app beter gemaakt voor iedereen uit België! 🙌
+
+Mocht je nog andere problemen tegenkomen of vragen hebben, laat het gerust weten. We helpen je graag verder!
+
+Veel succes met het aanmaken van je profiel en hopelijk vind je snel leuke matches! 💕
+
+Vriendelijke groeten,
+
+Het Liefde voor Iedereen team
+
+P.S. Als het werkt, horen we dat ook graag! En als je nog ergens tegenaan loopt, schroom niet om contact op te nemen. 😊

@@ -29,7 +29,7 @@ export interface CityOption {
 }
 
 /**
- * Geocode Dutch postcode to coordinates using Nominatim (OpenStreetMap)
+ * Geocode Dutch or Belgian postcode to coordinates using Nominatim (OpenStreetMap)
  *
  * SERVER-SIDE ONLY - Use geocodePostcodeClient() for client components
  * This function makes direct API calls which will fail with CORS in browsers
@@ -39,15 +39,19 @@ export async function geocodePostcode(postcode: string): Promise<GeocodingResult
     // Clean postcode (remove spaces)
     const cleanedPostcode = postcode.replace(/\s/g, '').toUpperCase()
 
-    // Validate Dutch postcode format (1234AB)
-    if (!isValidDutchPostcode(cleanedPostcode)) {
-      throw new Error('Invalid Dutch postcode format')
+    // Detect country
+    const country = detectPostcodeCountry(cleanedPostcode)
+
+    if (!country) {
+      throw new Error('Invalid postcode format. Use Dutch (1234AB) or Belgian (1000) format.')
     }
+
+    const countryCode = country === 'NL' ? 'nl' : 'be'
 
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?` +
       `postalcode=${cleanedPostcode}&` +
-      `country=nl&` +
+      `country=${countryCode}&` +
       `format=json&` +
       `limit=1&` +
       `addressdetails=1`,
@@ -84,7 +88,7 @@ export async function geocodePostcode(postcode: string): Promise<GeocodingResult
 }
 
 /**
- * Geocode Dutch postcode to coordinates (CLIENT-SAFE)
+ * Geocode Dutch or Belgian postcode to coordinates (CLIENT-SAFE)
  *
  * Use this function in client components - it calls our API route to avoid CORS
  */
@@ -93,9 +97,9 @@ export async function geocodePostcodeClient(postcode: string): Promise<Geocoding
     // Clean postcode (remove spaces)
     const cleanedPostcode = postcode.replace(/\s/g, '').toUpperCase()
 
-    // Validate Dutch postcode format (1234AB)
-    if (!isValidDutchPostcode(cleanedPostcode)) {
-      throw new Error('Invalid Dutch postcode format')
+    // Validate postcode format (Dutch or Belgian)
+    if (!isValidPostcode(cleanedPostcode)) {
+      throw new Error('Invalid postcode format. Use Dutch (1234AB) or Belgian (1000) format.')
     }
 
     // Call our API route instead of Nominatim directly
@@ -216,6 +220,34 @@ export function isValidDutchPostcode(postcode: string): boolean {
   const cleaned = postcode.replace(/\s/g, '').toUpperCase()
   const regex = /^[1-9][0-9]{3}[A-Z]{2}$/
   return regex.test(cleaned)
+}
+
+/**
+ * Validate Belgian postcode format
+ * Format: 1000 (4 digits only)
+ */
+export function isValidBelgianPostcode(postcode: string): boolean {
+  const cleaned = postcode.replace(/\s/g, '')
+  const regex = /^[1-9][0-9]{3}$/
+  return regex.test(cleaned)
+}
+
+/**
+ * Validate Dutch OR Belgian postcode format
+ * Dutch: 1234AB (4 digits + 2 letters)
+ * Belgian: 1000 (4 digits only)
+ */
+export function isValidPostcode(postcode: string): boolean {
+  return isValidDutchPostcode(postcode) || isValidBelgianPostcode(postcode)
+}
+
+/**
+ * Detect postcode country
+ */
+export function detectPostcodeCountry(postcode: string): 'NL' | 'BE' | null {
+  if (isValidDutchPostcode(postcode)) return 'NL'
+  if (isValidBelgianPostcode(postcode)) return 'BE'
+  return null
 }
 
 /**

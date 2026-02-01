@@ -6,12 +6,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { isValidDutchPostcode } from '@/lib/services/geocoding'
+import { isValidPostcode, detectPostcodeCountry } from '@/lib/services/geocoding'
 
 /**
  * POST /api/geocode
  *
- * Geocode a Dutch postcode to coordinates
+ * Geocode a Dutch or Belgian postcode to coordinates
  */
 export async function POST(request: NextRequest) {
   try {
@@ -28,18 +28,29 @@ export async function POST(request: NextRequest) {
     // Clean and validate postcode
     const cleanedPostcode = postcode.replace(/\s/g, '').toUpperCase()
 
-    if (!isValidDutchPostcode(cleanedPostcode)) {
+    if (!isValidPostcode(cleanedPostcode)) {
       return NextResponse.json(
-        { error: 'Invalid Dutch postcode format' },
+        { error: 'Invalid postcode format. Use Dutch (1234AB) or Belgian (1000) format.' },
         { status: 400 }
       )
     }
+
+    // Detect country
+    const country = detectPostcodeCountry(cleanedPostcode)
+    if (!country) {
+      return NextResponse.json(
+        { error: 'Could not detect postcode country' },
+        { status: 400 }
+      )
+    }
+
+    const countryCode = country === 'NL' ? 'nl' : 'be'
 
     // Call Nominatim API (server-side, no CORS)
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?` +
       `postalcode=${cleanedPostcode}&` +
-      `country=nl&` +
+      `country=${countryCode}&` +
       `format=json&` +
       `limit=1&` +
       `addressdetails=1`,

@@ -1,9 +1,9 @@
 /**
  * PostcodeInput Component
  *
- * Wereldklasse Dutch postcode input with:
- * - Auto-formatting (1234AB → 1234 AB)
- * - Real-time validation
+ * Wereldklasse Dutch/Belgian postcode input with:
+ * - Auto-formatting (1234AB → 1234 AB for Dutch)
+ * - Real-time validation for Dutch (1234AB) and Belgian (1000) formats
  * - Error messaging
  * - Geocoding integration
  */
@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react'
 import { MapPin, Check, X } from 'lucide-react'
-import { isValidDutchPostcode, formatDutchPostcode, geocodePostcodeClient } from '@/lib/services/geocoding'
+import { isValidPostcode, detectPostcodeCountry, formatDutchPostcode, geocodePostcodeClient } from '@/lib/services/geocoding'
 import type { GeocodingResult } from '@/lib/services/geocoding'
 
 interface PostcodeInputProps {
@@ -30,7 +30,7 @@ export function PostcodeInput({
   onChange,
   onGeocode,
   className = '',
-  placeholder = '1012 AB',
+  placeholder = '1012 AB / 1000',
   disabled = false,
   autoGeocode = true,
 }: PostcodeInputProps) {
@@ -40,7 +40,7 @@ export function PostcodeInput({
 
   // Validate postcode when it changes
   useEffect(() => {
-    if (!value || value.length < 6) {
+    if (!value || value.length < 4) {
       setIsValid(null)
       setErrorMessage('')
       return
@@ -48,12 +48,13 @@ export function PostcodeInput({
 
     const cleaned = value.replace(/\s/g, '')
 
-    if (cleaned.length === 6) {
-      const valid = isValidDutchPostcode(cleaned)
+    // Belgian postcodes are 4 digits, Dutch are 6 chars (4 digits + 2 letters)
+    if (cleaned.length === 4 || cleaned.length === 6) {
+      const valid = isValidPostcode(cleaned)
       setIsValid(valid)
 
       if (!valid) {
-        setErrorMessage('Ongeldige postcode (formaat: 1234 AB)')
+        setErrorMessage('Ongeldige postcode (NL: 1234 AB, BE: 1000)')
       } else {
         setErrorMessage('')
 
@@ -92,18 +93,23 @@ export function PostcodeInput({
     // Remove all spaces first
     let cleaned = input.replace(/\s/g, '')
 
-    // Limit to 6 characters (4 digits + 2 letters)
+    // Limit to 6 characters max (Dutch format: 4 digits + 2 letters)
     cleaned = cleaned.slice(0, 6)
 
-    // Only allow digits for first 4 chars, letters for last 2
+    // Extract digits (first 4 chars max)
     const digits = cleaned.slice(0, 4).replace(/[^0-9]/g, '')
+
+    // Extract letters (chars 5-6 for Dutch format)
     const letters = cleaned.slice(4, 6).replace(/[^A-Z]/g, '')
+
     cleaned = digits + letters
 
-    // Auto-format with space after 4 digits
-    if (cleaned.length > 4) {
+    // Auto-format with space after 4 digits (Dutch format only)
+    if (cleaned.length > 4 && letters.length > 0) {
+      // Dutch format: add space between digits and letters
       input = `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`
     } else {
+      // Belgian format (4 digits only) or incomplete
       input = cleaned
     }
 
@@ -167,7 +173,7 @@ export function PostcodeInput({
       {/* Helper text */}
       {!errorMessage && !isValid && (
         <p className="mt-2 text-sm text-gray-500">
-          Vul je postcode in (bijv. 1012 AB)
+          Vul je postcode in (NL: 1012 AB, BE: 1000)
         </p>
       )}
     </div>
