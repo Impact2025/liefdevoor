@@ -167,7 +167,7 @@ export const config = {
     '/profile/:path*',
     '/settings/:path*',
     '/onboarding/:path*',
-    // All API routes for rate limiting
-    '/api/:path*',
+    // All API routes for rate limiting (except webhooks)
+    '/api/((?!webhooks).*)',
   ],
 }
