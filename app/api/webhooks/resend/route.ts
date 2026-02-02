@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
-import crypto from 'crypto'
+import { Webhook } from 'svix'
 
 /**
  * Resend Webhook Handler
@@ -8,17 +8,41 @@ import crypto from 'crypto'
  */
 export async function POST(req: NextRequest) {
   try {
-    const payload = await req.json()
-    const { type, data } = payload
-
-    // Verify webhook signature (Svix format)
-    const signature = req.headers.get('svix-signature')
+    // Get raw body for signature verification
+    const body = await req.text()
     const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
 
-    if (webhookSecret && !verifySignature(payload, signature, webhookSecret)) {
-      console.error('[Webhook] Invalid signature')
+    if (!webhookSecret) {
+      console.error('[Webhook] RESEND_WEBHOOK_SECRET not configured')
+      return Response.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    // Verify signature using Svix
+    const svixId = req.headers.get('svix-id')
+    const svixTimestamp = req.headers.get('svix-timestamp')
+    const svixSignature = req.headers.get('svix-signature')
+
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      console.error('[Webhook] Missing Svix headers')
+      return Response.json({ error: 'Missing signature headers' }, { status: 401 })
+    }
+
+    try {
+      const wh = new Webhook(webhookSecret)
+      wh.verify(body, {
+        'svix-id': svixId,
+        'svix-timestamp': svixTimestamp,
+        'svix-signature': svixSignature,
+      })
+      console.log('[Webhook] ✅ Signature verified successfully')
+    } catch (err) {
+      console.error('[Webhook] ❌ Signature verification failed:', err)
       return Response.json({ error: 'Invalid signature' }, { status: 401 })
     }
+
+    // Parse the payload
+    const payload = JSON.parse(body)
+    const { type, data } = payload
 
     const resendId = data.email_id
     if (!resendId) {
@@ -144,39 +168,3 @@ async function handleComplained(email: any, data: any) {
   console.log(`[Webhook] Spam complaint from ${email.migrationUser.firstName}`)
 }
 
-function verifySignature(payload: any, signature: string | null, secret: string): boolean {
-  if (!signature || !secret) {
-    return false
-  }
-
-  // Svix signature verification
-  // Format: svix-id=xxx,svix-timestamp=xxx,svix-signature=xxx
-  try {
-    const parts = signature.split(',')
-    const sigMap: Record<string, string> = {}
-
-    for (const part of parts) {
-      const [key, value] = part.split('=')
-      sigMap[key] = value
-    }
-
-    const timestamp = sigMap['svix-timestamp']
-    const sig = sigMap['svix-signature']
-
-    if (!timestamp || !sig) {
-      return false
-    }
-
-    // Create expected signature
-    const signedContent = `${timestamp}.${JSON.stringify(payload)}`
-    const expectedSig = crypto
-      .createHmac('sha256', secret)
-      .update(signedContent)
-      .digest('base64')
-
-    return sig === expectedSig
-  } catch (error) {
-    console.error('[Webhook] Signature verification failed:', error)
-    return false
-  }
-}
