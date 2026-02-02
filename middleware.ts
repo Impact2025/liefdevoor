@@ -38,6 +38,11 @@ const PUBLIC_ROUTES = [
 async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Skip middleware for webhooks (they need to bypass auth and rate limiting)
+  if (pathname.startsWith('/api/webhooks/')) {
+    return NextResponse.next()
+  }
+
   // Apply rate limiting to API routes
   if (pathname.startsWith('/api')) {
     let rateLimit
@@ -167,7 +172,7 @@ export const config = {
     '/profile/:path*',
     '/settings/:path*',
     '/onboarding/:path*',
-    // All API routes for rate limiting (except webhooks)
-    '/api/((?!webhooks).*)',
+    // All API routes for rate limiting
+    '/api/:path*',
   ],
 }
