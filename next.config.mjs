@@ -267,6 +267,18 @@ const nextConfig = {
           {
             key: 'Access-Control-Max-Age',
             value: '86400'
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store'
+          },
+          {
+            key: 'Vercel-CDN-Cache-Control',
+            value: 'no-store'
           }
         ]
       }
