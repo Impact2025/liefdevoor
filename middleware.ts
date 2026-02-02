@@ -121,6 +121,11 @@ export default withAuth(middleware, {
     authorized: ({ token, req }) => {
       const { pathname } = req.nextUrl
 
+      // Webhooks should always be allowed (bypass auth entirely)
+      if (pathname.startsWith('/api/webhooks/')) {
+        return true
+      }
+
       // Admin routes require ADMIN role
       if (pathname.startsWith('/admin')) {
         return token?.role === 'ADMIN'
