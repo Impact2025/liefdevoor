@@ -61,17 +61,17 @@ export async function getCached<T>(
  * Invalidate specific cache keys
  */
 export async function invalidateMigrationCache(keys?: (keyof typeof CACHE_KEYS)[]): Promise<void> {
-  const keysToInvalidate = keys
-    ? keys.map(k => CACHE_KEYS[k])
-    : Object.values(CACHE_KEYS)
-
   if (!redis) {
     return
   }
 
+  const keysToInvalidate = keys
+    ? keys.map(k => CACHE_KEYS[k])
+    : Object.values(CACHE_KEYS)
+
   try {
     await Promise.all(
-      keysToInvalidate.map(key => redis.del(key))
+      keysToInvalidate.map(key => redis!.del(key))
     )
     console.log(`[Cache] Invalidated ${keysToInvalidate.length} keys`)
   } catch (error) {
