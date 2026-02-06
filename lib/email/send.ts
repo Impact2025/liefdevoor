@@ -15,7 +15,7 @@ interface SendEmailOptions {
   to: string
   subject: string
   html: string
-  text: string
+  text?: string
   category?: string
   userId?: string
   maxRetries?: number
