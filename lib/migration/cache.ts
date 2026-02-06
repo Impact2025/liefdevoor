@@ -65,10 +65,11 @@ export async function invalidateMigrationCache(keys?: (keyof typeof CACHE_KEYS)[
     ? keys.map(k => CACHE_KEYS[k])
     : Object.values(CACHE_KEYS)
 
+  if (!redis) {
+    return
+  }
+
   try {
-    if (!redis) {
-      return
-    }
     await Promise.all(
       keysToInvalidate.map(key => redis.del(key))
     )
