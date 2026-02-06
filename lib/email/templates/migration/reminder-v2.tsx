@@ -55,7 +55,7 @@ export default function ReminderV2({
     <Html>
       <Head />
       <Preview>
-        {isUrgent ? '⚠️ Nog maar' : 'Je hebt nog'} {daysRemaining} dagen - Claim je {premiumMonths} maanden Premium!
+        {`${isUrgent ? '⚠️ Nog maar' : 'Je hebt nog'} ${daysRemaining} dagen - Claim je ${premiumMonths} maanden Premium!`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
