@@ -218,7 +218,7 @@ export default function MigrationDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <SegmentList segments={stats.segments} />
+              <SegmentList data={stats.segments} />
             </CardContent>
           </Card>
         </div>
