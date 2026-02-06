@@ -32,6 +32,11 @@ export async function getCached<T>(
   const ttl = CACHE_TTL[key]
 
   try {
+    // If no redis connection, execute function directly
+    if (!redis) {
+      return await fetchFn()
+    }
+
     // Try to get from cache
     const cached = await redis.get(cacheKey)
     if (cached) {
