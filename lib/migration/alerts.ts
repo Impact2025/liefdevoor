@@ -233,6 +233,7 @@ async function notifyAdmins(alerts: Alert[]): Promise<void> {
     to: adminEmail,
     subject: `🚨 Migration Campaign Alert: ${alerts.length} issues detected`,
     html,
+    text: alerts.map(a => `${a.severity}: ${a.message}`).join('\n'),
     category: 'admin'
   })
 }
