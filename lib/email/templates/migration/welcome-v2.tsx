@@ -50,7 +50,7 @@ export default function WelcomeV2({
     <Html>
       <Head />
       <Preview>
-        Je profiel staat klaar + {premiumMonths} maanden Premium gratis! 🎁
+        {`Je profiel staat klaar + ${premiumMonths} maanden Premium gratis! 🎁`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
