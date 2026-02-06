@@ -106,6 +106,9 @@ async function sendBatch(segment: string, limit: number): Promise<SendResult> {
       })
 
       if (emailResult.success) {
+        // CRITICAL: Store resendId for webhook tracking
+        const resendId = emailResult.emailId || null
+
         // Update user status
         await prisma.$executeRaw`
           UPDATE "MigrationUser"
@@ -116,10 +119,10 @@ async function sendBatch(segment: string, limit: number): Promise<SendResult> {
           WHERE id = ${user.id}
         `
 
-        // Log the email
+        // Log the email with resendId
         await prisma.$executeRaw`
           INSERT INTO "MigrationEmail" (
-            id, "migrationUserId", "emailType", subject, "abVariant", "sentAt", "resendId"
+            id, "migrationUserId", "emailType", subject, "abVariant", "sentAt", "resendId", "createdAt", "updatedAt"
           ) VALUES (
             gen_random_uuid(),
             ${user.id},
@@ -127,7 +130,9 @@ async function sendBatch(segment: string, limit: number): Promise<SendResult> {
             ${`Geweldig nieuws ${user.firstName}! OogvoorLiefde wordt Liefde Voor Iedereen`},
             'A',
             NOW(),
-            ${emailResult.emailId || null}
+            ${resendId},
+            NOW(),
+            NOW()
           )
         `
 

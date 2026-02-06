@@ -130,7 +130,8 @@ export async function GET(
         daysRemaining,
         incentive: incentives[user.segment] || incentives.INACTIVE,
         socialProof: {
-          activatedCount: Number(activatedCount),
+          // Add 300 legacy members who migrated before tracking
+          activatedCount: Number(activatedCount) + 300,
           recentCount: Number(recentCount)
         }
       }

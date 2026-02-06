@@ -133,13 +133,13 @@ export const EMAIL_SEQUENCE = {
     }
   },
 
-  // Incentives per segment
+  // Incentives per segment (UPGRADED for better conversion)
   incentives: {
-    VIP: { premiumMonths: 3, superMessages: 10, badge: 'early_adopter' },
-    GOLD: { premiumMonths: 2, superMessages: 5, badge: 'gold_veteran' },
-    ACTIVE: { premiumMonths: 1, superMessages: 3, badge: null },
-    DORMANT: { premiumMonths: 1, superMessages: 5, badge: 'comeback_hero' },
-    INACTIVE: { premiumMonths: 1, superMessages: 3, badge: null }
+    VIP: { premiumMonths: 6, superMessages: 20, badge: 'early_adopter' },      // Was: 3, 10
+    GOLD: { premiumMonths: 4, superMessages: 15, badge: 'gold_veteran' },      // Was: 2, 5
+    ACTIVE: { premiumMonths: 3, superMessages: 10, badge: null },              // Was: 1, 3
+    DORMANT: { premiumMonths: 2, superMessages: 10, badge: 'comeback_hero' },  // Was: 1, 5
+    INACTIVE: { premiumMonths: 1, superMessages: 3, badge: null }              // Same
   }
 }
 
@@ -710,12 +710,13 @@ export async function processAccountClaim(
 
 /**
  * Apply migration premium directly based on segment
- * No longer relies on Coupon table - uses segment to determine months
+ * NOW: Actually applies credits, updates status to ACTIVATED, and sends confirmation
  */
 async function applyMigrationPremium(userId: string, segment: MigrationSegment): Promise<void> {
   try {
     const incentive = EMAIL_SEQUENCE.incentives[segment]
     const premiumMonths = incentive?.premiumMonths || 1
+    const superMessages = incentive?.superMessages || 0
 
     // Skip if no premium months for this segment
     if (premiumMonths <= 0) {
@@ -726,26 +727,45 @@ async function applyMigrationPremium(userId: string, segment: MigrationSegment):
     const expiresAt = new Date()
     expiresAt.setMonth(expiresAt.getMonth() + premiumMonths)
 
-    // Update user subscription tier
+    // Get migration user for status update
+    const migrationUser = await prisma.migrationUser.findFirst({
+      where: { newUserId: userId }
+    })
+
+    // 1. Update user tier AND add SuperMessages credits
     await prisma.user.update({
       where: { id: userId },
       data: {
-        subscriptionTier: 'PREMIUM'
+        subscriptionTier: 'PREMIUM',
+        credits: { increment: superMessages },
+        monthlySupermessages: superMessages,
+        monthlySupermessagesReset: expiresAt
       }
     })
 
-    // Create subscription record
+    // 2. Create subscription record
     await prisma.subscription.create({
       data: {
         userId,
-        plan: 'PREMIUM_MIGRATION_BONUS',
+        plan: `MIGRATION_${segment}_${premiumMonths}M`,
         status: 'active',
         startDate: new Date(),
         endDate: expiresAt
       }
     })
 
-    console.log(`[Migration] Applied ${premiumMonths} months premium for ${segment} user ${userId}`)
+    // 3. Mark coupon as redeemed and status as ACTIVATED
+    if (migrationUser) {
+      await prisma.migrationUser.update({
+        where: { id: migrationUser.id },
+        data: {
+          couponRedeemedAt: new Date(),
+          status: 'ACTIVATED'
+        }
+      })
+    }
+
+    console.log(`[Migration] ✅ Applied ${premiumMonths} months premium + ${superMessages} credits for ${segment} user ${userId}`)
 
   } catch (error) {
     console.error('[Migration] Failed to apply premium:', error)

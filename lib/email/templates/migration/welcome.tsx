@@ -3,6 +3,7 @@
  *
  * Day 0: First invitation to claim account
  * Personalized with user data from OogvoorLiefde
+ * Extended version with trust-building content
  */
 
 import * as React from 'react'
@@ -16,7 +17,8 @@ import {
   Button,
   Img,
   Section,
-  Hr
+  Hr,
+  Link
 } from '@react-email/components'
 
 const BRAND = {
@@ -33,12 +35,12 @@ const BRAND = {
 interface MigrationWelcomeEmailProps {
   userName: string
   landingUrl: string
-  couponCode: string
+  couponCode?: string
   couponExpiresAt?: Date
   memberSince: Date
   photoCount?: number
   messageCount?: number
-  incentive: {
+  incentive?: {
     premiumMonths: number
     superMessages: number
   }
@@ -47,12 +49,12 @@ interface MigrationWelcomeEmailProps {
 export default function MigrationWelcomeEmail({
   userName = 'daar',
   landingUrl = 'https://liefdevooriedereen.nl/welkom/token',
-  couponCode = 'WELKOM-NAAM-VIP',
+  couponCode = 'OOGVOOR2026',
   couponExpiresAt,
   memberSince = new Date(),
   photoCount = 0,
   messageCount = 0,
-  incentive = { premiumMonths: 3, superMessages: 10 }
+  incentive = { premiumMonths: 2, superMessages: 10 }
 }: MigrationWelcomeEmailProps) {
   const memberYear = memberSince.getFullYear()
   const expiryDate = couponExpiresAt
@@ -83,36 +85,96 @@ export default function MigrationWelcomeEmail({
           <Section style={styles.hero}>
             <div style={styles.badge}>
               <Text style={styles.badgeText}>
-                🎉 Je profiel staat klaar!
+                Geweldig nieuws!
               </Text>
             </div>
 
             <Heading style={styles.h1}>
-              Welkom terug, {userName}!
+              Beste {userName},
             </Heading>
 
             <Text style={styles.heroText}>
-              OogvoorLiefde wordt <strong>LiefdevoorIedereen</strong> -
-              een compleet vernieuwde dating ervaring.
-              Als trouw lid sinds {memberYear} staat je profiel al klaar.
+              OogvoorLiefde wordt <strong>Liefde Voor Iedereen</strong>!
+            </Text>
+          </Section>
+
+          {/* Introduction */}
+          <Section style={styles.textSection}>
+            <Text style={styles.paragraph}>
+              Je ontvangt deze e-mail omdat je een gewaardeerd lid bent van OogvoorLiefde.
+              We hebben fantastisch nieuws: OogvoorLiefde gaat verder als <strong>Liefde Voor Iedereen</strong> -
+              een compleet vernieuwde dating ervaring met dezelfde betrouwbaarheid die je gewend bent.
+            </Text>
+          </Section>
+
+          {/* What's Changing Section */}
+          <Section style={styles.textSection}>
+            <Heading as="h2" style={styles.h2}>
+              Wat verandert er?
+            </Heading>
+            <Text style={styles.paragraph}>
+              <strong>Nieuw platform, vertrouwde service:</strong> We hebben ons platform van de grond af
+              opnieuw opgebouwd met moderne technologie voor een betere, snellere en veiligere ervaring.
+            </Text>
+            <Text style={styles.paragraph}>
+              <strong>Jouw gegevens zijn veilig:</strong> Als trouw lid sinds {memberYear} hebben we al
+              je profielgegevens, foto's en voorkeuren zorgvuldig overgezet naar het nieuwe platform.
+              Je hoeft alleen nog je account te activeren.
             </Text>
           </Section>
 
           {/* Data Preserved Box */}
           <Section style={styles.preservedBox}>
             <Text style={styles.preservedTitle}>
-              ✅ Je data is bewaard:
+              Je data is bewaard:
             </Text>
             <table role="presentation" width="100%" cellPadding="0" cellSpacing="0">
               <tr>
                 <td style={styles.preservedItem}>
-                  📸 {photoCount} foto's
+                  {photoCount} foto's
                 </td>
                 <td style={styles.preservedItem}>
-                  💬 {messageCount} berichten
+                  {messageCount} berichten
                 </td>
                 <td style={styles.preservedItem}>
-                  📅 Lid sinds {memberYear}
+                  Lid sinds {memberYear}
+                </td>
+              </tr>
+            </table>
+          </Section>
+
+          {/* What's New Section */}
+          <Section style={styles.textSection}>
+            <Heading as="h2" style={styles.h2}>
+              Wat is er nieuw?
+            </Heading>
+            <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={styles.featureTable}>
+              <tr>
+                <td style={styles.featureRow}>
+                  <Text style={styles.featureItem}>
+                    <strong>Slimmere matching:</strong> Onze verbeterde algoritmes helpen je betere matches te vinden
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.featureRow}>
+                  <Text style={styles.featureItem}>
+                    <strong>Moderne interface:</strong> Een frisse, gebruiksvriendelijke look
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.featureRow}>
+                  <Text style={styles.featureItem}>
+                    <strong>Betere beveiliging:</strong> Extra bescherming voor jouw privacy
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.featureRow}>
+                  <Text style={styles.featureItem}>
+                    <strong>Snellere app:</strong> Geen wachttijden meer
+                  </Text>
                 </td>
               </tr>
             </table>
@@ -121,19 +183,19 @@ export default function MigrationWelcomeEmail({
           {/* Coupon Box */}
           <Section style={styles.couponBox}>
             <Text style={styles.couponLabel}>
-              Jouw persoonlijke welkomstcode:
+              Jouw welkomstcode:
             </Text>
             <Text style={styles.couponCode}>
-              {couponCode}
+              OOGVOOR2026
             </Text>
             <Text style={styles.couponValue}>
               {incentive.premiumMonths} maanden GRATIS Premium
             </Text>
             <Text style={styles.couponExtra}>
-              + {incentive.superMessages} SuperBerichten
+              + {incentive.superMessages} SuperBerichten cadeau
             </Text>
-            <Text style={styles.couponExpiry}>
-              Geldig tot {expiryDate}
+            <Text style={styles.couponNote}>
+              (Voer deze code in bij het activeren van je account)
             </Text>
           </Section>
 
@@ -142,20 +204,37 @@ export default function MigrationWelcomeEmail({
             <Button href={landingUrl} style={styles.button}>
               Activeer Mijn Account
             </Button>
+            <Text style={styles.ctaSubtext}>
+              Het activeren duurt minder dan 2 minuten
+            </Text>
           </Section>
 
-          {/* Trust Indicators */}
-          <Section style={styles.trustSection}>
+          <Hr style={styles.divider} />
+
+          {/* Trust Section */}
+          <Section style={styles.textSection}>
+            <Heading as="h2" style={styles.h2}>
+              Veiligheid en privacy
+            </Heading>
             <table role="presentation" width="100%" cellPadding="0" cellSpacing="0">
               <tr>
                 <td style={styles.trustItem}>
-                  🔒 Veilige overdracht
+                  <Text style={styles.trustText}>Veilige overdracht van je gegevens</Text>
                 </td>
+              </tr>
+              <tr>
                 <td style={styles.trustItem}>
-                  ✅ Geen betaling nodig
+                  <Text style={styles.trustText}>Geen betaling nodig voor activatie</Text>
                 </td>
+              </tr>
+              <tr>
                 <td style={styles.trustItem}>
-                  🛡️ AVG-compliant
+                  <Text style={styles.trustText}>Volledig AVG-compliant</Text>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.trustItem}>
+                  <Text style={styles.trustText}>Je kunt altijd stoppen wanneer je wilt</Text>
                 </td>
               </tr>
             </table>
@@ -163,30 +242,72 @@ export default function MigrationWelcomeEmail({
 
           <Hr style={styles.divider} />
 
-          {/* What's New Preview */}
-          <Section style={styles.whatsNewSection}>
+          {/* Feedback Section */}
+          <Section style={styles.textSection}>
             <Heading as="h2" style={styles.h2}>
-              Wat is er nieuw?
+              We horen graag van je!
             </Heading>
-            <table role="presentation" width="100%" cellPadding="0" cellSpacing="0">
-              <tr>
-                <td style={styles.featureCell}>
-                  <Text style={styles.featureIcon}>🧠</Text>
-                  <Text style={styles.featureTitle}>AI Matching</Text>
-                  <Text style={styles.featureDesc}>Slimmere matches</Text>
-                </td>
-                <td style={styles.featureCell}>
-                  <Text style={styles.featureIcon}>🎤</Text>
-                  <Text style={styles.featureTitle}>Voice Berichten</Text>
-                  <Text style={styles.featureDesc}>Persoonlijker contact</Text>
-                </td>
-                <td style={styles.featureCell}>
-                  <Text style={styles.featureIcon}>🛡️</Text>
-                  <Text style={styles.featureTitle}>Verificatie</Text>
-                  <Text style={styles.featureDesc}>Alleen echte mensen</Text>
-                </td>
-              </tr>
-            </table>
+            <Text style={styles.paragraph}>
+              Heb je vragen over de overgang? Of wil je feedback geven over het nieuwe platform?
+              We staan voor je klaar:
+            </Text>
+            <Text style={styles.contactInfo}>
+              <strong>E-mail:</strong> info@liefdevooriedereen.nl
+            </Text>
+            <Text style={styles.contactInfo}>
+              <strong>FAQ:</strong>{' '}
+              <Link href="https://www.liefdevooriedereen.nl/support/faq" style={styles.link}>
+                liefdevooriedereen.nl/support/faq
+              </Link>
+            </Text>
+            <Text style={styles.contactInfo}>
+              <strong>Over ons:</strong>{' '}
+              <Link href="https://www.liefdevooriedereen.nl/over-ons" style={styles.link}>
+                liefdevooriedereen.nl/over-ons
+              </Link>
+            </Text>
+          </Section>
+
+          <Hr style={styles.divider} />
+
+          {/* Personal Signature */}
+          <Section style={styles.signatureSection}>
+            <Text style={styles.paragraph}>
+              Met vriendelijke groet,
+            </Text>
+            <Text style={styles.signatureName}>
+              Vincent
+            </Text>
+            <Text style={styles.signatureTitle}>
+              Oprichter, Liefde Voor Iedereen
+            </Text>
+          </Section>
+
+          {/* PS Notes */}
+          <Section style={styles.psSection}>
+            <Text style={styles.psText}>
+              <strong>P.S.</strong> Bewaar deze e-mail! Je welkomstcode <strong>OOGVOOR2026</strong> is
+              {' '}{expiryDate} geldig en geeft je {incentive.premiumMonths} maanden gratis Premium
+              + {incentive.superMessages} SuperBerichten.
+            </Text>
+            <Text style={styles.psText}>
+              <strong>P.P.S.</strong> Deel je ervaring! Als je tevreden bent over Liefde Voor Iedereen,
+              vertel het aan je vrienden. Samen maken we de datingwereld een stukje mooier.
+            </Text>
+          </Section>
+
+          <Hr style={styles.divider} />
+
+          {/* Social Media */}
+          <Section style={styles.socialSection}>
+            <Text style={styles.socialTitle}>Volg ons:</Text>
+            <Text style={styles.socialLinks}>
+              <Link href="https://facebook.com/liefdevooriedereen" style={styles.socialLink}>Facebook</Link>
+              {' | '}
+              <Link href="https://instagram.com/liefdevooriedereen" style={styles.socialLink}>Instagram</Link>
+              {' | '}
+              <Link href="https://linkedin.com/company/liefdevooriedereen" style={styles.socialLink}>LinkedIn</Link>
+            </Text>
           </Section>
 
           {/* Footer */}
@@ -204,9 +325,9 @@ export default function MigrationWelcomeEmail({
             <Text style={styles.footerDisclaimer}>
               Je ontvangt deze mail omdat je een account had op OogvoorLiefde.nl
               <br />
-              <a href={`${BRAND.website}/migration/unsubscribe`} style={styles.unsubscribeLink}>
+              <Link href={`${BRAND.website}/migration/unsubscribe`} style={styles.unsubscribeLink}>
                 Geen emails meer ontvangen
-              </a>
+              </Link>
             </Text>
           </Section>
 
@@ -241,7 +362,7 @@ const styles = {
     margin: '0 auto'
   },
   hero: {
-    padding: '40px 40px 32px',
+    padding: '40px 40px 24px',
     textAlign: 'center' as const
   },
   badge: {
@@ -259,20 +380,36 @@ const styles = {
   },
   h1: {
     color: BRAND.textColor,
-    fontSize: '32px',
+    fontSize: '28px',
     fontWeight: '700' as const,
     margin: '0 0 16px',
     lineHeight: '1.2'
   },
   heroText: {
-    fontSize: '18px',
+    fontSize: '20px',
     lineHeight: '1.6',
+    color: BRAND.textColor,
+    margin: '0',
+    fontWeight: '600' as const
+  },
+  textSection: {
+    padding: '0 40px 24px'
+  },
+  paragraph: {
+    fontSize: '16px',
+    lineHeight: '1.7',
     color: BRAND.textMuted,
-    margin: '0'
+    margin: '0 0 16px'
+  },
+  h2: {
+    fontSize: '20px',
+    fontWeight: '600' as const,
+    color: BRAND.textColor,
+    margin: '0 0 16px'
   },
   preservedBox: {
     backgroundColor: '#f0fdf4',
-    margin: '0 40px 32px',
+    margin: '0 40px 24px',
     borderRadius: '12px',
     padding: '20px 24px'
   },
@@ -289,9 +426,22 @@ const styles = {
     textAlign: 'center' as const,
     padding: '4px 8px'
   },
+  featureTable: {
+    marginBottom: '8px'
+  },
+  featureRow: {
+    padding: '4px 0'
+  },
+  featureItem: {
+    fontSize: '15px',
+    lineHeight: '1.6',
+    color: BRAND.textMuted,
+    margin: '0 0 8px',
+    paddingLeft: '8px'
+  },
   couponBox: {
     backgroundColor: '#fef3c7',
-    margin: '0 40px 32px',
+    margin: '0 40px 24px',
     borderRadius: '12px',
     padding: '24px',
     textAlign: 'center' as const,
@@ -323,10 +473,11 @@ const styles = {
     color: '#92400e',
     margin: '0 0 12px'
   },
-  couponExpiry: {
+  couponNote: {
     fontSize: '13px',
     color: '#b45309',
-    margin: '0'
+    margin: '0',
+    fontStyle: 'italic' as const
   },
   ctaSection: {
     textAlign: 'center' as const,
@@ -344,49 +495,76 @@ const styles = {
     borderRadius: '8px',
     boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)'
   },
-  trustSection: {
-    padding: '0 40px 32px'
-  },
-  trustItem: {
-    fontSize: '13px',
+  ctaSubtext: {
+    fontSize: '14px',
     color: BRAND.textMuted,
-    textAlign: 'center' as const,
-    padding: '4px'
+    margin: '12px 0 0'
   },
   divider: {
     borderColor: '#e5e7eb',
     borderWidth: '1px 0 0 0',
-    margin: '0 40px'
+    margin: '0 40px 24px'
   },
-  whatsNewSection: {
-    padding: '32px 40px'
+  trustItem: {
+    padding: '4px 0'
   },
-  h2: {
-    fontSize: '20px',
-    fontWeight: '600' as const,
-    color: BRAND.textColor,
-    margin: '0 0 24px',
-    textAlign: 'center' as const
+  trustText: {
+    fontSize: '15px',
+    color: BRAND.textMuted,
+    margin: '0',
+    paddingLeft: '8px'
   },
-  featureCell: {
-    textAlign: 'center' as const,
-    padding: '0 8px',
-    verticalAlign: 'top' as const
-  },
-  featureIcon: {
-    fontSize: '32px',
+  contactInfo: {
+    fontSize: '15px',
+    color: BRAND.textMuted,
     margin: '0 0 8px'
   },
-  featureTitle: {
-    fontSize: '14px',
+  link: {
+    color: BRAND.primaryColor,
+    textDecoration: 'underline'
+  },
+  signatureSection: {
+    padding: '0 40px 24px'
+  },
+  signatureName: {
+    fontSize: '18px',
     fontWeight: '600' as const,
     color: BRAND.textColor,
-    margin: '0 0 4px'
+    margin: '8px 0 4px'
   },
-  featureDesc: {
-    fontSize: '12px',
+  signatureTitle: {
+    fontSize: '14px',
     color: BRAND.textMuted,
     margin: '0'
+  },
+  psSection: {
+    padding: '0 40px 24px',
+    backgroundColor: '#f9fafb',
+    margin: '0 0 0'
+  },
+  psText: {
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: BRAND.textMuted,
+    margin: '0 0 12px',
+    padding: '16px 0 0'
+  },
+  socialSection: {
+    textAlign: 'center' as const,
+    padding: '24px 40px'
+  },
+  socialTitle: {
+    fontSize: '14px',
+    color: BRAND.textMuted,
+    margin: '0 0 8px'
+  },
+  socialLinks: {
+    fontSize: '14px',
+    margin: '0'
+  },
+  socialLink: {
+    color: BRAND.primaryColor,
+    textDecoration: 'none'
   },
   footer: {
     backgroundColor: '#f9fafb',

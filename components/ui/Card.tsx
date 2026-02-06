@@ -101,3 +101,30 @@ export function CardFooter({ children, className = '' }: { children: React.React
     </div>
   )
 }
+
+/**
+ * CardTitle - Semantic title component
+ */
+export function CardTitle({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <h3 className={`text-lg font-semibold ${className}`}>
+      {children}
+    </h3>
+  )
+}
+
+/**
+ * CardDescription - Semantic description component
+ */
+export function CardDescription({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <p className={`text-sm text-gray-500 ${className}`}>
+      {children}
+    </p>
+  )
+}
+
+/**
+ * CardContent - Alias for CardBody (for compatibility)
+ */
+export const CardContent = CardBody

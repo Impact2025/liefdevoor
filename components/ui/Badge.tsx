@@ -8,7 +8,7 @@ import React from 'react'
 
 export interface BadgeProps {
   children: React.ReactNode
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
+  variant?: 'default' | 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'error' | 'info'
   size?: 'sm' | 'md' | 'lg'
   dot?: boolean
   className?: string
@@ -24,6 +24,8 @@ export function Badge({
   const variantClasses = {
     default: 'bg-gray-100 text-gray-800',
     primary: 'bg-rose-100 text-rose-800',
+    secondary: 'bg-slate-100 text-slate-700',
+    outline: 'border border-gray-300 text-gray-700 bg-white',
     success: 'bg-green-100 text-green-800',
     warning: 'bg-yellow-100 text-yellow-800',
     error: 'bg-red-100 text-red-800',
@@ -39,6 +41,8 @@ export function Badge({
   const dotColors = {
     default: 'bg-gray-500',
     primary: 'bg-rose-500',
+    secondary: 'bg-slate-500',
+    outline: 'bg-gray-500',
     success: 'bg-green-500',
     warning: 'bg-yellow-500',
     error: 'bg-red-500',

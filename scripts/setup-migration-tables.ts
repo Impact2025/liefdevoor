@@ -133,8 +133,8 @@ async function setupMigrationTables() {
 
     console.log('   ✅ Indexes created')
 
-    // Add foreign key
-    console.log('   Adding foreign key...')
+    // Add foreign key for MigrationEmail
+    console.log('   Adding foreign key for MigrationEmail...')
 
     await prisma.$executeRawUnsafe(`
       DO $$ BEGIN
@@ -148,6 +148,85 @@ async function setupMigrationTables() {
     `)
 
     console.log('   ✅ Foreign key added')
+
+    // Create MigrationCampaignStats table
+    console.log('   Creating MigrationCampaignStats table...')
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "MigrationCampaignStats" (
+          "id" TEXT NOT NULL,
+          "date" DATE NOT NULL,
+          "emailsSent" INTEGER NOT NULL DEFAULT 0,
+          "emailsOpened" INTEGER NOT NULL DEFAULT 0,
+          "linksClicked" INTEGER NOT NULL DEFAULT 0,
+          "landingVisits" INTEGER NOT NULL DEFAULT 0,
+          "claimsStarted" INTEGER NOT NULL DEFAULT 0,
+          "claimsCompleted" INTEGER NOT NULL DEFAULT 0,
+          "activations" INTEGER NOT NULL DEFAULT 0,
+          "couponsRedeemed" INTEGER NOT NULL DEFAULT 0,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "MigrationCampaignStats_pkey" PRIMARY KEY ("id")
+      );
+    `)
+
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "MigrationCampaignStats_date_key" ON "MigrationCampaignStats"("date")
+    `)
+
+    console.log('   ✅ MigrationCampaignStats table created')
+
+    // Create MigrationClick table
+    console.log('   Creating MigrationClick table...')
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "MigrationClick" (
+          "id" TEXT NOT NULL,
+          "migrationUserId" TEXT NOT NULL,
+          "emailId" TEXT,
+          "linkType" TEXT NOT NULL DEFAULT 'cta',
+          "linkUrl" TEXT,
+          "userAgent" TEXT,
+          "ipAddress" TEXT,
+          "clickedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "MigrationClick_pkey" PRIMARY KEY ("id")
+      );
+    `)
+
+    const clickIndexes = [
+      'CREATE INDEX IF NOT EXISTS "MigrationClick_migrationUserId_idx" ON "MigrationClick"("migrationUserId")',
+      'CREATE INDEX IF NOT EXISTS "MigrationClick_emailId_idx" ON "MigrationClick"("emailId")',
+      'CREATE INDEX IF NOT EXISTS "MigrationClick_clickedAt_idx" ON "MigrationClick"("clickedAt")'
+    ]
+
+    for (const idx of clickIndexes) {
+      await prisma.$executeRawUnsafe(idx)
+    }
+
+    // Add foreign keys for MigrationClick
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE "MigrationClick"
+        ADD CONSTRAINT "MigrationClick_migrationUserId_fkey"
+        FOREIGN KEY ("migrationUserId") REFERENCES "MigrationUser"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE;
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `)
+
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE "MigrationClick"
+        ADD CONSTRAINT "MigrationClick_emailId_fkey"
+        FOREIGN KEY ("emailId") REFERENCES "MigrationEmail"("id")
+        ON DELETE SET NULL ON UPDATE CASCADE;
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `)
+
+    console.log('   ✅ MigrationClick table created')
 
     console.log('\n✅ Migration tables setup complete!\n')
 

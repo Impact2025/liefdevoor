@@ -2360,6 +2360,11 @@ model MigrationUser {
   landingVisitedAt    DateTime?
   landingVisits       Int               @default(0)
 
+  // Nurture campaign tracking
+  nurtureEmailsSent   String?           // Comma-separated list: "day3,day7,day10"
+  premiumMonths       Int               @default(1)
+  superMessages       Int               @default(0)
+
   // Timestamps
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -2409,5 +2414,38 @@ model MigrationEmail {
   @@index([emailType])
   @@index([sentAt])
   @@index([openedAt])
+  @@index([resendId])
+}
+
+// ============================================
+// 🚀 MIGRATION CAMPAIGN MONITORING
+// ============================================
+
+// Migration alerts
+model MigrationAlert {
+  id        String   @id @default(cuid())
+  level     String   // 'critical', 'error', 'warning', 'info'
+  type      String   // 'low_conversion', 'webhook_down', etc.
+  message   String
+  action    String?
+  resolvedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([level])
+  @@index([createdAt])
+}
+
+// Migration errors
+model MigrationError {
+  id              String   @id @default(cuid())
+  migrationUserId String?
+  errorType       String
+  errorMessage    String
+  errorStack      String?  @db.Text
+  context         Json?
+  createdAt       DateTime @default(now())
+
+  @@index([errorType])
+  @@index([createdAt])
 }
 

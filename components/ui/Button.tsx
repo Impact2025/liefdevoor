@@ -13,7 +13,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Button content */
   children: React.ReactNode
   /** Visual style variant */
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'
   /** Size variant */
   size?: 'sm' | 'md' | 'lg'
   /** Show loading spinner */
@@ -51,6 +51,7 @@ export function Button({
   const variantStyles = {
     primary: 'bg-rose-500 text-white hover:bg-rose-600 focus:ring-rose-500',
     secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
+    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
     danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
     ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
   }
