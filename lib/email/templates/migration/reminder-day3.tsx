@@ -91,7 +91,7 @@ export function ReminderDay3Email({
                   + {incentive.superMessages} SuperBerichten 🌟
                 </Text>
               )}
-              <Text style={couponCode}>
+              <Text style={couponCodeStyle}>
                 Code: <strong>{couponCode}</strong>
               </Text>
             </Section>
@@ -316,7 +316,7 @@ const incentiveExtra = {
   margin: '0 0 16px',
 }
 
-const couponCode = {
+const couponCodeStyle = {
   color: '#78350f',
   fontSize: '16px',
   margin: '0',
