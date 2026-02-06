@@ -409,7 +409,7 @@ function EmailMetrics({ data }: { data: DashboardStats['emailMetrics'] }) {
 // SEGMENT LIST COMPONENT
 // ============================================
 
-function SegmentList({ segments }: { data: DashboardStats['segments'] }) {
+function SegmentList({ data }: { data: DashboardStats['segments'] }) {
   const targets: Record<string, number> = {
     VIP: 40,
     GOLD: 35,
@@ -420,7 +420,7 @@ function SegmentList({ segments }: { data: DashboardStats['segments'] }) {
 
   return (
     <div className="space-y-3">
-      {segments.map((segment) => {
+      {data.map((segment) => {
         const target = targets[segment.segment] || 10
         const isOnTarget = segment.conversionRate >= target
 
