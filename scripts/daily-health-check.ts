@@ -177,7 +177,7 @@ async function getStats(): Promise<DailyStats> {
     SELECT
       COUNT(*) FILTER (WHERE "lastEmailSentAt" >= ${todayStart}) as "emailsSent",
       COUNT(*) FILTER (WHERE "claimedAt" >= ${todayStart}) as claimed,
-      COUNT(*) FILTER (WHERE "activatedAt" >= ${todayStart}) as activated
+      COUNT(*) FILTER (WHERE "claimedAt" >= ${todayStart} AND status::text = 'ACTIVATED') as activated
     FROM "MigrationUser"
   `
 
@@ -186,7 +186,7 @@ async function getStats(): Promise<DailyStats> {
     SELECT
       COUNT(*) FILTER (WHERE "lastEmailSentAt" >= ${yesterdayStart} AND "lastEmailSentAt" < ${todayStart}) as "emailsSent",
       COUNT(*) FILTER (WHERE "claimedAt" >= ${yesterdayStart} AND "claimedAt" < ${todayStart}) as claimed,
-      COUNT(*) FILTER (WHERE "activatedAt" >= ${yesterdayStart} AND "activatedAt" < ${todayStart}) as activated
+      COUNT(*) FILTER (WHERE "claimedAt" >= ${yesterdayStart} AND "claimedAt" < ${todayStart} AND status::text = 'ACTIVATED') as activated
     FROM "MigrationUser"
   `
 
