@@ -22,6 +22,7 @@ export default function AdminDashboard() {
 
   // Dashboard stats
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [statsError, setStatsError] = useState<string | null>(null)
 
   // Users state
   const [users, setUsers] = useState([])
@@ -152,9 +153,14 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json()
         setStats(data.stats)
+        setStatsError(null)
+      } else {
+        const data = await response.json().catch(() => ({}))
+        setStatsError(data.error || `Error ${response.status}`)
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error)
+      setStatsError('Kan dashboard niet laden. Controleer de server logs.')
     }
   }
 
@@ -461,6 +467,19 @@ export default function AdminDashboard() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'overview':
+        if (statsError) {
+          return (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-red-600 font-medium mb-2">Dashboard kon niet laden</p>
+                <p className="text-gray-500 text-sm mb-4">{statsError}</p>
+                <button onClick={fetchStats} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  Opnieuw proberen
+                </button>
+              </div>
+            </div>
+          )
+        }
         if (!stats) {
           return (
             <div className="flex items-center justify-center h-64">
@@ -582,6 +601,19 @@ export default function AdminDashboard() {
         )
 
       default:
+        if (statsError) {
+          return (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <p className="text-red-600 font-medium mb-2">Dashboard kon niet laden</p>
+                <p className="text-gray-500 text-sm mb-4">{statsError}</p>
+                <button onClick={fetchStats} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  Opnieuw proberen
+                </button>
+              </div>
+            </div>
+          )
+        }
         if (!stats) {
           return (
             <div className="flex items-center justify-center h-64">

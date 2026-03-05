@@ -60,8 +60,7 @@ export interface DashboardStats {
 }
 
 /**
- * Single aggregated query to get ALL dashboard stats
- * Uses raw SQL for maximum performance
+ * Fetch dashboard stats using parallel queries (avoids Cartesian product from mega-JOIN)
  */
 async function fetchDashboardStatsRaw(): Promise<Omit<DashboardStats, 'growth'>> {
   const now = new Date()
@@ -70,107 +69,86 @@ async function fetchDashboardStatsRaw(): Promise<Omit<DashboardStats, 'growth'>>
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
   const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
 
-  // Single massive aggregation query - replaces 21 separate queries!
-  const result = await prisma.$queryRaw<Array<{
+  const [userStats, matchStats, msgStats, swipeStats, reportStats, subStats] = await Promise.all([
     // Users
-    total_users: bigint
-    users_today: bigint
-    users_week: bigint
-    users_month: bigint
-    verified_users: bigint
-    active_users: bigint
-    online_users: bigint
+    prisma.$queryRaw<[{
+      total: bigint, today: bigint, week: bigint, month: bigint,
+      verified: bigint, active: bigint, online: bigint, dau: bigint, wau: bigint, mau: bigint
+    }]>`
+      SELECT
+        COUNT(*) as total,
+        COUNT(CASE WHEN "createdAt" >= ${today} THEN 1 END) as today,
+        COUNT(CASE WHEN "createdAt" >= ${weekAgo} THEN 1 END) as week,
+        COUNT(CASE WHEN "createdAt" >= ${monthAgo} THEN 1 END) as month,
+        COUNT(CASE WHEN "isPhotoVerified" = true THEN 1 END) as verified,
+        COUNT(CASE WHEN "lastSeen" >= ${weekAgo} THEN 1 END) as active,
+        COUNT(CASE WHEN "lastSeen" >= ${fiveMinutesAgo} THEN 1 END) as online,
+        COUNT(CASE WHEN "lastSeen" >= ${today} THEN 1 END) as dau,
+        COUNT(CASE WHEN "lastSeen" >= ${weekAgo} THEN 1 END) as wau,
+        COUNT(CASE WHEN "lastSeen" >= ${monthAgo} THEN 1 END) as mau
+      FROM "User"
+    `,
 
     // Matches
-    total_matches: bigint
-    matches_today: bigint
-    matches_week: bigint
-    matches_month: bigint
+    prisma.$queryRaw<[{ total: bigint, today: bigint, week: bigint, month: bigint }]>`
+      SELECT
+        COUNT(*) as total,
+        COUNT(CASE WHEN "createdAt" >= ${today} THEN 1 END) as today,
+        COUNT(CASE WHEN "createdAt" >= ${weekAgo} THEN 1 END) as week,
+        COUNT(CASE WHEN "createdAt" >= ${monthAgo} THEN 1 END) as month
+      FROM "Match"
+    `,
 
     // Messages
-    total_messages: bigint
-    messages_today: bigint
+    prisma.$queryRaw<[{ total: bigint, today: bigint }]>`
+      SELECT
+        COUNT(*) as total,
+        COUNT(CASE WHEN "createdAt" >= ${today} THEN 1 END) as today
+      FROM "Message"
+    `,
 
     // Swipes
-    total_swipes: bigint
-    swipes_today: bigint
-    right_swipes: bigint
-    super_likes: bigint
+    prisma.$queryRaw<[{ total: bigint, today: bigint, right_swipes: bigint, super_likes: bigint }]>`
+      SELECT
+        COUNT(*) as total,
+        COUNT(CASE WHEN "createdAt" >= ${today} THEN 1 END) as today,
+        COUNT(CASE WHEN "isLike" = true THEN 1 END) as right_swipes,
+        COUNT(CASE WHEN "isSuperLike" = true THEN 1 END) as super_likes
+      FROM "Swipe"
+    `,
 
     // Reports
-    pending_reports: bigint
-    resolved_reports: bigint
-    reports_week: bigint
+    prisma.$queryRaw<[{ pending: bigint, resolved: bigint, week: bigint }]>`
+      SELECT
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved,
+        COUNT(CASE WHEN "createdAt" >= ${weekAgo} THEN 1 END) as week
+      FROM "Report"
+    `,
 
     // Subscriptions
-    active_subscriptions: bigint
-    premium_subscriptions: bigint
-    gold_subscriptions: bigint
+    prisma.$queryRaw<[{ active: bigint, premium: bigint, gold: bigint }]>`
+      SELECT
+        COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
+        COUNT(CASE WHEN status = 'active' AND plan = 'premium' THEN 1 END) as premium,
+        COUNT(CASE WHEN status = 'active' AND plan = 'gold' THEN 1 END) as gold
+      FROM "Subscription"
+    `,
+  ])
 
-    // Engagement
-    dau: bigint
-    wau: bigint
-    mau: bigint
-  }>>`
-    SELECT
-      -- Users
-      COUNT(DISTINCT u.id) as total_users,
-      COUNT(DISTINCT CASE WHEN u."createdAt" >= ${today} THEN u.id END) as users_today,
-      COUNT(DISTINCT CASE WHEN u."createdAt" >= ${weekAgo} THEN u.id END) as users_week,
-      COUNT(DISTINCT CASE WHEN u."createdAt" >= ${monthAgo} THEN u.id END) as users_month,
-      COUNT(DISTINCT CASE WHEN u."isPhotoVerified" = true THEN u.id END) as verified_users,
-      COUNT(DISTINCT CASE WHEN u."lastSeen" >= ${weekAgo} THEN u.id END) as active_users,
-      COUNT(DISTINCT CASE WHEN u."lastSeen" >= ${fiveMinutesAgo} THEN u.id END) as online_users,
-
-      -- Matches
-      COUNT(DISTINCT m.id) as total_matches,
-      COUNT(DISTINCT CASE WHEN m."createdAt" >= ${today} THEN m.id END) as matches_today,
-      COUNT(DISTINCT CASE WHEN m."createdAt" >= ${weekAgo} THEN m.id END) as matches_week,
-      COUNT(DISTINCT CASE WHEN m."createdAt" >= ${monthAgo} THEN m.id END) as matches_month,
-
-      -- Messages
-      COUNT(DISTINCT msg.id) as total_messages,
-      COUNT(DISTINCT CASE WHEN msg."createdAt" >= ${today} THEN msg.id END) as messages_today,
-
-      -- Swipes
-      COUNT(DISTINCT s.id) as total_swipes,
-      COUNT(DISTINCT CASE WHEN s."createdAt" >= ${today} THEN s.id END) as swipes_today,
-      COUNT(DISTINCT CASE WHEN s."isLike" = true THEN s.id END) as right_swipes,
-      COUNT(DISTINCT CASE WHEN s."isSuperLike" = true THEN s.id END) as super_likes,
-
-      -- Reports
-      COUNT(DISTINCT CASE WHEN r.status = 'pending' THEN r.id END) as pending_reports,
-      COUNT(DISTINCT CASE WHEN r.status = 'resolved' THEN r.id END) as resolved_reports,
-      COUNT(DISTINCT CASE WHEN r."createdAt" >= ${weekAgo} THEN r.id END) as reports_week,
-
-      -- Subscriptions
-      COUNT(DISTINCT CASE WHEN sub.status = 'active' THEN sub.id END) as active_subscriptions,
-      COUNT(DISTINCT CASE WHEN sub.status = 'active' AND sub.plan = 'premium' THEN sub.id END) as premium_subscriptions,
-      COUNT(DISTINCT CASE WHEN sub.status = 'active' AND sub.plan = 'gold' THEN sub.id END) as gold_subscriptions,
-
-      -- Engagement (DAU/WAU/MAU)
-      COUNT(DISTINCT CASE WHEN u."lastSeen" >= ${today} THEN u.id END) as dau,
-      COUNT(DISTINCT CASE WHEN u."lastSeen" >= ${weekAgo} THEN u.id END) as wau,
-      COUNT(DISTINCT CASE WHEN u."lastSeen" >= ${monthAgo} THEN u.id END) as mau
-
-    FROM "User" u
-    LEFT JOIN "Match" m ON (m."user1Id" = u.id OR m."user2Id" = u.id)
-    LEFT JOIN "Message" msg ON msg."matchId" = m.id
-    LEFT JOIN "Swipe" s ON s."swiperId" = u.id
-    LEFT JOIN "Report" r ON r."reportedId" = u.id
-    LEFT JOIN "Subscription" sub ON sub."userId" = u.id
-  `
-
-  const stats = result[0]
-
-  // Convert BigInt to Number
   const toNum = (val: bigint | null | undefined): number => Number(val || 0)
 
-  // Calculate derived stats
-  const totalSwipes = toNum(stats.total_swipes)
-  const rightSwipes = toNum(stats.right_swipes)
-  const totalMatches = toNum(stats.total_matches)
-  const totalMessages = toNum(stats.total_messages)
+  const u = userStats[0]
+  const m = matchStats[0]
+  const msg = msgStats[0]
+  const s = swipeStats[0]
+  const r = reportStats[0]
+  const sub = subStats[0]
+
+  const totalSwipes = toNum(s.total)
+  const rightSwipes = toNum(s.right_swipes)
+  const totalMatches = toNum(m.total)
+  const totalMessages = toNum(msg.total)
 
   const likeRate = totalSwipes > 0 ? (rightSwipes / totalSwipes) * 100 : 0
   const matchRate = rightSwipes > 0 ? (totalMatches * 2 / rightSwipes) * 100 : 0
@@ -178,47 +156,47 @@ async function fetchDashboardStatsRaw(): Promise<Omit<DashboardStats, 'growth'>>
 
   return {
     users: {
-      total: toNum(stats.total_users),
-      newToday: toNum(stats.users_today),
-      newThisWeek: toNum(stats.users_week),
-      newThisMonth: toNum(stats.users_month),
-      verified: toNum(stats.verified_users),
-      premium: 0, // Calculated from subscriptions
-      active: toNum(stats.active_users),
-      online: toNum(stats.online_users)
+      total: toNum(u.total),
+      newToday: toNum(u.today),
+      newThisWeek: toNum(u.week),
+      newThisMonth: toNum(u.month),
+      verified: toNum(u.verified),
+      premium: toNum(sub.active),
+      active: toNum(u.active),
+      online: toNum(u.online)
     },
     matches: {
       total: totalMatches,
-      today: toNum(stats.matches_today),
-      thisWeek: toNum(stats.matches_week),
-      thisMonth: toNum(stats.matches_month)
+      today: toNum(m.today),
+      thisWeek: toNum(m.week),
+      thisMonth: toNum(m.month)
     },
     messages: {
       total: totalMessages,
-      today: toNum(stats.messages_today),
+      today: toNum(msg.today),
       averagePerMatch: Math.round(avgMessagesPerMatch * 10) / 10
     },
     swipes: {
       total: totalSwipes,
-      today: toNum(stats.swipes_today),
+      today: toNum(s.today),
       likeRate: Math.round(likeRate * 10) / 10,
       matchRate: Math.round(matchRate * 10) / 10,
-      superLikes: toNum(stats.super_likes)
+      superLikes: toNum(s.super_likes)
     },
     reports: {
-      pending: toNum(stats.pending_reports),
-      resolved: toNum(stats.resolved_reports),
-      thisWeek: toNum(stats.reports_week)
+      pending: toNum(r.pending),
+      resolved: toNum(r.resolved),
+      thisWeek: toNum(r.week)
     },
     subscriptions: {
-      active: toNum(stats.active_subscriptions),
-      premium: toNum(stats.premium_subscriptions),
-      gold: toNum(stats.gold_subscriptions)
+      active: toNum(sub.active),
+      premium: toNum(sub.premium),
+      gold: toNum(sub.gold)
     },
     engagement: {
-      dailyActiveUsers: toNum(stats.dau),
-      weeklyActiveUsers: toNum(stats.wau),
-      monthlyActiveUsers: toNum(stats.mau)
+      dailyActiveUsers: toNum(u.dau),
+      weeklyActiveUsers: toNum(u.wau),
+      monthlyActiveUsers: toNum(u.mau)
     }
   }
 }
@@ -232,34 +210,27 @@ async function fetchGrowthData(): Promise<{ usersLastWeek: number[], matchesLast
   today.setHours(0, 0, 0, 0)
   const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000)
 
-  // Parallel fetch of daily grouped data
   const [usersByDay, matchesByDay] = await Promise.all([
-    prisma.user.groupBy({
-      by: ['createdAt'],
-      where: { createdAt: { gte: sevenDaysAgo } },
-      _count: true,
-    }),
-    prisma.match.groupBy({
-      by: ['createdAt'],
-      where: { createdAt: { gte: sevenDaysAgo } },
-      _count: true,
-    })
+    prisma.$queryRaw<Array<{ date: string, count: bigint }>>`
+      SELECT DATE("createdAt") as date, COUNT(*) as count
+      FROM "User"
+      WHERE "createdAt" >= ${sevenDaysAgo}
+      GROUP BY DATE("createdAt")
+    `,
+    prisma.$queryRaw<Array<{ date: string, count: bigint }>>`
+      SELECT DATE("createdAt") as date, COUNT(*) as count
+      FROM "Match"
+      WHERE "createdAt" >= ${sevenDaysAgo}
+      GROUP BY DATE("createdAt")
+    `,
   ])
 
-  // Group by date string
   const userCountByDate: Record<string, number> = {}
-  usersByDay.forEach(r => {
-    const dateKey = r.createdAt.toISOString().split('T')[0]
-    userCountByDate[dateKey] = (userCountByDate[dateKey] || 0) + r._count
-  })
+  usersByDay.forEach(r => { userCountByDate[r.date] = Number(r.count) })
 
   const matchCountByDate: Record<string, number> = {}
-  matchesByDay.forEach(r => {
-    const dateKey = r.createdAt.toISOString().split('T')[0]
-    matchCountByDate[dateKey] = (matchCountByDate[dateKey] || 0) + r._count
-  })
+  matchesByDay.forEach(r => { matchCountByDate[r.date] = Number(r.count) })
 
-  // Fill in last 7 days with zeros if no data
   const usersLastWeek: number[] = []
   const matchesLastWeek: number[] = []
 
