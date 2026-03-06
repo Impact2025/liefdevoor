@@ -39,7 +39,6 @@ async function sendFeedbackInvites(limit?: number, testMode = false) {
     LEFT JOIN "User" u ON u.id = mu."newUserId"
     WHERE mu.status IN ('CLAIMED', 'ACTIVATED')
     AND mu."claimedAt" < NOW() - INTERVAL '2 days'
-    AND mu."claimedAt" > NOW() - INTERVAL '14 days'
     AND u.email IS NOT NULL
     AND u.email NOT IN (
       SELECT DISTINCT email
