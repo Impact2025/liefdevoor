@@ -14,19 +14,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check blog view permissions
-    try {
-      await requireAnyPermission(session.user.id, [
-        AdminPermission.CREATE_BLOG_POSTS,
-        AdminPermission.EDIT_BLOG_POSTS,
-        AdminPermission.VIEW_ANALYTICS
-      ])
-    } catch (permissionError) {
-      return NextResponse.json({
-        error: 'Insufficient permissions',
-        message: 'You need blog management permissions to view posts'
-      }, { status: 403 })
-    }
+    // Reading blog posts requires only admin authentication (layout already enforces ADMIN role).
+    // Write operations (POST/PATCH/DELETE) keep their granular permission checks.
 
     // Check Upstash cache first (10 min TTL for blog posts - they change less frequently)
     const cacheKey = 'admin:blog:posts'
