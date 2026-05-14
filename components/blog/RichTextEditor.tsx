@@ -4,11 +4,12 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import Youtube from '@tiptap/extension-youtube'
 import Placeholder from '@tiptap/extension-placeholder'
 import {
   Bold, Italic, List, ListOrdered, Quote, Undo, Redo,
   Link as LinkIcon, Image as ImageIcon, Heading1, Heading2, Heading3,
-  Code, Minus, FileCode, X, Check
+  Code, Minus, FileCode, X, Check, Youtube as YoutubeIcon
 } from 'lucide-react'
 import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from 'react'
 
@@ -43,6 +44,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
       }),
       Image.configure({
         HTMLAttributes: { class: 'rounded-lg max-w-full h-auto' },
+      }),
+      Youtube.configure({
+        width: 640,
+        height: 360,
+        HTMLAttributes: { class: 'rounded-lg w-full aspect-video' },
       }),
       Placeholder.configure({ placeholder }),
     ],
@@ -87,6 +93,12 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
     if (!editor) return
     const url = window.prompt('Afbeelding URL')
     if (url) editor.chain().focus().setImage({ src: url }).run()
+  }, [editor])
+
+  const addYoutube = useCallback(() => {
+    if (!editor) return
+    const url = window.prompt('YouTube URL (bijv. https://youtu.be/... of https://www.youtube.com/watch?v=...)')
+    if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run()
   }, [editor])
 
   const importHtml = useCallback(() => {
@@ -140,6 +152,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
         <div className="flex gap-1 pr-2 border-r border-gray-200">
           <ToolbarButton onClick={setLink} isActive={editor.isActive('link')} title="Link toevoegen/bewerken"><LinkIcon size={18} /></ToolbarButton>
           <ToolbarButton onClick={addImage} title="Afbeelding via URL"><ImageIcon size={18} /></ToolbarButton>
+          <ToolbarButton onClick={addYoutube} title="YouTube video invoegen"><YoutubeIcon size={18} /></ToolbarButton>
         </div>
         <div className="flex gap-1 pr-2 border-r border-gray-200">
           <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Ongedaan maken (Ctrl+Z)"><Undo size={18} /></ToolbarButton>
@@ -226,6 +239,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
           [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-primary
           [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_blockquote]:text-gray-600
           [&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline
+          [&_.ProseMirror_div[data-youtube-video]]:my-4
+          [&_.ProseMirror_iframe]:w-full [&_.ProseMirror_iframe]:aspect-video [&_.ProseMirror_iframe]:rounded-lg
         "
       />
 
