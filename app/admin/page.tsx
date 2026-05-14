@@ -28,7 +28,7 @@ interface AdminCard {
   description: string
   href: string
   icon: React.ElementType
-  color: string
+  gradient: string
   stats?: string
 }
 
@@ -38,7 +38,7 @@ const adminSections: AdminCard[] = [
     description: 'Overzicht van statistieken, gebruikers en activiteit',
     href: '/admin/dashboard',
     icon: LayoutDashboard,
-    color: 'from-blue-500 to-blue-600',
+    gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
     stats: 'Live data'
   },
   {
@@ -46,7 +46,7 @@ const adminSections: AdminCard[] = [
     description: 'Review verificatiefoto\'s en AI-gegenereerde foto detectie',
     href: '/admin/verifications',
     icon: Camera,
-    color: 'from-emerald-500 to-teal-600',
+    gradient: 'bg-gradient-to-br from-emerald-500 to-teal-600',
     stats: 'AI + Handmatige review'
   },
   {
@@ -54,7 +54,7 @@ const adminSections: AdminCard[] = [
     description: 'Maak en beheer kortingscodes en promoties',
     href: '/admin/coupons',
     icon: Ticket,
-    color: 'from-rose-500 to-pink-600',
+    gradient: 'bg-gradient-to-br from-rose-500 to-pink-600',
     stats: 'Wereldklasse systeem'
   },
   {
@@ -62,7 +62,7 @@ const adminSections: AdminCard[] = [
     description: 'Schrijf en publiceer blog artikelen',
     href: '/admin/blog',
     icon: FileText,
-    color: 'from-purple-500 to-purple-600',
+    gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
     stats: 'Content management'
   },
   {
@@ -70,7 +70,7 @@ const adminSections: AdminCard[] = [
     description: 'Beveiligingsinstellingen en two-factor authenticatie',
     href: '/admin/security/2fa',
     icon: Lock,
-    color: 'from-amber-500 to-orange-600',
+    gradient: 'bg-gradient-to-br from-amber-500 to-orange-600',
     stats: 'Extra beveiliging'
   },
   {
@@ -78,7 +78,7 @@ const adminSections: AdminCard[] = [
     description: 'Monitor de OogvoorLiefde → LiefdevoorIedereen migratie campagne',
     href: '/admin/migration',
     icon: UserPlus,
-    color: 'from-emerald-500 to-green-600',
+    gradient: 'bg-gradient-to-br from-emerald-500 to-green-600',
     stats: 'Live campaign'
   },
 ]
@@ -167,12 +167,12 @@ export default function AdminIndexPage() {
               className="group relative bg-white rounded-2xl p-8 border-2 border-slate-200 hover:border-rose-400 transition-all shadow-sm hover:shadow-xl"
             >
               {/* Gradient Background */}
-              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${section.color} rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity`} />
+              <div className={`absolute top-0 right-0 w-32 h-32 ${section.gradient} rounded-bl-full opacity-10 group-hover:opacity-20 transition-opacity`} />
 
               {/* Content */}
               <div className="relative">
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`w-14 h-14 bg-gradient-to-br ${section.color} rounded-xl flex items-center justify-center shadow-lg`}>
+                  <div className={`w-14 h-14 ${section.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
                     <section.icon className="w-7 h-7 text-white" />
                   </div>
                   <ArrowRight className="w-6 h-6 text-slate-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />

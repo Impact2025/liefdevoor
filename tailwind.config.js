@@ -9,6 +9,30 @@ module.exports = withUt({
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  // Safelist for classes constructed dynamically in data arrays (not detectable by static scanner)
+  safelist: [
+    // Admin page card gradients
+    'from-blue-500', 'to-blue-600',
+    'from-emerald-500', 'to-teal-600',
+    'from-rose-500', 'to-pink-600',
+    'from-purple-500', 'to-purple-600',
+    'from-amber-500', 'to-orange-600',
+    'from-green-600',
+    // Admin quick stats background/text combos
+    'bg-blue-50', 'text-blue-600',
+    'bg-pink-50', 'text-pink-600',
+    'bg-purple-50', 'text-purple-600',
+    'bg-amber-50', 'text-amber-600',
+    // Professional/migration segment badge combos used via dynamic functions
+    'bg-violet-100', 'text-violet-700', 'border-violet-200',
+    'bg-emerald-100', 'text-emerald-700', 'border-emerald-200',
+    'bg-blue-100', 'text-blue-700', 'border-blue-200',
+    'bg-orange-100', 'text-orange-700', 'border-orange-200',
+    'bg-gray-100', 'text-gray-700', 'border-gray-200',
+    'bg-red-100', 'text-red-700', 'border-red-200',
+    'bg-yellow-100', 'text-yellow-700', 'border-yellow-200',
+    'bg-green-100', 'text-green-700', 'border-green-200',
+  ],
   theme: {
     extend: {
       // ========================================================================
