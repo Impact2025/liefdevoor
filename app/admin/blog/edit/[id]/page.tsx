@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useUploadThing } from '@/utils/uploadthing'
+import SeoAssistant from '@/components/admin/blog/SeoAssistant'
+import type { RichTextEditorHandle } from '@/components/blog/RichTextEditor'
 import {
   Sparkles,
   Save,
@@ -138,6 +140,9 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   // AI Optimization state
   const [applyAiOptimization, setApplyAiOptimization] = useState(true)  // Default ON
   const [optimizationProgress, setOptimizationProgress] = useState<string | null>(null)
+
+  // Editor ref for programmatic link insertion
+  const editorRef = useRef<RichTextEditorHandle>(null)
 
   // Wereldklasse Social Media Features
   const [activeSocialPlatform, setActiveSocialPlatform] = useState<'instagram' | 'facebook' | 'linkedin' | 'twitter'>('instagram')
@@ -667,7 +672,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Categorie *
@@ -683,6 +688,19 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Publicatiedatum
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={publishedAt}
+                        onChange={(e) => setPublishedAt(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Leeg = aanmaakdatum</p>
                     </div>
 
                     <div>
@@ -795,6 +813,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                       Content *
                     </label>
                     <RichTextEditor
+                      ref={editorRef}
                       content={content}
                       onChange={setContent}
                       placeholder="Begin met schrijven..."
@@ -819,84 +838,102 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
 
               {/* SEO Tab */}
               {activeTab === 'seo' && (
-                <div className="space-y-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-2">Google Preview</h3>
-                    <div className="bg-white p-4 rounded border border-gray-200">
-                      <div className="text-blue-600 text-lg hover:underline cursor-pointer">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left: SEO Assistant */}
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-3">SEO Assistent</h3>
+                    <SeoAssistant
+                      content={content}
+                      title={title}
+                      seoTitle={seoTitle}
+                      seoDescription={seoDescription}
+                      keywords={keywords}
+                      onUpdateSeo={(updates) => {
+                        if (updates.seoTitle !== undefined) setSeoTitle(updates.seoTitle)
+                        if (updates.seoDescription !== undefined) setSeoDescription(updates.seoDescription)
+                        if (updates.keywords !== undefined) setKeywords(updates.keywords)
+                      }}
+                      onInsertLink={(anchor, url) => editorRef.current?.insertLink(anchor, url)}
+                    />
+                  </div>
+
+                  {/* Right: Manual SEO fields */}
+                  <div className="space-y-5">
+                    <h3 className="text-base font-semibold text-gray-900 mb-3">Google Preview</h3>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                      <div className="text-blue-600 text-base hover:underline cursor-pointer truncate">
                         {seoTitle || title || 'Je artikel titel'}
                       </div>
-                      <div className="text-green-700 text-sm">
+                      <div className="text-green-700 text-xs mt-0.5">
                         liefdevooriedereen.nl/blog/{slug}
                       </div>
                       <div className="text-gray-600 text-sm mt-1">
                         {seoDescription || excerpt || 'Je meta beschrijving verschijnt hier...'}
                       </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SEO Titel
-                    </label>
-                    <input
-                      type="text"
-                      value={seoTitle}
-                      onChange={(e) => setSeoTitle(e.target.value)}
-                      placeholder="Optimale titel voor zoekmachines..."
-                      maxLength={60}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{seoTitle.length}/60 karakters</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Meta Beschrijving
-                    </label>
-                    <textarea
-                      value={seoDescription}
-                      onChange={(e) => setSeoDescription(e.target.value)}
-                      placeholder="Beschrijving voor zoekmachines..."
-                      maxLength={155}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{seoDescription.length}/155 karakters</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Keywords
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {keywords.map((keyword, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm flex items-center gap-1"
-                        >
-                          {keyword}
-                          <button
-                            onClick={() => setKeywords(keywords.filter((_, i) => i !== idx))}
-                            className="hover:text-red-500"
-                          >
-                            <X size={14} />
-                          </button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        SEO Titel
+                        <span className={`ml-2 text-xs font-normal ${seoTitle.length > 60 ? 'text-red-500' : seoTitle.length >= 30 ? 'text-green-600' : 'text-gray-400'}`}>
+                          {seoTitle.length}/60
                         </span>
-                      ))}
+                      </label>
+                      <input
+                        type="text"
+                        value={seoTitle}
+                        onChange={(e) => setSeoTitle(e.target.value)}
+                        placeholder="Optimale titel voor zoekmachines..."
+                        maxLength={65}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Voeg keyword toe (Enter)"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && e.currentTarget.value) {
-                          e.preventDefault()
-                          setKeywords([...keywords, e.currentTarget.value])
-                          e.currentTarget.value = ''
-                        }
-                      }}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Meta Beschrijving
+                        <span className={`ml-2 text-xs font-normal ${seoDescription.length > 155 ? 'text-red-500' : seoDescription.length >= 120 ? 'text-green-600' : 'text-gray-400'}`}>
+                          {seoDescription.length}/155
+                        </span>
+                      </label>
+                      <textarea
+                        value={seoDescription}
+                        onChange={(e) => setSeoDescription(e.target.value)}
+                        placeholder="Beschrijving voor zoekmachines (120-155 tekens)..."
+                        maxLength={160}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Keywords
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {keywords.map((keyword, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm flex items-center gap-1">
+                            {keyword}
+                            <button onClick={() => setKeywords(keywords.filter((_, i) => i !== idx))} className="hover:text-red-500">
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Voeg keyword toe en druk Enter"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                            e.preventDefault()
+                            setKeywords([...keywords, e.currentTarget.value.trim()])
+                            e.currentTarget.value = ''
+                          }
+                        }}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Eerste keyword = primary keyword voor de SEO score</p>
+                    </div>
                   </div>
                 </div>
               )}
