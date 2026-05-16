@@ -31,12 +31,7 @@ export default function BioWithAIOption({
   initialBio = '',
   userData = {}
 }: BioWithAIOptionProps) {
-  const [choice, setChoice] = useState<'manual' | 'ai' | null>(null);
-
-  // Als gebruiker al een bio heeft, ga direct naar manual mode
-  if (initialBio && !choice) {
-    setChoice('manual');
-  }
+  const [choice, setChoice] = useState<'manual' | 'ai' | null>(initialBio ? 'manual' : null);
 
   // Choice screen
   if (!choice) {
