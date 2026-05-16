@@ -21,6 +21,7 @@ const allowedConnectDomains = [
   "'self'",
   'https://api.uploadthing.com',
   'https://uploadthing.com',
+  'https://utfs.io',  // UploadThing file storage CDN
   'https://*.ingest.uploadthing.com',  // UploadThing file upload
   'https://nominatim.openstreetmap.org',
   'https://openrouter.ai',

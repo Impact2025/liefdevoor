@@ -74,6 +74,9 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.includes('/api/notifications/stream')) return;
   if (url.pathname.includes('/api/presence')) return;
 
+  // Skip UploadThing requests - external file storage, can't be cached by SW
+  if (url.hostname === 'utfs.io' || url.hostname.includes('uploadthing.com') || url.hostname.includes('ingest.uploadthing.com')) return;
+
   // Skip protected routes for navigation - let browser handle auth redirects
   // This prevents "redirected response was used" errors
   if (request.mode === 'navigate' && PROTECTED_ROUTES.some(route => url.pathname.startsWith(route))) {

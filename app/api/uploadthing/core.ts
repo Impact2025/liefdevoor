@@ -63,8 +63,8 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Blog image upload compleet:", file.url);
-      return { url: file.url };
+      console.log("Blog image upload compleet:", file.ufsUrl);
+      return { url: file.ufsUrl };
     }),
 
   // We maken een route "profilePhotos" die meerdere afbeeldingen accepteert
@@ -81,7 +81,7 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Upload compleet voor gebruiker:", metadata.userId);
-      console.log("Foto URL:", file.url);
+      console.log("Foto URL:", file.ufsUrl);
 
       try {
         // Get the current highest order for this user
@@ -96,7 +96,7 @@ export const ourFileRouter = {
         // Save the photo to database
         await prisma.photo.create({
           data: {
-            url: file.url,
+            url: file.ufsUrl,
             userId: metadata.userId,
             order: nextOrder
           }
@@ -123,17 +123,17 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Voice intro upload compleet voor gebruiker:", metadata.userId);
-      console.log("Audio URL:", file.url);
+      console.log("Audio URL:", file.ufsUrl);
 
       try {
         // Update user's voiceIntro field (NOT voiceIntroUrl - that's deprecated)
         await prisma.user.update({
           where: { id: metadata.userId },
-          data: { voiceIntro: file.url }
+          data: { voiceIntro: file.ufsUrl }
         });
 
         console.log("Voice intro opgeslagen in database");
-        return { url: file.url };
+        return { url: file.ufsUrl };
       } catch (error) {
         console.error("Fout bij opslaan voice intro:", error);
         throw new Error("Failed to save voice intro to database");
@@ -154,10 +154,10 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Voice message upload compleet voor gebruiker:", metadata.userId);
-      console.log("Audio URL:", file.url);
+      console.log("Audio URL:", file.ufsUrl);
 
       // Return the URL - the actual message will be created by the messages API
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 
   // Stories - 24-hour content
@@ -172,10 +172,10 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Story upload compleet voor gebruiker:", metadata.userId);
-      console.log("Story URL:", file.url);
+      console.log("Story URL:", file.ufsUrl);
 
       // Return the URL - the story will be created by the stories API
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 
   // Chat Images - photos shared in messages
@@ -192,10 +192,10 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Chat image upload compleet voor gebruiker:", metadata.userId);
-      console.log("Image URL:", file.url);
+      console.log("Image URL:", file.ufsUrl);
 
       // Return the URL - the message will be created by the messages API
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 
   // Chat Videos - videos shared in messages
@@ -212,10 +212,10 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Chat video upload compleet voor gebruiker:", metadata.userId);
-      console.log("Video URL:", file.url);
+      console.log("Video URL:", file.ufsUrl);
 
       // Return the URL - the message will be created by the messages API
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 } satisfies FileRouter;
  
