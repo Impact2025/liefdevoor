@@ -40,6 +40,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
     waitForToken
   } = useTurnstile()
   const [isWaitingForVerification, setIsWaitingForVerification] = useState(false)
+  const [isTurnstileError, setIsTurnstileError] = useState(false)
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof LoginFormData, string>> = {}
@@ -73,11 +74,12 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       let tokenToUse = turnstileToken
       if (!tokenToUse && process.env.NODE_ENV !== 'development') {
         setIsWaitingForVerification(true)
-        tokenToUse = await waitForToken(15000) // Max 15 seconden wachten
+        tokenToUse = await waitForToken(20000) // Max 20 seconden wachten
         setIsWaitingForVerification(false)
 
         if (!tokenToUse) {
-          setError('Beveiligingsverificatie duurde te lang. Controleer je internetverbinding en probeer opnieuw.')
+          setIsTurnstileError(true)
+          setError('Beveiligingsverificatie kon niet worden voltooid.')
           setIsLoading(false)
           return
         }
@@ -209,8 +211,15 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       )}
 
       {error && (
-        <Alert variant="error" onClose={() => { setError(null); setShowResendVerification(false); }}>
+        <Alert variant="error" onClose={() => { setError(null); setShowResendVerification(false); setIsTurnstileError(false) }}>
           {error}
+          {isTurnstileError && (
+            <ul className="mt-2 text-sm space-y-1 list-disc list-inside text-red-700">
+              <li>Schakel je adblocker uit voor deze pagina</li>
+              <li>Ververs de pagina en probeer opnieuw</li>
+              <li>Of gebruik "Inloggen met Google" hieronder</li>
+            </ul>
+          )}
           {showResendVerification && (
             <button
               type="button"
@@ -291,8 +300,8 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
       {/* Cloudflare Turnstile - Bot Protection */}
       <Turnstile
-        onSuccess={setTurnstileToken}
-        onError={() => setError('Beveiligingsverificatie mislukt. Herlaad de pagina.')}
+        onSuccess={(token) => { setTurnstileToken(token); setIsTurnstileError(false); setError(null) }}
+        onError={() => setIsTurnstileError(true)}
         onExpire={resetTurnstileToken}
         action="login"
       />
