@@ -37,7 +37,6 @@ import {
   Zap,
   Hash
 } from 'lucide-react'
-import type { GeneratedBlogContent } from '@/lib/types/blog'
 import SocialMediaPreview from '@/components/admin/SocialMediaPreview'
 import { parseBannerText, encodeBannerText, bannerGradients, type BannerColor } from '@/lib/utils/banner'
 import HashtagResearchTool from '@/components/admin/HashtagResearchTool'
@@ -120,12 +119,6 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   })
   const [midjourneyPrompt, setMidjourneyPrompt] = useState('')
 
-  // AI Generator state
-  const [primaryKeyword, setPrimaryKeyword] = useState('')
-  const [targetAudience, setTargetAudience] = useState('')
-  const [toneOfVoice, setToneOfVoice] = useState('vriendelijk en motiverend')
-  const [articleLength, setArticleLength] = useState(1200)
-
   // UI state
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -134,13 +127,9 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   const [deleting, setDeleting] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('editor')
   const [copiedField, setCopiedField] = useState<string | null>(null)
-  const [showAiPanel, setShowAiPanel] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [originalPost, setOriginalPost] = useState<Post | null>(null)
-
-  // AI Optimization state
-  const [applyAiOptimization, setApplyAiOptimization] = useState(true)  // Default ON
   const [optimizationProgress, setOptimizationProgress] = useState<string | null>(null)
 
   // Editor ref for programmatic link insertion
@@ -241,60 +230,59 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
     }
   }
 
-  const generateWithAI = async () => {
-    if (!primaryKeyword.trim()) {
-      setError('Voer een primair keyword in')
-      return
-    }
-    if (!categoryId) {
-      setError('Selecteer een categorie')
+  const optimizeWithAI = async () => {
+    if (!title.trim() || !content.trim() || !categoryId) {
+      setError('Artikel heeft titel, content en categorie nodig voor AI optimalisatie')
       return
     }
 
     setGenerating(true)
     setError(null)
+    setOptimizationProgress('AI optimaliseert content en voegt interne links toe...')
 
     try {
-      const res = await fetch('/api/admin/blog/generate', {
-        method: 'POST',
+      const res = await fetch(`/api/admin/blog/posts/${id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          primaryKeyword,
-          category: categoryId,
-          year: new Date().getFullYear().toString(),
-          targetAudience: targetAudience || undefined,
-          toneOfVoice,
-          articleLength
+          title,
+          content,
+          excerpt,
+          categoryId,
+          featuredImage: useBannerText ? null : (featuredImage || null),
+          bannerText: useBannerText ? (bannerText ? encodeBannerText(bannerText, bannerColor) : null) : null,
+          published,
+          showOnMainBlog,
+          publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+          applyAiOptimization: true,
         })
       })
 
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Generatie mislukt')
+        throw new Error(data.error || 'Optimalisatie mislukt')
       }
 
-      const generated: GeneratedBlogContent = await res.json()
+      const data = await res.json()
 
-      setContent(generated.content)
-      setSeoTitle(generated.seoTitle)
-      setSeoDescription(generated.seoDescription)
-      setKeywords(generated.keywords || [])
-      setExcerpt(generated.excerpt)
-      setMidjourneyPrompt(generated.midjourneyPrompt)
-      setSocialMedia(generated.socialMedia)
-
-      const h1Match = generated.content.match(/<h1[^>]*>(.*?)<\/h1>/i)
-      if (h1Match) {
-        setTitle(h1Match[1].replace(/<[^>]*>/g, ''))
+      if (data.post) {
+        setContent(data.post.content)
+        setExcerpt(data.post.excerpt || excerpt)
+        setSeoTitle(data.post.seoTitle || '')
+        setSeoDescription(data.post.seoDescription || '')
+        setKeywords(data.post.keywords || [])
+        if (data.post.socialMedia) setSocialMedia(data.post.socialMedia)
+        setMidjourneyPrompt(data.post.imagePrompt || '')
       }
 
-      setSuccess('Content succesvol gegenereerd!')
-      setTimeout(() => setSuccess(null), 3000)
+      setSuccess('✅ AI heeft het blog geoptimaliseerd, SEO ingevuld en interne links toegevoegd!')
+      setTimeout(() => setSuccess(null), 6000)
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
     } finally {
       setGenerating(false)
+      setOptimizationProgress(null)
     }
   }
 
@@ -315,11 +303,6 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
     setSaving(true)
     setError(null)
 
-    // Show optimization progress if enabled
-    if (applyAiOptimization) {
-      setOptimizationProgress('AI optimaliseert je content...')
-    }
-
     try {
       const res = await fetch(`/api/admin/blog/posts/${id}`, {
         method: 'PATCH',
@@ -334,7 +317,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
           published,
           showOnMainBlog,
           publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
-          applyAiOptimization  // NEW: Send optimization flag
+          applyAiOptimization: false,
         })
       })
 
@@ -343,26 +326,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         throw new Error(data.error || 'Opslaan mislukt')
       }
 
-      const data = await res.json()
-
-      // Update local state with optimized data if available
-      if (data.post.aiOptimized) {
-        setContent(data.post.content)
-        setExcerpt(data.post.excerpt || excerpt)
-        setSeoTitle(data.post.seoTitle || '')
-        setSeoDescription(data.post.seoDescription || '')
-        setKeywords(data.post.keywords || [])
-        if (data.post.socialMedia) {
-          setSocialMedia(data.post.socialMedia)
-        }
-        setMidjourneyPrompt(data.post.imagePrompt || '')
-      }
-
-      setSuccess(
-        applyAiOptimization
-          ? '✅ Blog geoptimaliseerd en opgeslagen!'
-          : 'Wijzigingen opgeslagen!'
-      )
+      setSuccess('Wijzigingen opgeslagen!')
       setTimeout(() => setSuccess(null), 3000)
 
     } catch (err) {
@@ -566,15 +530,13 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowAiPanel(!showAiPanel)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  showAiPanel
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={optimizeWithAI}
+                disabled={generating || !title || !content}
+                className="px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                title="AI optimaliseert content, vult SEO in en voegt interne links toe"
               >
-                <Wand2 size={18} />
-                AI
+                {generating ? <RefreshCw size={18} className="animate-spin" /> : <Wand2 size={18} />}
+                {generating ? 'AI...' : 'AI'}
               </button>
 
               <button
@@ -611,6 +573,15 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       </div>
 
       {/* Alerts */}
+      {optimizationProgress && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <div className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-3 rounded-lg flex items-center gap-3">
+            <RefreshCw size={18} className="animate-spin flex-shrink-0" />
+            <span>{optimizationProgress}</span>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
@@ -632,7 +603,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Editor */}
-          <div className={`${showAiPanel ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+          <div className="lg:col-span-3">
             {/* Tabs */}
             <div className="bg-white rounded-t-lg border border-b-0 border-gray-200">
               <div className="flex">
@@ -1243,7 +1214,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                     {showHashtagTool && (
                       <div className="mt-4">
                         <HashtagResearchTool
-                          topic={title || primaryKeyword}
+                          topic={title}
                           platform={activeSocialPlatform}
                           onAddHashtag={addHashtagToPlatform}
                           currentHashtags={getCurrentHashtags(activeSocialPlatform)}
@@ -1280,33 +1251,6 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
               {/* Settings Tab */}
               {activeTab === 'settings' && (
                 <div className="space-y-6">
-                  {/* AI Optimization Toggle */}
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={applyAiOptimization}
-                        onChange={(e) => setApplyAiOptimization(e.target.checked)}
-                        className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <Sparkles size={18} className="text-purple-600" />
-                          <span className="font-medium text-gray-900">AI Optimalisatie bij opslaan</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Laat AI je content automatisch optimaliseren voor SEO, leesbaarheid en social media bij het opslaan.
-                        </p>
-                        <div className="mt-2 text-xs text-purple-700 space-y-1">
-                          <div>✓ Content optimalisatie voor wereldklasse SEO</div>
-                          <div>✓ Generatie van SEO metadata</div>
-                          <div>✓ Social media posts voor 4 platformen</div>
-                          <div>✓ AI afbeelding prompt</div>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
                   <div>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
@@ -1400,107 +1344,6 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
             </div>
           </div>
 
-          {/* AI Generator Panel */}
-          {showAiPanel && (
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 sticky top-24">
-                <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-lg">
-                  <div className="flex items-center gap-2 text-white">
-                    <Sparkles size={20} />
-                    <h2 className="font-semibold">AI Regenereren</h2>
-                  </div>
-                  <p className="text-white/80 text-sm mt-1">
-                    Genereer nieuwe content
-                  </p>
-                </div>
-
-                <div className="p-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Primair Keyword *
-                    </label>
-                    <input
-                      type="text"
-                      value={primaryKeyword}
-                      onChange={(e) => setPrimaryKeyword(e.target.value)}
-                      placeholder="bijv. Online dating tips"
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Categorie
-                    </label>
-                    <select
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.icon} {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tone of Voice
-                    </label>
-                    <select
-                      value={toneOfVoice}
-                      onChange={(e) => setToneOfVoice(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="vriendelijk en motiverend">Vriendelijk en motiverend</option>
-                      <option value="professioneel en informatief">Professioneel en informatief</option>
-                      <option value="casual en humoristisch">Casual en humoristisch</option>
-                      <option value="empathisch en begripvol">Empathisch en begripvol</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Artikel Lengte
-                    </label>
-                    <select
-                      value={articleLength}
-                      onChange={(e) => setArticleLength(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value={800}>Kort (800 woorden)</option>
-                      <option value={1200}>Gemiddeld (1200 woorden)</option>
-                      <option value={1800}>Lang (1800 woorden)</option>
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={generateWithAI}
-                    disabled={generating || !primaryKeyword}
-                    className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {generating ? (
-                      <>
-                        <RefreshCw size={18} className="animate-spin" />
-                        Genereren...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={18} />
-                        Regenereer Content
-                      </>
-                    )}
-                  </button>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    Let op: dit overschrijft bestaande content
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
