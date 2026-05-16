@@ -9,6 +9,7 @@ export interface OptimizeContentParams {
   content: string
   categoryId: string
   excerpt?: string
+  internalPages?: Array<{ url: string; title: string; desc: string }>
 }
 
 export interface OptimizedContent {
@@ -140,6 +141,20 @@ export async function optimizeBlogContent(
  * Build optimization prompt for OpenRouter API
  */
 function buildOptimizationPrompt(params: OptimizeContentParams): string {
+  const defaultPages = [
+    { url: '/register', title: 'Registreer gratis', desc: 'Gratis account aanmaken' },
+    { url: '/features', title: 'Premium functies', desc: 'Overzicht van premium abonnement' },
+    { url: '/veilig-daten', title: 'Veilig daten tips', desc: 'Veiligheid bij online daten' },
+    { url: '/over-ons', title: 'Over Liefde Voor Iedereen', desc: 'Over het platform' },
+  ]
+  const pages = params.internalPages && params.internalPages.length > 0
+    ? params.internalPages
+    : defaultPages
+  const pagesContext = pages
+    .slice(0, 50)
+    .map(p => `- "${p.title}" → ${p.url} (${p.desc})`)
+    .join('\n')
+
   return `Je bent een wereldklasse SEO expert en content optimizer voor Nederlandse dating content.
 
 TAAK: Optimaliseer de volgende blog content voor maximale SEO impact en leesbaarheid.
@@ -149,6 +164,9 @@ Titel: ${params.title}
 Content: ${params.content}
 ${params.excerpt ? `Excerpt: ${params.excerpt}` : ''}
 
+BESCHIKBARE INTERNE PAGINA'S OM NAAR TE LINKEN:
+${pagesContext}
+
 OPTIMALISATIE VEREISTEN:
 
 1. CONTENT OPTIMALISATIE:
@@ -156,7 +174,10 @@ OPTIMALISATIE VEREISTEN:
    - Verbeter SEO: voeg primary/secondary keywords natuurlijk toe
    - Optimaliseer heading structuur (H1 → H2 → H3)
    - Verbeter leesbaarheid: kortere zinnen, duidelijke paragrafen
-   - Voeg 2-3 strategische interne links toe: /register (registreren), /features (premium functies), of /dashboard (dashboard)
+   - Voeg MINIMAAL 10 interne links toe verspreid door de gehele tekst
+   - Kies links die INHOUDELIJK passen bij de betreffende alinea uit de lijst hierboven
+   - Link naar blog artikelen EN kennisbank artikelen, niet alleen /register
+   - Ankerteksten moeten NATUURLIJK klinken (geen "klik hier")
    - Gebruik semantische HTML: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>
    - GEEN emoji's toevoegen
 

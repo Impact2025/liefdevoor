@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
 import type { GeneratedBlogContent } from '@/lib/types/blog';
 
 const requestSchema = z.object({
@@ -41,6 +42,43 @@ export async function POST(request: NextRequest) {
 
     const { primaryKeyword, category, year, targetAudience, toneOfVoice, articleLength, existingContent } = result.data;
 
+    // Fetch existing blog posts and kennisbank articles for internal linking
+    const [publishedPosts, kennisbankArticles] = await Promise.all([
+      prisma.post.findMany({
+        where: { published: true },
+        select: { title: true, slug: true, excerpt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+      }),
+      prisma.knowledgeBaseArticle.findMany({
+        where: { isPublished: true },
+        select: { titleNl: true, slug: true, excerptNl: true, category: { select: { slug: true } } },
+        take: 20,
+      }).catch(() => [] as any[]),
+    ]);
+
+    const internalPages = [
+      { url: '/register', title: 'Registreer gratis – Liefde Voor Iedereen', desc: 'Gratis account aanmaken op het platform' },
+      { url: '/features', title: 'Premium functies', desc: 'Overzicht van premium abonnement en mogelijkheden' },
+      { url: '/veilig-daten', title: 'Veilig daten tips', desc: 'Veiligheid bij online daten' },
+      { url: '/over-ons', title: 'Over Liefde Voor Iedereen', desc: 'Over het platform' },
+      ...publishedPosts.map((p: any) => ({
+        url: `/blog/${p.slug}`,
+        title: p.title,
+        desc: p.excerpt || 'Blog artikel'
+      })),
+      ...kennisbankArticles.map((a: any) => ({
+        url: `/kennisbank/${a.category?.slug}/${a.slug}`,
+        title: a.titleNl,
+        desc: a.excerptNl || 'Kennisbank artikel'
+      })),
+    ];
+
+    const internalPagesContext = internalPages
+      .slice(0, 50)
+      .map(p => `- "${p.title}" → ${p.url} (${p.desc})`)
+      .join('\n');
+
     // Build the AI prompt
     const prompt = existingContent
       ? `Je bent een SEO expert voor Wereldklasse. Je taak is om bestaande content SEO-vriendelijk te maken ZONDER de tekst te herschrijven.
@@ -48,18 +86,24 @@ export async function POST(request: NextRequest) {
 BESTAANDE CONTENT:
 ${existingContent}
 
+BESCHIKBARE INTERNE PAGINA'S OM NAAR TE LINKEN:
+${internalPagesContext}
+
 TAAK: Maak deze content SEO-vriendelijk door:
 1. Voeg HTML structuur toe: <h1>, <h2>, <h3>, <p> tags
 2. Identificeer de hoofdtitel en maak er een <h1> van
 3. Identificeer secties en maak er <h2>/<h3> van
-4. Voeg 2-3 interne links toe naar: /register, /features, of /dashboard waar relevant
-5. Behoud de EXACTE tekst - verander GEEN woorden, zinnen of betekenis
-6. Alleen structuur en links toevoegen!
+4. Voeg MINIMAAL 10 interne links toe naar relevante pagina's uit de lijst hierboven
+5. Kies links die INHOUDELIJK passen bij de betreffende alinea - niet geforceerd
+6. Ankerteksten moeten natuurlijk klinken (geen "klik hier", geen "lees meer")
+7. Link naar blog artikelen EN kennisbank artikelen die relevant zijn voor de context
+8. Behoud de EXACTE tekst - verander GEEN woorden, zinnen of betekenis
+9. Alleen structuur en links toevoegen!
 
 PRIMARY KEYWORD: "${primaryKeyword}"
 JAAR: ${year}
 `
-      : `Je bent een SEO expert en dating content specialist voor de Nederlandse markt. Je schrijft voor Wereldklasse, een premium dating platform.
+      : `Je bent een SEO expert en dating content specialist voor de Nederlandse markt. Je schrijft voor Liefde Voor Iedereen (liefdevooriedereen.nl), een dating platform voor iedereen inclusief mensen met een beperking.
 
 TAAK: Schrijf een complete, SEO-geoptimaliseerde blog post over "${primaryKeyword}".
 
@@ -69,12 +113,18 @@ CONTEXT:
 - Tone of voice: ${toneOfVoice}
 - Gewenste lengte: ${articleLength} woorden
 
+BESCHIKBARE INTERNE PAGINA'S OM NAAR TE LINKEN:
+${internalPagesContext}
+
 VEREISTEN:
 
 1. CONTENT (HTML):
    - Gebruik semantische HTML tags: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>
    - Structuur: H1 (hoofdtitel) → intro paragraaf → 3-5 H2 secties met subsecties → conclusie met CTA
-   - Voeg 2-3 interne links toe naar: /register (registreren), /features (premium functies), of /dashboard (dashboard)
+   - Voeg MINIMAAL 10 interne links toe door de gehele tekst, verspreid over alle secties
+   - Kies links die INHOUDELIJK passen bij de betreffende alinea uit de lijst hierboven
+   - Link naar blog artikelen EN kennisbank artikelen die relevant zijn, niet alleen /register
+   - Ankerteksten moeten NATUURLIJK klinken en de context weerspiegelen (geen "klik hier")
    - Maak het praktisch met concrete tips en voorbeelden
    - Gebruik storytelling waar mogelijk
    - Probleem → Oplossing → Actie structuur
@@ -182,7 +232,7 @@ Begin nu met het schrijven van de blog post over "${primaryKeyword}".`;
                 content: prompt,
               },
             ],
-            max_tokens: 4000,
+            max_tokens: 6000,
             temperature: 0.7,
           }),
         });

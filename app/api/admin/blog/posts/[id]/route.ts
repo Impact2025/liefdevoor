@@ -86,11 +86,44 @@ export async function PATCH(
         console.log('[Blog Optimizer] Starting content optimization for update...')
         const { optimizeBlogContent } = await import('@/lib/blog/optimizer')
 
+        // Fetch internal pages for linking
+        const [publishedPosts, kennisbankArticles] = await Promise.all([
+          prisma.post.findMany({
+            where: { published: true, id: { not: id } },
+            select: { title: true, slug: true, excerpt: true },
+            orderBy: { createdAt: 'desc' },
+            take: 40,
+          }),
+          prisma.knowledgeBaseArticle.findMany({
+            where: { isPublished: true },
+            select: { titleNl: true, slug: true, excerptNl: true, category: { select: { slug: true } } },
+            take: 20,
+          }).catch(() => [] as any[]),
+        ])
+
+        const internalPages = [
+          { url: '/register', title: 'Registreer gratis – Liefde Voor Iedereen', desc: 'Gratis account aanmaken' },
+          { url: '/features', title: 'Premium functies', desc: 'Overzicht van premium abonnement' },
+          { url: '/veilig-daten', title: 'Veilig daten tips', desc: 'Veiligheid bij online daten' },
+          { url: '/over-ons', title: 'Over Liefde Voor Iedereen', desc: 'Over het platform' },
+          ...(publishedPosts as any[]).map((p: any) => ({
+            url: `/blog/${p.slug}`,
+            title: p.title,
+            desc: p.excerpt || 'Blog artikel'
+          })),
+          ...(kennisbankArticles as any[]).map((a: any) => ({
+            url: `/kennisbank/${a.category?.slug}/${a.slug}`,
+            title: a.titleNl,
+            desc: a.excerptNl || 'Kennisbank artikel'
+          })),
+        ]
+
         const optimized = await optimizeBlogContent({
           title,
           content,
           categoryId,
-          excerpt
+          excerpt,
+          internalPages,
         })
 
         updateData.content = optimized.optimizedContent

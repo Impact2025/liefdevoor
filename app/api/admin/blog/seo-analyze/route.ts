@@ -12,12 +12,19 @@ export async function POST(request: NextRequest) {
     const { content, title, seoTitle, seoDescription, keywords } = await request.json()
 
     // Fetch published blog posts for internal link context
-    const publishedPosts = await prisma.post.findMany({
-      where: { published: true },
-      select: { title: true, slug: true, excerpt: true },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    })
+    const [publishedPosts, kennisbankArticles] = await Promise.all([
+      prisma.post.findMany({
+        where: { published: true },
+        select: { title: true, slug: true, excerpt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+      prisma.knowledgeBaseArticle.findMany({
+        where: { isPublished: true },
+        select: { titleNl: true, slug: true, excerptNl: true, category: { select: { slug: true } } },
+        take: 20,
+      }).catch(() => [] as any[]),
+    ])
 
     const strippedContent = content
       .replace(/<[^>]+>/g, ' ')
@@ -34,7 +41,12 @@ export async function POST(request: NextRequest) {
         title: p.title,
         url: `/blog/${p.slug}`,
         desc: p.excerpt || 'Blog artikel'
-      }))
+      })),
+      ...(kennisbankArticles as any[]).map((a: any) => ({
+        title: a.titleNl,
+        url: `/kennisbank/${a.category?.slug}/${a.slug}`,
+        desc: a.excerptNl || 'Kennisbank artikel'
+      })),
     ]
 
     const prompt = `Je bent een expert SEO-specialist voor een Nederlandse dating website genaamd "Liefde Voor Iedereen" (liefdevooriedereen.nl).
@@ -51,9 +63,10 @@ ${internalPages.map(p => `- "${p.title}" → ${p.url} (${p.desc})`).join('\n')}
 TAAK: Geef een professionele SEO-analyse met link suggesties.
 
 Regels:
-- Interne links: kies max 4 pagina's die INHOUDELIJK aansluiten op het artikel
+- Interne links: geef MINIMAAL 10 pagina's die INHOUDELIJK aansluiten op het artikel, inclusief blog artikelen EN kennisbank pagina's
+- Prioriteer relevantie: selecteer links die werkelijk bijdragen aan de lezersreis
 - Externe links: alleen ECHTE, bekende Nederlandse of internationale autoritaire bronnen
-- Ankerteksten moeten natuurlijk in de tekst passen (geen "klik hier")
+- Ankerteksten moeten natuurlijk in de tekst passen (geen "klik hier", geen "lees meer")
 - Meta beschrijving: 130-155 tekens, bevat het hoofdkeyword en een CTA
 
 Geef output als JSON (geen markdown, geen \`\`\`):
