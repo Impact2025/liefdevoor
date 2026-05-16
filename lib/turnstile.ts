@@ -68,6 +68,7 @@ export async function verifyTurnstileToken(
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: formData.toString(),
+      signal: AbortSignal.timeout(5000),
     })
 
     const result: TurnstileServerVerificationResponse = await response.json()

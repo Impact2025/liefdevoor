@@ -104,9 +104,9 @@ export async function checkForSpam(options: SpamCheckOptions): Promise<SpamCheck
     reasons.push('Combinatie van verdachte naam en email')
   }
 
-  // 4. IP reputation check
-  const ipResult = await getIPReputation(ip)
+  // 4. IP reputation check (shouldBlockIP already fetches reputation internally)
   const ipBlockCheck = await shouldBlockIP(ip)
+  const ipResult = ipBlockCheck.reputation || null
   if (ipBlockCheck.blocked) {
     overallScore += 40
     reasons.push(ipBlockCheck.reason || 'IP geblokkeerd')

@@ -128,7 +128,7 @@ export function Turnstile({
           console.error('[Turnstile] Error callback triggered')
           if (mountedRef.current) {
             setStatus('error')
-            setErrorMessage('Verificatie mislukt. Herlaad de pagina.')
+            setErrorMessage('Verificatie mislukt.')
             onErrorRef.current?.()
           }
         },
@@ -143,7 +143,7 @@ export function Turnstile({
           console.error('[Turnstile] Timeout')
           if (mountedRef.current) {
             setStatus('error')
-            setErrorMessage('Verificatie timeout. Controleer je verbinding.')
+            setErrorMessage('Verificatie timeout.')
             onErrorRef.current?.()
           }
         },
@@ -166,6 +166,38 @@ export function Turnstile({
       }
     }
   }, [siteKey, theme, size, action])
+
+  const handleRetry = useCallback(() => {
+    if (widgetIdRef.current && window.turnstile) {
+      try { window.turnstile.remove(widgetIdRef.current) } catch {}
+      widgetIdRef.current = null
+    }
+    setStatus('loading')
+    setErrorMessage(null)
+
+    if (!window.turnstile) {
+      const scriptId = 'cf-turnstile-script'
+      const existing = document.getElementById(scriptId)
+      if (existing) existing.remove()
+
+      window.onTurnstileLoad = () => {
+        if (mountedRef.current) renderWidget()
+      }
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit'
+      script.async = true
+      script.onerror = () => {
+        if (mountedRef.current) {
+          setStatus('error')
+          setErrorMessage('Script kon niet laden. Schakel je adblocker uit voor deze pagina.')
+        }
+      }
+      document.head.appendChild(script)
+    } else {
+      setTimeout(() => { if (mountedRef.current) renderWidget() }, 100)
+    }
+  }, [renderWidget])
 
   // Initialize Turnstile
   useEffect(() => {
@@ -199,7 +231,7 @@ export function Turnstile({
         console.error('[Turnstile] Script load failed')
         if (mountedRef.current) {
           setStatus('error')
-          setErrorMessage('Kon beveiligingsscript niet laden')
+          setErrorMessage('Kon beveiligingsscript niet laden. Adblocker actief?')
         }
       }
     } else if (window.turnstile) {
@@ -251,14 +283,21 @@ export function Turnstile({
         </div>
       )}
 
-      {/* Error state */}
+      {/* Error state met retry */}
       {status === 'error' && errorMessage && (
-        <div className="text-center text-xs text-red-600 mt-2">
-          {errorMessage}
+        <div className="text-center mt-2 space-y-1.5">
+          <p className="text-xs text-red-600">{errorMessage}</p>
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="text-xs font-medium text-rose-600 hover:text-rose-700 underline underline-offset-2 transition-colors"
+          >
+            Herlaad verificatie
+          </button>
         </div>
       )}
 
-      {/* Privacy notice - altijd tonen voor transparantie */}
+      {/* Privacy notice */}
       {status !== 'error' && (
         <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 mt-2">
           <Shield className="w-3 h-3" />
