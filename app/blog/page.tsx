@@ -89,12 +89,18 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="bg-gradient-to-r from-rose-500 to-purple-600 text-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative text-white py-24 overflow-hidden">
+        <img
+          src="/images/blog-header.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold mb-6">
             Dating Advies & Verhalen
           </h1>
-          <p className="text-xl text-rose-100 max-w-3xl mx-auto">
+          <p className="text-xl text-white/90 max-w-3xl mx-auto">
             Ontdek tips, verhalen en inzichten over moderne liefde en relaties.
             Van date ideeën tot relatie advies - alles wat je nodig hebt voor succesvol daten.
           </p>
