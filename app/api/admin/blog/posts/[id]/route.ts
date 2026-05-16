@@ -126,7 +126,11 @@ export async function PATCH(
           internalPages,
         })
 
-        updateData.content = optimized.optimizedContent
+        // Programmatically guarantee ≥10 internal links regardless of AI output
+        const { injectInternalLinks } = await import('@/lib/blog/link-injector')
+        const contentWithLinks = injectInternalLinks(optimized.optimizedContent, internalPages, 10)
+
+        updateData.content = contentWithLinks
         updateData.excerpt = optimized.excerpt
         updateData.seoTitle = optimized.seoTitle
         updateData.seoDescription = optimized.seoDescription
@@ -135,7 +139,7 @@ export async function PATCH(
         updateData.imagePrompt = optimized.imagePrompt
         updateData.aiOptimized = true
 
-        console.log('[Blog Optimizer] Content optimized successfully for update')
+        console.log('[Blog Optimizer] Content optimized with internal links')
       } catch (error) {
         console.error('[Blog Optimizer] Optimization failed during update:', error)
       }
