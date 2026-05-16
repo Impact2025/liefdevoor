@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Printer
+  Printer,
+  ArrowRight,
 } from 'lucide-react'
 
 interface Article {
@@ -60,11 +61,23 @@ marked.setOptions({
   breaks: true,
 })
 
-interface ArticleClientProps {
-  article: Article
+interface RelatedArticle {
+  id: string
+  titleNl: string
+  slug: string
+  excerptNl: string | null
+  articleType: string
+  isPillarPage: boolean
+  hasEasyRead: boolean
+  category: { slug: string; nameNl: string | null; name: string }
 }
 
-export default function ArticleClient({ article }: ArticleClientProps) {
+interface ArticleClientProps {
+  article: Article
+  relatedArticles?: RelatedArticle[]
+}
+
+export default function ArticleClient({ article, relatedArticles = [] }: ArticleClientProps) {
   const [isEasyRead, setIsEasyRead] = useState(false)
   const [feedbackGiven, setFeedbackGiven] = useState<'helpful' | 'not-helpful' | null>(null)
   const [showTableOfContents, setShowTableOfContents] = useState(true)
@@ -341,9 +354,45 @@ export default function ArticleClient({ article }: ArticleClientProps) {
               dangerouslySetInnerHTML={{ __html: contentWithIds }}
             />
 
+            {/* Related Articles - Lees ook */}
+            {relatedArticles.length > 0 && (
+              <div className="mt-12 pt-8 border-t border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-900 mb-5">Lees ook</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {relatedArticles.slice(0, 4).map((related) => (
+                    <Link
+                      key={related.id}
+                      href={`/kennisbank/${related.category.slug}/${related.slug}`}
+                      className="group flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:border-primary/30 hover:bg-white transition-all"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap gap-1.5 mb-1.5">
+                          {related.isPillarPage && (
+                            <span className="text-xs text-primary font-medium">Uitgebreide gids</span>
+                          )}
+                          {related.category.slug !== article.category.slug && (
+                            <span className="text-xs text-gray-400">
+                              {related.category.nameNl || related.category.name}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors leading-snug">
+                          {related.titleNl}
+                        </p>
+                        {related.excerptNl && (
+                          <p className="mt-1 text-xs text-gray-500 line-clamp-2">{related.excerptNl}</p>
+                        )}
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-0.5" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Keywords/Tags */}
             {article.keywords && article.keywords.length > 0 && (
-              <div className="mt-12 pt-8 border-t border-gray-100">
+              <div className="mt-8 pt-8 border-t border-gray-100">
                 <p className="text-sm font-medium text-gray-500 mb-4">Gerelateerde onderwerpen</p>
                 <div className="flex flex-wrap gap-2">
                   {article.keywords.map((keyword) => (
@@ -468,6 +517,42 @@ export default function ArticleClient({ article }: ArticleClientProps) {
                   </div>
                 </div>
               </div>
+
+              {/* Related Articles Sidebar */}
+              {relatedArticles.length > 0 && (
+                <div className="bg-gray-50 rounded-2xl p-5">
+                  <h3 className="font-semibold text-gray-900 mb-4 text-sm">Gerelateerde artikelen</h3>
+                  <ul className="space-y-1">
+                    {relatedArticles.slice(0, 5).map((related) => (
+                      <li key={related.id}>
+                        <Link
+                          href={`/kennisbank/${related.category.slug}/${related.slug}`}
+                          className="group flex items-start gap-2 py-2.5 border-b border-gray-200 last:border-0 hover:bg-white -mx-2 px-2 rounded transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-700 group-hover:text-primary transition-colors leading-snug">
+                              {related.titleNl}
+                            </p>
+                            {related.category.slug !== article.category.slug && (
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {related.category.nameNl || related.category.name}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary flex-shrink-0 mt-0.5" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={`/kennisbank/${article.category.slug}`}
+                    className="inline-flex items-center gap-1 mt-3 text-xs font-medium text-primary hover:text-primary-hover transition-colors"
+                  >
+                    Meer in {article.category.nameNl || article.category.name}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
             </div>
           </aside>
         </div>

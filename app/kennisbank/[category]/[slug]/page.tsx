@@ -64,6 +64,69 @@ async function getArticle(slug: string) {
   }
 }
 
+// Fetch related articles: same category + keyword overlap
+async function getRelatedArticles(articleId: string, categoryId: string, keywords: string[]) {
+  const sameCategoryArticles = await prisma.knowledgeBaseArticle.findMany({
+    where: {
+      isPublished: true,
+      id: { not: articleId },
+      categoryId,
+    },
+    select: {
+      id: true,
+      titleNl: true,
+      slug: true,
+      excerptNl: true,
+      articleType: true,
+      isPillarPage: true,
+      hasEasyRead: true,
+      keywords: true,
+      category: { select: { slug: true, nameNl: true, name: true } },
+    },
+    orderBy: [{ isPillarPage: 'desc' }, { viewCount: 'desc' }],
+    take: 10,
+  })
+
+  // Score by keyword overlap, pillar articles first
+  const scored = sameCategoryArticles
+    .map((a) => {
+      const articleKeywords = (a.keywords as string[]).map((k) => k.toLowerCase())
+      const overlap = keywords.filter((k) => articleKeywords.includes(k.toLowerCase())).length
+      return { article: a, score: overlap + (a.isPillarPage ? 5 : 0) }
+    })
+    .sort((a, b) => b.score - a.score)
+    .map(({ article: a }) => a)
+
+  // Fill up to 4 with cross-category articles if needed
+  let result = scored.slice(0, 4)
+
+  if (result.length < 4 && keywords.length > 0) {
+    const crossCategory = await prisma.knowledgeBaseArticle.findMany({
+      where: {
+        isPublished: true,
+        id: { notIn: [articleId, ...result.map((a) => a.id)] },
+        keywords: { hasSome: keywords.slice(0, 3) },
+      },
+      select: {
+        id: true,
+        titleNl: true,
+        slug: true,
+        excerptNl: true,
+        articleType: true,
+        isPillarPage: true,
+        hasEasyRead: true,
+        keywords: true,
+        category: { select: { slug: true, nameNl: true, name: true } },
+      },
+      orderBy: [{ isPillarPage: 'desc' }, { viewCount: 'desc' }],
+      take: 4 - result.length,
+    })
+    result = [...result, ...crossCategory]
+  }
+
+  return result
+}
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const article = await getArticle(params.slug)
@@ -98,6 +161,12 @@ export default async function ArticlePage({ params }: PageProps) {
   if (!article) {
     notFound()
   }
+
+  const relatedArticles = await getRelatedArticles(
+    article.id,
+    article.categoryId,
+    article.keywords as string[]
+  )
 
   const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app'
   const articleUrl = `${baseUrl}/kennisbank/${params.category}/${params.slug}`
@@ -154,7 +223,7 @@ export default async function ArticlePage({ params }: PageProps) {
       />
 
       {/* Render client component */}
-      <ArticleClient article={article} />
+      <ArticleClient article={article} relatedArticles={relatedArticles} />
     </>
   )
 }

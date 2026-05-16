@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     description: 'De complete dating encyclopedie van Nederland. Veiligheid, inclusiviteit, en praktische tips.',
     type: 'website',
     locale: 'nl_NL',
-    url: 'https://liefdevoorIedereen.nl/kennisbank',
+    url: 'https://liefdevooriedereen.nl/kennisbank',
   },
   robots: {
     index: true,
