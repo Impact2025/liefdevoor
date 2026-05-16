@@ -282,6 +282,9 @@ model User {
   professionalAccount   ProfessionalAccount?
   preferEasyRead        Boolean  @default(false) // Gebruiker wil Easy Read content zien
 
+  // 💳 Stripe
+  stripeCustomerId      String?  @unique
+
   @@index([gender])
   @@index([birthDate])
   @@index([city])
@@ -612,23 +615,29 @@ model EmailVerification {
 }
 
 model Subscription {
-  id              String    @id @default(cuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  plan            String
-  status          String
-  multisafepayId  String?
-  recurringId     String?   // For recurring payments
-  startDate       DateTime  @default(now())
-  endDate         DateTime?
-  cancelledAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                      String    @id @default(cuid())
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id])
+  plan                    String
+  status                  String
+  // Stripe fields
+  stripeSubscriptionId    String?   @unique
+  stripePriceId           String?
+  stripeCurrentPeriodEnd  DateTime?
+  // Deprecated: MultiSafePay fields (behouden voor historische data)
+  multisafepayId          String?
+  recurringId             String?
+  startDate               DateTime  @default(now())
+  endDate                 DateTime?
+  cancelledAt             DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   @@index([userId])
   @@index([status])
   @@index([userId, status])
   @@index([endDate])
+  @@index([stripeSubscriptionId])
 }
 
 model Report {
@@ -957,20 +966,24 @@ model SpendingLimit {
 
 // Credit aankoop historie
 model CreditPurchase {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  credits       Int      // Aantal gekochte credits
-  amount        Float    // Betaald bedrag in euros
-  paymentId     String?  // MultiSafePay of andere payment provider ID
-  paymentMethod String?  // ideal, creditcard, etc.
-  status        String   @default("pending") // pending, completed, failed, refunded
-  createdAt     DateTime @default(now())
-  completedAt   DateTime?
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credits               Int      // Aantal gekochte credits
+  amount                Float    // Betaald bedrag in euros
+  // Stripe fields
+  stripePaymentIntentId String?  @unique
+  // Deprecated: legacy payment provider ID
+  paymentId             String?
+  paymentMethod         String?  // ideal, card, bancontact, sepa_debit, etc.
+  status                String   @default("pending") // pending, completed, failed, refunded
+  createdAt             DateTime @default(now())
+  completedAt           DateTime?
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([stripePaymentIntentId])
 }
 
 // Subscription Payment - Uitgebreide tracking
