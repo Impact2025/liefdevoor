@@ -12,6 +12,7 @@ import {
   ChevronDown, Play, Pause
 } from 'lucide-react'
 import { getDoelgroepBySlug, type DoelgroepData } from '@/lib/doelgroepen-data'
+import { parseBannerText, bannerGradients } from '@/lib/utils/banner'
 import { TextToSpeech } from '@/components/accessibility/TextToSpeech'
 import { AccessibleLandingWrapper } from '@/components/accessibility/AccessibleLandingWrapper'
 
@@ -507,16 +508,16 @@ export default function DoelgroepLandingPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
                   ) : blog.bannerText ? (
-                    <div
-                      className="relative h-48 flex items-center justify-center"
-                      style={{
-                        background: `linear-gradient(135deg, ${data.gradientFrom}, ${data.gradientTo})`
-                      }}
-                    >
-                      <span className="text-white text-3xl font-bold tracking-tight drop-shadow-lg">
-                        {blog.bannerText}
-                      </span>
-                    </div>
+                    (() => {
+                      const { text, color } = parseBannerText(blog.bannerText)
+                      return (
+                        <div className={`relative h-48 flex items-center justify-center bg-gradient-to-r ${bannerGradients[color]}`}>
+                          <span className="text-white text-3xl font-bold tracking-tight drop-shadow-lg text-center px-4">
+                            {text}
+                          </span>
+                        </div>
+                      )
+                    })()
                   ) : (
                     <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200">
                       <div

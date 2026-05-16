@@ -39,6 +39,7 @@ import {
 } from 'lucide-react'
 import type { GeneratedBlogContent } from '@/lib/types/blog'
 import SocialMediaPreview from '@/components/admin/SocialMediaPreview'
+import { parseBannerText, encodeBannerText, bannerGradients, type BannerColor } from '@/lib/utils/banner'
 import HashtagResearchTool from '@/components/admin/HashtagResearchTool'
 
 const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), {
@@ -97,6 +98,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
   const [categoryId, setCategoryId] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [bannerText, setBannerText] = useState('')
+  const [bannerColor, setBannerColor] = useState<BannerColor>('rose')
   const [useBannerText, setUseBannerText] = useState(false)
   const [published, setPublished] = useState(false)
   const [showOnMainBlog, setShowOnMainBlog] = useState(true)
@@ -189,7 +191,9 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
       setExcerpt(post.excerpt || '')
       setCategoryId(post.categoryId)
       setFeaturedImage(post.featuredImage || '')
-      setBannerText(post.bannerText || '')
+      const parsed = parseBannerText(post.bannerText)
+      setBannerText(parsed.text)
+      setBannerColor(parsed.color)
       setUseBannerText(!!post.bannerText)
       setPublished(post.published)
       setShowOnMainBlog(post.showOnMainBlog ?? true)
@@ -326,7 +330,7 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
           excerpt,
           categoryId,
           featuredImage: useBannerText ? null : (featuredImage || null),
-          bannerText: useBannerText ? (bannerText || null) : null,
+          bannerText: useBannerText ? (bannerText ? encodeBannerText(bannerText, bannerColor) : null) : null,
           published,
           showOnMainBlog,
           publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
@@ -797,9 +801,31 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                       <p className="text-xs text-gray-500">{bannerText.length}/50 karakters - Korte, pakkende tekst werkt het best</p>
+                      {/* Kleur kiezen */}
+                      <div>
+                        <p className="text-xs font-medium text-gray-600 mb-2">Achtergrondkleur</p>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setBannerColor('rose')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${bannerColor === 'rose' ? 'border-[#C34C60] bg-rose-50' : 'border-gray-200 hover:border-gray-300'}`}
+                          >
+                            <span className="w-5 h-5 rounded-full bg-gradient-to-r from-[#C34C60] to-[#e05472] inline-block" />
+                            <span className="text-sm font-medium text-gray-700">Roze</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBannerColor('teal')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${bannerColor === 'teal' ? 'border-[#1B6874] bg-teal-50' : 'border-gray-200 hover:border-gray-300'}`}
+                          >
+                            <span className="w-5 h-5 rounded-full bg-gradient-to-r from-[#1B6874] to-[#2A8A9A] inline-block" />
+                            <span className="text-sm font-medium text-gray-700">Petrol</span>
+                          </button>
+                        </div>
+                      </div>
                       {/* Preview */}
                       {bannerText && (
-                        <div className="relative w-full h-48 rounded-lg bg-gradient-to-r from-[#C34C60] to-pink-500 flex items-center justify-center">
+                        <div className={`relative w-full h-48 rounded-lg bg-gradient-to-r ${bannerGradients[bannerColor]} flex items-center justify-center`}>
                           <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg text-center px-4">
                             {bannerText}
                           </span>

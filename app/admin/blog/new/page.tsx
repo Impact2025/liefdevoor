@@ -30,6 +30,7 @@ import {
   Calendar
 } from 'lucide-react'
 import type { GeneratedBlogContent } from '@/lib/types/blog'
+import { encodeBannerText, bannerGradients, type BannerColor } from '@/lib/utils/banner'
 
 // Dynamic import for rich text editor (client-only)
 const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), {
@@ -63,6 +64,7 @@ export default function NewBlogPostPage() {
   const [categoryId, setCategoryId] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [bannerText, setBannerText] = useState('')
+  const [bannerColor, setBannerColor] = useState<BannerColor>('rose')
   const [useBannerText, setUseBannerText] = useState(false)
   const [published, setPublished] = useState(false)
   const [publishedAt, setPublishedAt] = useState<string>('')
@@ -224,7 +226,7 @@ export default function NewBlogPostPage() {
           excerpt,
           categoryId,
           featuredImage: useBannerText ? undefined : (featuredImage || undefined),
-          bannerText: useBannerText ? (bannerText || undefined) : undefined,
+          bannerText: useBannerText ? (bannerText ? encodeBannerText(bannerText, bannerColor) : undefined) : undefined,
           published: asDraft ? false : published,
           publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
           applyAiOptimization  // NEW: Send optimization flag
@@ -560,14 +562,37 @@ export default function NewBlogPostPage() {
                           </label>
                         </div>
                       ) : (
-                        <input
-                          type="text"
-                          value={bannerText}
-                          onChange={(e) => setBannerText(e.target.value)}
-                          placeholder="bijv. 10 Tips, Top 5, etc."
-                          maxLength={30}
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        />
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={bannerText}
+                            onChange={(e) => setBannerText(e.target.value)}
+                            placeholder="bijv. 10 Tips, Top 5, etc."
+                            maxLength={30}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                          <div>
+                            <p className="text-xs font-medium text-gray-600 mb-2">Achtergrondkleur</p>
+                            <div className="flex gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setBannerColor('rose')}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all ${bannerColor === 'rose' ? 'border-[#C34C60] bg-rose-50' : 'border-gray-200 hover:border-gray-300'}`}
+                              >
+                                <span className="w-4 h-4 rounded-full bg-gradient-to-r from-[#C34C60] to-[#e05472] inline-block" />
+                                <span className="text-xs font-medium text-gray-700">Roze</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setBannerColor('teal')}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all ${bannerColor === 'teal' ? 'border-[#1B6874] bg-teal-50' : 'border-gray-200 hover:border-gray-300'}`}
+                              >
+                                <span className="w-4 h-4 rounded-full bg-gradient-to-r from-[#1B6874] to-[#2A8A9A] inline-block" />
+                                <span className="text-xs font-medium text-gray-700">Petrol</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -590,8 +615,8 @@ export default function NewBlogPostPage() {
                           </button>
                         </>
                       ) : useBannerText && bannerText ? (
-                        <div className="relative w-full h-48 rounded-lg bg-gradient-to-r from-primary to-pink-500 flex items-center justify-center">
-                          <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg">
+                        <div className={`relative w-full h-48 rounded-lg bg-gradient-to-r ${bannerGradients[bannerColor]} flex items-center justify-center`}>
+                          <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg text-center px-4">
                             {bannerText}
                           </span>
                           <button

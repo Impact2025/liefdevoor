@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, Share2, Heart } from 'lucide-react'
+import { parseBannerText, bannerGradients } from '@/lib/utils/banner'
 
 interface Post {
   id: string
@@ -54,86 +55,136 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white">
       {/* Hero Section */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-rose-600 hover:text-rose-700 mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Terug naar blog
-          </Link>
-
-          {/* Category */}
-          {post.category && (
-            <Link
-              href={`/blog?category=${post.category.id}`}
-              className="inline-block px-3 py-1 bg-rose-100 text-rose-700 text-sm rounded-full mb-4 hover:bg-rose-200"
-            >
-              {post.category.name}
-            </Link>
-          )}
-
-          {/* Title */}
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {post.title}
-          </h1>
-
-          {/* Excerpt */}
-          {post.excerpt && (
-            <p className="text-xl text-gray-600 mb-6">
-              {post.excerpt}
-            </p>
-          )}
-
-          {/* Meta Info */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-            {post.author && (
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>{post.author.name}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{new Date(post.publishedAt).toLocaleDateString('nl-NL', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>{readTime} min lezen</span>
-            </div>
-            {post.likeCount > 0 && (
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-rose-500" />
-                <span>{post.likeCount} likes</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Featured Image or Banner Text */}
-      {post.bannerText ? (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="w-full h-64 md:h-80 rounded-xl shadow-lg bg-gradient-to-r from-[#C34C60] to-pink-500 flex items-center justify-center">
-            <span className="text-white text-5xl md:text-6xl font-bold tracking-tight drop-shadow-lg text-center px-8">
-              {post.bannerText}
-            </span>
-          </div>
-        </div>
-      ) : post.featuredImage ? (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+      {post.featuredImage && !post.bannerText ? (
+        <div className="relative w-full h-72 md:h-96 overflow-hidden">
           <img
             src={post.featuredImage}
             alt={post.title}
-            className="w-full h-auto rounded-xl shadow-lg"
+            className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-end max-w-4xl mx-auto px-4 pb-8">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4 w-fit"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Terug naar blog
+            </Link>
+            {post.category && (
+              <Link
+                href={`/blog?category=${post.category.id}`}
+                className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full mb-3 hover:bg-white/30 w-fit"
+              >
+                {post.category.name}
+              </Link>
+            )}
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+              {post.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
+              {post.author && (
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span>{post.author.name}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{new Date(post.publishedAt).toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>{readTime} min lezen</span>
+              </div>
+              {post.likeCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-rose-300" />
+                  <span>{post.likeCount} likes</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="bg-white border-b">
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 text-rose-600 hover:text-rose-700 mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Terug naar blog
+            </Link>
+
+            {post.category && (
+              <Link
+                href={`/blog?category=${post.category.id}`}
+                className="inline-block px-3 py-1 bg-rose-100 text-rose-700 text-sm rounded-full mb-4 hover:bg-rose-200"
+              >
+                {post.category.name}
+              </Link>
+            )}
+
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              {post.title}
+            </h1>
+
+            {post.excerpt && (
+              <p className="text-xl text-gray-600 mb-6">
+                {post.excerpt}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+              {post.author && (
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span>{post.author.name}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{new Date(post.publishedAt).toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>{readTime} min lezen</span>
+              </div>
+              {post.likeCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  <span>{post.likeCount} likes</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Text (only shown when no featured image) */}
+      {post.bannerText && (
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {(() => {
+            const { text, color } = parseBannerText(post.bannerText)
+            return (
+              <div className={`w-full h-64 md:h-80 rounded-xl shadow-lg bg-gradient-to-r ${bannerGradients[color]} flex items-center justify-center`}>
+                <span className="text-white text-5xl md:text-6xl font-bold tracking-tight drop-shadow-lg text-center px-8">
+                  {text}
+                </span>
+              </div>
+            )
+          })()}
+        </div>
+      )}
 
       {/* Content */}
       <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

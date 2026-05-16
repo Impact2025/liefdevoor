@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 import NewsletterSignup from '@/components/blog/NewsletterSignup'
+import { parseBannerText, bannerGradients } from '@/lib/utils/banner'
 
 interface Post {
   id: string
@@ -151,11 +152,16 @@ export default function BlogPage() {
                 {posts.map((post) => (
                   <article key={post.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                     {post.bannerText ? (
-                      <div className="relative h-48 bg-gradient-to-r from-[#C34C60] to-pink-500 flex items-center justify-center">
-                        <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg text-center px-4">
-                          {post.bannerText}
-                        </span>
-                      </div>
+                      (() => {
+                        const { text, color } = parseBannerText(post.bannerText)
+                        return (
+                          <div className={`relative h-48 bg-gradient-to-r ${bannerGradients[color]} flex items-center justify-center`}>
+                            <span className="text-white text-4xl font-bold tracking-tight drop-shadow-lg text-center px-4">
+                              {text}
+                            </span>
+                          </div>
+                        )
+                      })()
                     ) : post.featuredImage ? (
                       <div className="relative h-48">
                         <Image
