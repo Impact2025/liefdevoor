@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { cancelStripeSubscription } from '@/lib/services/payment/stripe'
 
 export async function POST() {
   try {
@@ -57,34 +58,17 @@ export async function POST() {
       )
     }
 
-    // Update subscription status to cancelled
-    // User keeps access until endDate
+    // Annuleer bij Stripe (cancel_at_period_end — toegang blijft tot einde periode)
+    if (subscription.stripeSubscriptionId) {
+      await cancelStripeSubscription(subscription.stripeSubscriptionId)
+    }
+
+    // Update lokale status (Stripe webhook bevestigt definitief via customer.subscription.updated)
     await prisma.subscription.update({
       where: { id: subscription.id },
-      data: {
-        status: 'cancelled',
-        // Keep endDate - user has access until then
-      },
+      data: { status: 'cancelled', cancelledAt: new Date() },
     })
 
-    // Optionally: Send cancellation email
-    // await sendCancellationEmail(user.email)
-
-    // TODO: Add audit logging when AuditLog model is added to Prisma schema
-    // await prisma.auditLog.create({
-    //   data: {
-    //     userId: user.id,
-    //     action: 'SUBSCRIPTION_CANCELLED',
-    //     details: {
-    //       subscriptionId: subscription.id,
-    //       tier: subscription.tier,
-    //       cancelledAt: new Date().toISOString(),
-    //       accessUntil: subscription.endDate?.toISOString(),
-    //     },
-    //   },
-    // })
-
-    // Log to console for now
     console.log('[Subscription] Cancelled:', {
       userId: user.id,
       subscriptionId: subscription.id,

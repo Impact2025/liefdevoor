@@ -52,7 +52,7 @@ const isDev = process.env.NODE_ENV === 'development'
 // - Dynamic script loading
 // Host-based allowlists for external services (Google Analytics, Cloudflare Turnstile)
 
-const scriptSrc = `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+const scriptSrc = `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com https://js.stripe.com`
 
 // Style-src needs unsafe-inline for Tailwind's runtime styles and Framer Motion
 // This is acceptable as XSS via CSS is much harder to exploit
@@ -62,11 +62,11 @@ const cspHeader = `
   default-src 'self';
   script-src ${scriptSrc};
   style-src ${styleSrc};
-  img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://www.liefdevooriedereen.nl https://liefdevooriedereen.nl;
+  img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://www.liefdevooriedereen.nl https://liefdevooriedereen.nl https://*.stripe.com;
   font-src 'self' data:;
-  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl;
+  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl https://api.stripe.com https://errors.stripe.com;
   frame-ancestors 'self';
-  frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com;
+  frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com;
   form-action 'self';
   base-uri 'self';
   object-src 'none';

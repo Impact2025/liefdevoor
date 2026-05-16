@@ -15,6 +15,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { CREDIT_PACKS, SAFETY_LIMITS, getCreditPackById } from '@/lib/pricing'
+import { createPaymentIntent, getOrCreateStripeCustomer } from '@/lib/services/payment/stripe'
 
 export async function POST(request: NextRequest) {
   try {
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Maak aankoop record aan (pending)
+    // Maak pending aankoop record aan — credits worden bijgeschreven via webhook
     const purchase = await prisma.creditPurchase.create({
       data: {
         userId: user.id,
@@ -211,81 +212,48 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // TODO: Integreer met payment provider (MultiSafePay/Stripe)
-    // Voor nu simuleren we een succesvolle betaling
-    // In productie zou je hier een payment redirect URL teruggeven
-
-    // Simuleer succesvolle betaling (vervang dit met echte payment integratie)
-    const completedPurchase = await prisma.$transaction(async (tx) => {
-      // Update aankoop status
-      const updated = await tx.creditPurchase.update({
-        where: { id: purchase.id },
-        data: {
-          status: 'completed',
-          completedAt: new Date(),
-        },
-      })
-
-      // Voeg credits toe aan gebruiker
-      await tx.user.update({
-        where: { id: user.id },
-        data: {
-          credits: { increment: pack.credits },
-        },
-      })
-
-      // Update spending limit (with final amount after discount)
-      await tx.spendingLimit.update({
-        where: { userId: user.id },
-        data: {
-          currentSpent: { increment: finalAmount },
-        },
-      })
-
-      // Record coupon usage if provided
-      if (couponCode) {
-        const coupon = await tx.coupon.findUnique({
-          where: { code: couponCode.toUpperCase() }
-        })
-
-        if (coupon) {
-          await tx.couponUsage.create({
-            data: {
-              couponId: coupon.id,
-              userId: user.id,
-              orderType: 'credits',
-              orderId: updated.id,
-              originalAmount: pack.price,
-              discountAmount: pack.price - finalAmount,
-              finalAmount: finalAmount,
-            }
-          })
-
-          await tx.coupon.update({
-            where: { id: coupon.id },
-            data: { currentTotalUses: { increment: 1 } }
-          })
-        }
-      }
-
-      return updated
+    // Spending limit optimistisch bijwerken (voorkomt dubbele aankopen tijdens checkout)
+    await prisma.spendingLimit.update({
+      where: { userId: user.id },
+      data: { currentSpent: { increment: finalAmount } },
     })
 
-    // Haal bijgewerkte gebruiker op
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { credits: true },
+    // Stripe: haal of maak customer aan, maak Payment Intent
+    const stripeCustomerId = await getOrCreateStripeCustomer(
+      user.id,
+      user.email!,
+      user.name,
+    )
+
+    const paymentIntent = await createPaymentIntent(
+      stripeCustomerId,
+      finalAmount,
+      {
+        purchaseId: purchase.id,
+        userId: user.id,
+        credits: String(pack.credits),
+        packId: pack.id,
+        ...(couponCode ? { couponCode: couponCode.toUpperCase() } : {}),
+      },
+      purchase.id, // idempotency key
+    )
+
+    // Sla Stripe Payment Intent ID op
+    await prisma.creditPurchase.update({
+      where: { id: purchase.id },
+      data: { stripePaymentIntentId: paymentIntent.id },
     })
 
+    // clientSecret → frontend gebruikt dit om Payment Element af te ronden
     return NextResponse.json({
       success: true,
-      message: `Je hebt ${pack.credits} ${pack.credits === 1 ? 'Superbericht' : 'Superberichten'} gekocht!`,
+      requiresPayment: true,
+      clientSecret: paymentIntent.client_secret,
       purchase: {
-        id: completedPurchase.id,
+        id: purchase.id,
         credits: pack.credits,
-        amount: pack.price,
+        amount: finalAmount,
       },
-      currentCredits: updatedUser?.credits || 0,
     })
   } catch (error) {
     console.error('[Credits Purchase] Error:', error)
