@@ -128,10 +128,12 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        // No payment_method_types specified: Stripe automatically handles iDEAL
-        // via the mandate flow (iDEAL first payment → SEPA Direct Debit mandate
-        // for recurring charges). Explicit listing of 'ideal' would cause a
-        // Stripe error because redirect-based methods need the mandate approach.
+        // iDEAL + sepa_debit together trigger Stripe's mandate flow:
+        //   first payment via iDEAL → SEPA Direct Debit mandate for all
+        //   future recurring charges. sepa_debit must be present alongside
+        //   ideal, otherwise Stripe rejects it as incompatible with
+        //   charge_automatically (no mandate-compatible fallback method).
+        payment_method_types: ['card', 'ideal', 'sepa_debit'],
       },
       // Expand payments so we can fall back to the payment_intent if
       // confirmation_secret is not yet populated for this account
@@ -152,20 +154,6 @@ export async function createStripeSubscription(
 
     if (piField) {
       const piId = typeof piField === 'string' ? piField : piField.id
-
-      // Add iDEAL to the PaymentIntent so it appears in the Payment Element.
-      // iDEAL with setup_future_usage:'off_session' → Stripe auto-creates a
-      // SEPA Direct Debit mandate, which handles all future recurring charges.
-      // (We can't put iDEAL in subscription payment_method_types because that
-      //  path uses charge_automatically, which blocks redirect methods.)
-      await stripe.paymentIntents.update(piId, {
-        payment_method_types: ['card', 'ideal', 'sepa_debit'],
-        payment_method_options: {
-          ideal: { setup_future_usage: 'off_session' },
-          sepa_debit: { setup_future_usage: 'off_session' },
-        },
-      })
-
       const pi = await stripe.paymentIntents.retrieve(piId)
       clientSecret = pi.client_secret
     }
