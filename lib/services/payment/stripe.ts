@@ -128,7 +128,9 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        payment_method_types: ['card', 'ideal', 'bancontact', 'sepa_debit'],
+        // ideal/bancontact cannot be used with charge_automatically subscriptions
+        // (redirect-based methods require customer presence for every charge)
+        payment_method_types: ['card', 'sepa_debit'],
       },
       expand: ['latest_invoice'],
       metadata,

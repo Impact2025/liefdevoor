@@ -363,7 +363,7 @@ export default function CheckoutModal({
                 </button>
 
                 <p className="text-xs text-center text-slate-400">
-                  Betaling verloopt veilig via Stripe · iDEAL · Bancontact · Creditcard · Apple/Google Pay
+                  Betaling verloopt veilig via Stripe · Creditcard · SEPA Incasso · Apple/Google Pay
                 </p>
               </div>
             )}
