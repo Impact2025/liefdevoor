@@ -25,6 +25,7 @@ async function computeDiscountedPrice(
   originalPrice: number,
   couponCode: string,
   userId: string,
+  planId?: string,
 ): Promise<number> {
   try {
     const now = new Date()
@@ -40,6 +41,14 @@ async function computeDiscountedPrice(
     if (coupon.minPurchaseAmount && originalPrice < coupon.minPurchaseAmount) return originalPrice
     if (coupon.maxTotalUses && coupon.currentTotalUses >= coupon.maxTotalUses) return originalPrice
     if (coupon.usages.length >= coupon.maxUsesPerUser) return originalPrice
+
+    // Plan-specifieke beperking
+    if (coupon.applicablePlans && planId) {
+      try {
+        const allowed: string[] = JSON.parse(coupon.applicablePlans)
+        if (allowed.length > 0 && !allowed.includes(planId)) return originalPrice
+      } catch { /* ongeldige JSON → geen beperking */ }
+    }
 
     let discount = 0
     if (coupon.type === 'PERCENTAGE') {
@@ -86,7 +95,7 @@ export async function POST(request: NextRequest) {
     // Server-side prijsberekening (nooit de client vertrouwen)
     // --------------------------------------------------------
     const finalAmount = plan.price > 0 && couponCode
-      ? await computeDiscountedPrice(plan.price, couponCode.toUpperCase(), session.user.id)
+      ? await computeDiscountedPrice(plan.price, couponCode.toUpperCase(), session.user.id, planId)
       : plan.price
 
     // --------------------------------------------------------
@@ -165,8 +174,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Maak pending subscription record aan
-    const subscription = await prisma.subscription.create({
+    // Verwijder verlopen pending records (>2u) — voorkomt ophoping van verlaten checkouts
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+    await prisma.subscription.deleteMany({
+      where: { userId: session.user.id, status: 'pending', createdAt: { lt: twoHoursAgo } },
+    })
+
+    // Idempotentie: hergebruik bestaand recent pending record om dubbele aanmaken te voorkomen
+    const existingPending = await prisma.subscription.findFirst({
+      where: { userId: session.user.id, plan: planId, status: 'pending' },
+      orderBy: { createdAt: 'desc' },
+    })
+    const subscription = existingPending ?? await prisma.subscription.create({
       data: { userId: session.user.id, plan: planId, status: 'pending' },
     })
 

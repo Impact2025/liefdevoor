@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { packId, amount, couponCode } = body
+    const { packId, couponCode } = body // 'amount' van client wordt genegeerd — altijd server-side berekend
 
     // Valideer credit pack
     const pack = getCreditPackById(packId)
@@ -39,9 +39,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    // Use final amount if coupon was applied, otherwise use pack price
-    const finalAmount = amount !== undefined ? amount : pack.price
 
     // Check maximale bundle grootte (original price, not discounted)
     if (pack.price > SAFETY_LIMITS.MAX_CREDIT_PURCHASE) {
@@ -62,6 +59,35 @@ export async function POST(request: NextRequest) {
         { error: 'Gebruiker niet gevonden' },
         { status: 404 }
       )
+    }
+
+    // Server-side prijsberekening — nooit de client-amount vertrouwen
+    let finalAmount = pack.price
+    if (couponCode) {
+      const now = new Date()
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: couponCode.toUpperCase() },
+        include: { usages: { where: { userId: user.id }, select: { id: true } } },
+      })
+      if (
+        coupon &&
+        coupon.isActive &&
+        coupon.applicableTo !== 'SUBSCRIPTION' &&
+        (!coupon.validFrom || new Date(coupon.validFrom) <= now) &&
+        (!coupon.validUntil || new Date(coupon.validUntil) >= now) &&
+        (!coupon.maxTotalUses || coupon.currentTotalUses < coupon.maxTotalUses) &&
+        coupon.usages.length < coupon.maxUsesPerUser &&
+        (!coupon.minPurchaseAmount || pack.price >= coupon.minPurchaseAmount)
+      ) {
+        let discount = 0
+        if (coupon.type === 'PERCENTAGE') {
+          discount = (pack.price * coupon.value) / 100
+          if (coupon.maxDiscountCap && discount > coupon.maxDiscountCap) discount = coupon.maxDiscountCap
+        } else if (coupon.type === 'FIXED_AMOUNT') {
+          discount = Math.min(coupon.value, pack.price)
+        }
+        finalAmount = Math.max(pack.price - discount, 0)
+      }
     }
 
     // If free with coupon, skip payment and grant credits directly
@@ -219,24 +245,39 @@ export async function POST(request: NextRequest) {
     })
 
     // Stripe: haal of maak customer aan, maak Payment Intent
-    const stripeCustomerId = await getOrCreateStripeCustomer(
-      user.id,
-      user.email!,
-      user.name,
-    )
+    // Bij Stripe-fout: rollback spending limit zodat gebruiker niet geblokkeerd raakt
+    let stripeCustomerId: string
+    let paymentIntent: Awaited<ReturnType<typeof createPaymentIntent>>
 
-    const paymentIntent = await createPaymentIntent(
-      stripeCustomerId,
-      finalAmount,
-      {
-        purchaseId: purchase.id,
-        userId: user.id,
-        credits: String(pack.credits),
-        packId: pack.id,
-        ...(couponCode ? { couponCode: couponCode.toUpperCase() } : {}),
-      },
-      purchase.id, // idempotency key
-    )
+    try {
+      stripeCustomerId = await getOrCreateStripeCustomer(
+        user.id,
+        user.email!,
+        user.name,
+      )
+      paymentIntent = await createPaymentIntent(
+        stripeCustomerId,
+        finalAmount,
+        {
+          purchaseId: purchase.id,
+          userId: user.id,
+          credits: String(pack.credits),
+          packId: pack.id,
+          ...(couponCode ? { couponCode: couponCode.toUpperCase() } : {}),
+        },
+        purchase.id,
+      )
+    } catch (stripeError) {
+      // Rollback spending limit en pending purchase
+      await Promise.allSettled([
+        prisma.spendingLimit.update({
+          where: { userId: user.id },
+          data: { currentSpent: { increment: -finalAmount } },
+        }),
+        prisma.creditPurchase.delete({ where: { id: purchase.id } }),
+      ])
+      throw stripeError
+    }
 
     // Sla Stripe Payment Intent ID op
     await prisma.creditPurchase.update({

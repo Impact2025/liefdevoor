@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { code, orderType, amount } = body
+    const { code, orderType, amount, planId } = body
 
     // Validate input
     if (!code || !orderType || !amount) {
@@ -109,6 +109,19 @@ export async function POST(req: NextRequest) {
         { error: 'Je hebt deze coupon al maximaal gebruikt', valid: false },
         { status: 400 }
       )
+    }
+
+    // Check plan-specifieke beperking (applicablePlans JSON array)
+    if (coupon.applicablePlans && orderType === 'subscription' && planId) {
+      try {
+        const allowed: string[] = JSON.parse(coupon.applicablePlans)
+        if (allowed.length > 0 && !allowed.includes(planId)) {
+          return NextResponse.json(
+            { error: 'Coupon is niet geldig voor dit abonnement', valid: false },
+            { status: 400 }
+          )
+        }
+      } catch { /* ongeldige JSON → geen beperking */ }
     }
 
     // Calculate discount

@@ -46,9 +46,10 @@ interface StripePaymentFormProps {
   finalAmount: number
   onSuccess: () => void
   subscriptionDbId?: string | null
+  isSetupFlow?: boolean
 }
 
-function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId }: StripePaymentFormProps) {
+function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isSetupFlow }: StripePaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -61,14 +62,14 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId }: S
     setIsSubmitting(true)
     setError(null)
 
-    // Recurring subscription: SetupIntent flow (supports iDEAL → SEPA mandate)
-    if (type === 'subscription' && subscriptionDbId) {
+    // SetupIntent flow: recurring subscriptions (iDEAL → SEPA mandate, of kaart/SEPA direct)
+    if (isSetupFlow && subscriptionDbId) {
       const returnUrl = `${window.location.origin}/subscription/success?order_id=${subscriptionDbId}`
 
       const { error: stripeError, setupIntent } = await stripe.confirmSetup({
         elements,
         confirmParams: { return_url: returnUrl },
-        redirect: 'if_required', // Only redirects for iDEAL; card completes inline
+        redirect: 'if_required', // iDEAL redirect, kaart/SEPA inline
       })
 
       if (stripeError) {
@@ -77,7 +78,7 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId }: S
         return
       }
 
-      // Inline completion (card/SEPA) — activate subscription now
+      // Inline voltooiing (kaart/SEPA) — activeer abonnement direct
       if (setupIntent?.status === 'succeeded') {
         const res = await fetch('/api/subscription/activate', {
           method: 'POST',
@@ -95,8 +96,11 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId }: S
       return
     }
 
-    // PaymentIntent flow (lifetime plans, credits)
-    const returnUrl = type === 'subscription'
+    // PaymentIntent flow: lifetime abonnement of credits
+    // Voeg order_id toe aan return URL zodat success page het abonnement kan verifieren
+    const returnUrl = type === 'subscription' && subscriptionDbId
+      ? `${window.location.origin}/subscription/success?order_id=${subscriptionDbId}`
+      : type === 'subscription'
       ? `${window.location.origin}/subscription/success`
       : `${window.location.origin}/discover?payment=success`
 
@@ -177,6 +181,7 @@ export default function CheckoutModal({
   const [isLoading, setIsLoading] = useState(false)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [subscriptionDbId, setSubscriptionDbId] = useState<string | null>(null)
+  const [isSetupFlow, setIsSetupFlow] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -189,6 +194,7 @@ export default function CheckoutModal({
     if (!isOpen) {
       setClientSecret(null)
       setSubscriptionDbId(null)
+      setIsSetupFlow(false)
       setError(null)
       setAppliedDiscount(null)
       setIsSuccess(false)
@@ -230,6 +236,9 @@ export default function CheckoutModal({
 
       if (data.clientSecret) {
         setClientSecret(data.clientSecret)
+        // seti_ = SetupIntent (recurring subscription met iDEAL/SEPA)
+        // pi_   = PaymentIntent (lifetime / credits)
+        setIsSetupFlow(data.clientSecret.startsWith('seti_'))
         if (data.subscriptionId) setSubscriptionDbId(data.subscriptionId)
       } else {
         setError('Geen betaalgegevens ontvangen. Probeer het opnieuw.')
@@ -425,6 +434,7 @@ export default function CheckoutModal({
                     finalAmount={finalAmount}
                     onSuccess={() => setIsSuccess(true)}
                     subscriptionDbId={subscriptionDbId}
+                    isSetupFlow={isSetupFlow}
                   />
                 </div>
               </Elements>

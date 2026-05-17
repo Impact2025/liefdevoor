@@ -206,11 +206,18 @@ async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription
     }
   }
 
-  // Tier bijwerken bij activatie
+  // Tier bijwerken op basis van status
   if (status === 'active') {
     await prisma.user.update({
       where: { id: userId },
       data: { subscriptionTier: tier },
+    })
+  } else if (status === 'cancelled') {
+    // Belt-and-suspenders: handleSubscriptionDeleted doet dit ook, maar bij
+    // customer.subscription.updated met status 'canceled' moet tier ook meteen gereset worden
+    await prisma.user.update({
+      where: { id: userId },
+      data: { subscriptionTier: 'FREE' },
     })
   }
 }
