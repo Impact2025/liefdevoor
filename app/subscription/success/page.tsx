@@ -40,8 +40,22 @@ function SubscriptionSuccessContent() {
   // Payment verification
   useEffect(() => {
     const orderId = searchParams.get('order_id')
+    const setupIntentId = searchParams.get('setup_intent')
 
     const verifyPayment = async () => {
+      // Returning from iDEAL redirect: activate subscription first, then verify
+      if (setupIntentId && orderId) {
+        try {
+          await fetch('/api/subscription/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ setupIntentId, subscriptionDbId: orderId }),
+          })
+        } catch {
+          // Continue: webhook may have already handled it
+        }
+      }
+
       try {
         // If no order_id, try to find user's most recent subscription
         if (!orderId) {

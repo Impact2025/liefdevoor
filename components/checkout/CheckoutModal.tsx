@@ -45,9 +45,10 @@ interface StripePaymentFormProps {
   type: 'subscription' | 'credits'
   finalAmount: number
   onSuccess: () => void
+  subscriptionDbId?: string | null
 }
 
-function StripePaymentForm({ type, finalAmount, onSuccess }: StripePaymentFormProps) {
+function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId }: StripePaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -60,6 +61,41 @@ function StripePaymentForm({ type, finalAmount, onSuccess }: StripePaymentFormPr
     setIsSubmitting(true)
     setError(null)
 
+    // Recurring subscription: SetupIntent flow (supports iDEAL → SEPA mandate)
+    if (type === 'subscription' && subscriptionDbId) {
+      const returnUrl = `${window.location.origin}/subscription/success?order_id=${subscriptionDbId}`
+
+      const { error: stripeError, setupIntent } = await stripe.confirmSetup({
+        elements,
+        confirmParams: { return_url: returnUrl },
+        redirect: 'if_required', // Only redirects for iDEAL; card completes inline
+      })
+
+      if (stripeError) {
+        setError(stripeError.message ?? 'Betaling mislukt. Probeer het opnieuw.')
+        setIsSubmitting(false)
+        return
+      }
+
+      // Inline completion (card/SEPA) — activate subscription now
+      if (setupIntent?.status === 'succeeded') {
+        const res = await fetch('/api/subscription/activate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ setupIntentId: setupIntent.id, subscriptionDbId }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          setError(data.error ?? 'Activatie mislukt. Neem contact op met support.')
+          setIsSubmitting(false)
+          return
+        }
+        onSuccess()
+      }
+      return
+    }
+
+    // PaymentIntent flow (lifetime plans, credits)
     const returnUrl = type === 'subscription'
       ? `${window.location.origin}/subscription/success`
       : `${window.location.origin}/discover?payment=success`
@@ -70,7 +106,6 @@ function StripePaymentForm({ type, finalAmount, onSuccess }: StripePaymentFormPr
     })
 
     if (stripeError) {
-      // confirmPayment redirectt bij succes — als we hier zijn is er een fout
       setError(stripeError.message ?? 'Betaling mislukt. Probeer het opnieuw.')
       setIsSubmitting(false)
     }
@@ -141,6 +176,7 @@ export default function CheckoutModal({
   const [appliedDiscount, setAppliedDiscount] = useState<DiscountInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [subscriptionDbId, setSubscriptionDbId] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -152,6 +188,7 @@ export default function CheckoutModal({
   useEffect(() => {
     if (!isOpen) {
       setClientSecret(null)
+      setSubscriptionDbId(null)
       setError(null)
       setAppliedDiscount(null)
       setIsSuccess(false)
@@ -193,6 +230,7 @@ export default function CheckoutModal({
 
       if (data.clientSecret) {
         setClientSecret(data.clientSecret)
+        if (data.subscriptionId) setSubscriptionDbId(data.subscriptionId)
       } else {
         setError('Geen betaalgegevens ontvangen. Probeer het opnieuw.')
       }
@@ -386,6 +424,7 @@ export default function CheckoutModal({
                     type={type}
                     finalAmount={finalAmount}
                     onSuccess={() => setIsSuccess(true)}
+                    subscriptionDbId={subscriptionDbId}
                   />
                 </div>
               </Elements>

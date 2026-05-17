@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { SubscriptionTier } from '@prisma/client'
 import {
-  createStripeSubscription,
+  createSubscriptionSetupIntent,
   createLifetimePaymentIntent,
   getOrCreateStripeCustomer,
   getPriceIdForPlan,
@@ -198,15 +198,16 @@ export async function POST(request: NextRequest) {
       )
       clientSecret = result.clientSecret
     } else {
-      // Recurring subscription
-      const result = await createStripeSubscription(
+      // Recurring subscription — SetupIntent flow:
+      // 1. Collect payment method via SetupIntent (supports iDEAL → SEPA mandate)
+      // 2. After confirmation: /api/subscription/activate creates the subscription
+      const result = await createSubscriptionSetupIntent(
         stripeCustomerId,
-        priceId,
         metadata,
-        subscription.id,
+        `setup_${subscription.id}`,
       )
       clientSecret = result.clientSecret
-      stripeSubscriptionId = result.subscriptionId
+      // stripeSubscriptionId is set in /api/subscription/activate after payment
     }
 
     // Sla Stripe IDs op in subscription record

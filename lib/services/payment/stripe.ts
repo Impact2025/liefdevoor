@@ -128,12 +128,6 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        // iDEAL + sepa_debit together trigger Stripe's mandate flow:
-        //   first payment via iDEAL → SEPA Direct Debit mandate for all
-        //   future recurring charges. sepa_debit must be present alongside
-        //   ideal, otherwise Stripe rejects it as incompatible with
-        //   charge_automatically (no mandate-compatible fallback method).
-        payment_method_types: ['card', 'ideal', 'sepa_debit'],
       },
       // Expand payments so we can fall back to the payment_intent if
       // confirmation_secret is not yet populated for this account
@@ -251,4 +245,56 @@ export function getSubscriptionTierForPlan(planId: string): 'FREE' | 'PREMIUM' |
   const plan = getPlanById(planId)
   if (!plan) return 'FREE'
   return plan.tier
+}
+
+// ============================================
+// SETUP INTENT (mandaat voor abonnement)
+// ============================================
+
+// Step 1: Collect payment method via SetupIntent (supports iDEAL → SEPA mandate)
+export async function createSubscriptionSetupIntent(
+  customerId: string,
+  metadata: Record<string, string>,
+  idempotencyKey: string,
+): Promise<{ setupIntentId: string; clientSecret: string }> {
+  const stripe = getStripeClient()
+
+  const si = await stripe.setupIntents.create(
+    {
+      customer: customerId,
+      payment_method_types: ['card', 'ideal', 'sepa_debit'],
+      usage: 'off_session',
+      metadata,
+    },
+    { idempotencyKey },
+  )
+
+  if (!si.client_secret) throw new Error('Geen SetupIntent client_secret ontvangen')
+  return { setupIntentId: si.id, clientSecret: si.client_secret }
+}
+
+// Step 2: Create subscription using the collected payment method
+export async function createSubscriptionFromPaymentMethod(
+  customerId: string,
+  priceId: string,
+  paymentMethodId: string,
+  metadata: Record<string, string>,
+  idempotencyKey: string,
+): Promise<{ subscriptionId: string; status: string }> {
+  const stripe = getStripeClient()
+
+  const subscription = await stripe.subscriptions.create(
+    {
+      customer: customerId,
+      items: [{ price: priceId }],
+      default_payment_method: paymentMethodId,
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
+      },
+      metadata,
+    },
+    { idempotencyKey },
+  )
+
+  return { subscriptionId: subscription.id, status: subscription.status }
 }
