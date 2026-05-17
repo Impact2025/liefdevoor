@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     if (!hasIncognito) {
       return NextResponse.json({
         error: 'Premium vereist',
-        message: 'Incognito Mode is een Liefde Compleet functie. Upgrade om anoniem te browsen!',
+        message: 'Incognito Mode is een Liefde Gold functie. Upgrade om anoniem te browsen!',
         upgradeUrl: '/prijzen',
       }, { status: 403 })
     }

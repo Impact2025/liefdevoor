@@ -455,7 +455,7 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                     <div className="flex items-start gap-3">
                       <Crown className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-gray-900 mb-1">Liefde Compleet Feature</h4>
+                        <h4 className="font-bold text-gray-900 mb-1">Liefde Gold Feature</h4>
                         <p className="text-sm text-gray-600 mb-2">
                           Upgrade om in andere steden te swipen!
                         </p>
@@ -463,7 +463,7 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                           href="/prijzen"
                           className="inline-block px-4 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-lg text-sm font-semibold hover:shadow-md transition-shadow"
                         >
-                          Upgrade naar Compleet
+                          Upgrade naar Gold
                         </a>
                       </div>
                     </div>
@@ -637,14 +637,14 @@ export function PassportModal({ isOpen, onClose, onSelect }: PassportModalProps)
                       Premium vereist
                     </p>
                     <p className="text-xs text-gray-500">
-                      Upgrade naar Liefde Compleet om Passport te activeren
+                      Upgrade naar Liefde Gold om Passport te activeren
                     </p>
                   </div>
                   <a
                     href="/prijzen"
                     className="block w-full py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow"
                   >
-                    Upgrade naar Compleet
+                    Upgrade naar Gold
                   </a>
                 </div>
               )}

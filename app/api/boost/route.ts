@@ -95,7 +95,7 @@ export async function POST() {
     if (!canBoost) {
       return NextResponse.json({
         error: 'Premium vereist',
-        message: 'Boost is alleen beschikbaar voor Liefde Compleet abonnees.',
+        message: 'Boost is alleen beschikbaar voor Liefde Gold abonnees.',
         upgradeUrl: '/prijzen',
       }, { status: 403 })
     }

@@ -126,7 +126,7 @@ export function IncognitoToggle({ className = '' }: IncognitoToggleProps) {
 
       {!hasFeature && (
         <p className="mt-3 text-sm text-gray-500">
-          Incognito Mode is beschikbaar met Liefde Compleet
+          Incognito Mode is beschikbaar met Liefde Gold
         </p>
       )}
     </div>

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import type { DiscoverUser, DiscoverFilters, UserPreferences } from '@/lib/types'
 import type { Prisma } from '@prisma/client'
 import { calculateCompatibility } from '@/lib/services/matching/compatibility-engine'
+import { hasFeature } from '@/lib/subscription'
 
 /**
  * 🎭 INTELLIGENT FALLBACK SYSTEEM
@@ -317,6 +318,15 @@ export async function GET(request: NextRequest) {
       relationshipGoal: parseArrayParam('relationshipGoal'),
       verifiedOnly: searchParams.get('verifiedOnly') === 'true',
       onlineRecently: searchParams.get('onlineRecently') === 'true',
+    }
+
+    // Strip premium-gated filters for non-premium users
+    const canUseAdvancedFilters = await hasFeature(user.id, 'advancedFilters')
+    if (!canUseAdvancedFilters) {
+      filters.education = undefined
+      filters.religion = undefined
+      filters.languages = undefined
+      filters.ethnicity = undefined
     }
 
     const { page, limit, offset } = parsePaginationParams(searchParams)

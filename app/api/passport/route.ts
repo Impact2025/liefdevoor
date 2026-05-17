@@ -208,12 +208,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 })
     }
 
-    // Check if user has passport feature (COMPLETE tier only)
+    // Check if user has passport feature (GOLD tier only)
     const hasPassportFeature = await hasFeature(user.id, 'canUsePassport')
     if (!hasPassportFeature) {
       return NextResponse.json({
-        error: 'Premium vereist',
-        message: 'Passport is een Liefde Compleet functie. Upgrade om in andere steden te swipen!',
+        error: 'Gold vereist',
+        message: 'Passport is een Liefde Gold functie. Upgrade om in andere steden te swipen!',
         upgradeUrl: '/prijzen',
       }, { status: 403 })
     }
