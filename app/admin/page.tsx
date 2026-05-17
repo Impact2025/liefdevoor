@@ -81,6 +81,14 @@ const adminSections: AdminCard[] = [
     gradient: 'bg-gradient-to-br from-emerald-500 to-green-600',
     stats: 'Live campaign'
   },
+  {
+    title: 'Ambassadeurs',
+    description: 'Beheer ambassadeurs, stuur berichten en volg hun activiteit',
+    href: '/admin/ambassadors',
+    icon: TrendingUp,
+    gradient: 'bg-gradient-to-br from-amber-400 to-orange-500',
+    stats: 'Programma beheer'
+  },
 ]
 
 const quickStats = [

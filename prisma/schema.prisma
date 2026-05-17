@@ -74,6 +74,9 @@ enum AdminPermission {
   // Professional Portal (2)
   MANAGE_PROFESSIONALS
   VERIFY_PROFESSIONALS
+
+  // Ambassador Program (1)
+  MANAGE_AMBASSADORS
 }
 
 // Subscription Tiers - Drielaags Abonnementsmodel
@@ -280,6 +283,7 @@ model User {
   // 📚 Kennisbank relaties
   knowledgeBaseArticles KnowledgeBaseArticle[] @relation("KBArticleAuthor")
   professionalAccount   ProfessionalAccount?
+  ambassador            Ambassador?
   preferEasyRead        Boolean  @default(false) // Gebruiker wil Easy Read content zien
 
   // 💳 Stripe
@@ -1574,7 +1578,14 @@ enum TicketCategory {
   SAFETY          // Veiligheid
   TECHNICAL       // Technische bugs
   FEATURE         // Feature requests
+  AMBASSADOR      // Ambassadeur communicatie
   OTHER           // Overig
+}
+
+enum AmbassadorStatus {
+  INVITED    // Uitnodiging verstuurd
+  ACTIVE     // Actief ambassadeur
+  INACTIVE   // Gestopt
 }
 
 model HelpDeskTicket {
@@ -2462,3 +2473,35 @@ model MigrationError {
   @@index([createdAt])
 }
 
+// ============================================
+// 🌟 AMBASSADOR PROGRAM
+// ============================================
+
+model Ambassador {
+  id          String           @id @default(cuid())
+
+  userId      String           @unique
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status      AmbassadorStatus @default(INVITED)
+
+  // Beloning: gratis lidmaatschap
+  freeUntil   DateTime?
+
+  // Communicatie via helpdesk
+  ticketId    String?
+
+  // Admin notities
+  adminNotes  String?          @db.Text
+
+  // Tracking
+  invitedAt   DateTime         @default(now())
+  activatedAt DateTime?
+  deactivatedAt DateTime?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status])
+  @@index([invitedAt])
+}

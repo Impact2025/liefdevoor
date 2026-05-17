@@ -240,6 +240,7 @@ export function getPermissionLabel(permission: AdminPermission): string {
     MANAGE_KB_TOOLS: 'Manage Knowledge Base Tools',
     MANAGE_PROFESSIONALS: 'Manage Professionals',
     VERIFY_PROFESSIONALS: 'Verify Professionals',
+    MANAGE_AMBASSADORS: 'Manage Ambassadors',
   }
 
   return labels[permission] || permission
@@ -291,6 +292,9 @@ export function getPermissionsByCategory(): Record<
       { permission: AdminPermission.MANAGE_SETTINGS, label: getPermissionLabel(AdminPermission.MANAGE_SETTINGS) },
       { permission: AdminPermission.MANAGE_COUPONS, label: getPermissionLabel(AdminPermission.MANAGE_COUPONS) },
       { permission: AdminPermission.ACCESS_HELPDESK, label: getPermissionLabel(AdminPermission.ACCESS_HELPDESK) },
+    ],
+    'Ambassador Program': [
+      { permission: AdminPermission.MANAGE_AMBASSADORS, label: getPermissionLabel(AdminPermission.MANAGE_AMBASSADORS) },
     ],
   }
 }
