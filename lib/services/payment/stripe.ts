@@ -130,14 +130,14 @@ export async function createStripeSubscription(
         save_default_payment_method: 'on_subscription',
         payment_method_types: ['card', 'ideal', 'bancontact', 'sepa_debit'],
       },
-      expand: ['latest_invoice.payment_intent'],
+      expand: ['latest_invoice'],
       metadata,
     },
     { idempotencyKey },
   )
 
   const invoice = subscription.latest_invoice as Stripe.Invoice
-  const clientSecret = invoice.confirmation_secret?.client_secret
+  const clientSecret = invoice.confirmation_secret?.client_secret ?? null
 
   if (!clientSecret) {
     throw new Error('Stripe subscription heeft geen client_secret teruggegeven')

@@ -7,7 +7,7 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma, withRetry } from '@/lib/prisma'
 import Link from 'next/link'
 import { Home, Shield, LayoutDashboard, UserPlus, Ticket, FileText, Camera, Building2, MessageSquare } from 'lucide-react'
 
@@ -23,11 +23,13 @@ export default async function AdminLayout({
     redirect('/login?callbackUrl=/admin/dashboard')
   }
 
-  // Get user from database to check role
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { role: true, name: true, email: true }
-  })
+  // Get user from database to check role (withRetry handles Neon cold starts)
+  const user = await withRetry(() =>
+    prisma.user.findUnique({
+      where: { email: session.user.email! },
+      select: { role: true, name: true, email: true }
+    })
+  )
 
   // Check if user is admin
   if (!user || user.role !== 'ADMIN') {
