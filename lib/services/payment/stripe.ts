@@ -128,8 +128,10 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        // ideal/bancontact cannot be used with charge_automatically subscriptions
-        payment_method_types: ['card', 'sepa_debit'],
+        // No payment_method_types specified: Stripe automatically handles iDEAL
+        // via the mandate flow (iDEAL first payment → SEPA Direct Debit mandate
+        // for recurring charges). Explicit listing of 'ideal' would cause a
+        // Stripe error because redirect-based methods need the mandate approach.
       },
       // Expand payments so we can fall back to the payment_intent if
       // confirmation_secret is not yet populated for this account
