@@ -188,14 +188,14 @@ export async function GET(request: NextRequest) {
     // Get stats by segment
     const segmentStats = await prisma.$queryRaw<any[]>`
       SELECT
-        COALESCE(mu.segment, 'UNKNOWN') as segment,
+        COALESCE(mu.segment::text, 'UNKNOWN') as segment,
         COUNT(*)::int as total,
         ROUND(AVG(fs."wouldRecommend")::numeric, 2) as avg_nps,
         COUNT(CASE WHEN fs."wouldRecommend" >= 9 THEN 1 END)::int as promoters,
         COUNT(CASE WHEN fs."wouldRecommend" <= 6 THEN 1 END)::int as detractors
       FROM "FeedbackSurvey" fs
       LEFT JOIN "MigrationUser" mu ON mu."newUserId" = fs."userId"
-      GROUP BY COALESCE(mu.segment, 'UNKNOWN')
+      GROUP BY COALESCE(mu.segment::text, 'UNKNOWN')
       ORDER BY total DESC
     `
 
