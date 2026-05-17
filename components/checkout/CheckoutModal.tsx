@@ -53,6 +53,7 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isS
   const stripe = useStripe()
   const elements = useElements()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isElementReady, setIsElementReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,12 +119,22 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isS
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement
-        options={{
-          layout: 'accordion',
-          defaultValues: { billingDetails: { address: { country: 'NL' } } },
-        }}
-      />
+      {!isElementReady && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-rose-500" />
+          <span className="ml-2 text-sm text-slate-500">Betaalmethoden laden...</span>
+        </div>
+      )}
+      <div className={isElementReady ? undefined : 'hidden'}>
+        <PaymentElement
+          options={{
+            layout: 'accordion',
+            defaultValues: { billingDetails: { address: { country: 'NL' } } },
+          }}
+          onReady={() => setIsElementReady(true)}
+          onLoadError={(event) => setError(event.error.message ?? 'Betaalveld kon niet laden. Herlaad de pagina.')}
+        />
+      </div>
 
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -133,7 +144,7 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isS
 
       <button
         type="submit"
-        disabled={isSubmitting || !stripe || !elements}
+        disabled={isSubmitting || !stripe || !elements || !isElementReady}
         className="w-full py-4 font-bold text-lg rounded-xl bg-rose-500 hover:bg-rose-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isSubmitting ? (

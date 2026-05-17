@@ -262,7 +262,7 @@ export async function createSubscriptionSetupIntent(
   const si = await stripe.setupIntents.create(
     {
       customer: customerId,
-      payment_method_types: ['card', 'ideal', 'sepa_debit'],
+      automatic_payment_methods: { enabled: true },
       usage: 'off_session',
       metadata,
     },
