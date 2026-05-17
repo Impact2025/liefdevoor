@@ -129,17 +129,31 @@ export async function createStripeSubscription(
       payment_settings: {
         save_default_payment_method: 'on_subscription',
         // ideal/bancontact cannot be used with charge_automatically subscriptions
-        // (redirect-based methods require customer presence for every charge)
         payment_method_types: ['card', 'sepa_debit'],
       },
-      expand: ['latest_invoice'],
+      // Expand payments so we can fall back to the payment_intent if
+      // confirmation_secret is not yet populated for this account
+      expand: ['latest_invoice.payments'],
       metadata,
     },
     { idempotencyKey },
   )
 
   const invoice = subscription.latest_invoice as Stripe.Invoice
-  const clientSecret = invoice.confirmation_secret?.client_secret ?? null
+  let clientSecret: string | null = invoice.confirmation_secret?.client_secret ?? null
+
+  if (!clientSecret) {
+    // Fall back to the default InvoicePayment's PaymentIntent (v22 payments list)
+    const payments = invoice.payments as Stripe.ApiList<Stripe.InvoicePayment> | undefined
+    const defaultPayment = payments?.data?.find(p => p.is_default) ?? payments?.data?.[0]
+    const piField = defaultPayment?.payment?.payment_intent
+
+    if (piField) {
+      const piId = typeof piField === 'string' ? piField : piField.id
+      const pi = await stripe.paymentIntents.retrieve(piId)
+      clientSecret = pi.client_secret
+    }
+  }
 
   if (!clientSecret) {
     throw new Error('Stripe subscription heeft geen client_secret teruggegeven')
