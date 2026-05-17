@@ -123,24 +123,14 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
       if (result?.ok) {
         onSuccess?.()
 
-        // Get fresh session to check profileComplete status and role
-        // Retry mechanism for session loading (prevents race conditions)
-        let session = null
-        let retries = 0
-        const maxRetries = 5 // More retries for reliability
-
-        while (!session && retries < maxRetries) {
+        // Session cookie is set by signIn() — één poging, daarna kort retry
+        let session = await getSession()
+        if (!session) {
+          await new Promise(resolve => setTimeout(resolve, 150))
           session = await getSession()
-          if (!session && retries < maxRetries - 1) {
-            // Wait 200ms before retry (sneller)
-            await new Promise(resolve => setTimeout(resolve, 200))
-          }
-          retries++
         }
 
         if (!session?.user) {
-          console.error('Session not loaded after retries')
-          // Fallback: gebruik default routing
           router.push(callbackUrl)
           router.refresh()
           return
@@ -152,7 +142,6 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
         let targetUrl: string
         if (isAdmin) {
-          // Admins always go to admin dashboard unless explicitly going to another admin route
           targetUrl = isAdminRoute ? callbackUrl : '/admin/dashboard'
         } else if (session.user.profileComplete) {
           targetUrl = callbackUrl
@@ -160,8 +149,8 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
           targetUrl = '/onboarding'
         }
 
-        // Use window.location for more reliable navigation (prevents race conditions)
-        window.location.href = targetUrl
+        router.push(targetUrl)
+        router.refresh()
       }
     } catch (err) {
       console.error('Login error:', err)

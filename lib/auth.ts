@@ -38,38 +38,40 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Turnstile verificatie (bot-bescherming) — geldt voor alle accounts
-        if (shouldEnforceTurnstile()) {
-          if (!credentials.turnstileToken) {
-            auditLog('LOGIN_FAILED', {
-              userId: undefined,
-              details: `Turnstile token missing for ${credentials.email.substring(0, 3)}***`
-            })
-            throw new Error('Beveiligingsverificatie vereist')
-          }
-
-          const verification = await verifyTurnstileToken(credentials.turnstileToken)
-
-          if (!verification.success) {
-            auditLog('LOGIN_FAILED', {
-              userId: undefined,
-              details: `Turnstile verification failed for ${credentials.email.substring(0, 3)}***: ${verification.error}`
-            })
-            throw new Error('Beveiligingsverificatie mislukt')
-          }
+        // Turnstile token aanwezig check (sync, vóór async calls)
+        if (shouldEnforceTurnstile() && !credentials.turnstileToken) {
+          auditLog('LOGIN_FAILED', {
+            userId: undefined,
+            details: `Turnstile token missing for ${credentials.email.substring(0, 3)}***`
+          })
+          throw new Error('Beveiligingsverificatie vereist')
         }
 
-        // Rate limit check (Redis-backed, werkt correct in distributed omgeving)
-        const rl = await rateLimitByKey(
-          `login:${credentials.email.toLowerCase()}`,
-          { maxRequests: 5, windowMs: 15 * 60 * 1000, keyPrefix: 'auth' },
-        )
+        // Turnstile verificatie + rate limit parallel uitvoeren
+        const [verification, rl] = await Promise.all([
+          shouldEnforceTurnstile()
+            ? verifyTurnstileToken(credentials.turnstileToken!)
+            : Promise.resolve({ success: true }),
+          rateLimitByKey(
+            `login:${credentials.email.toLowerCase()}`,
+            { maxRequests: 5, windowMs: 15 * 60 * 1000, keyPrefix: 'auth' },
+          ),
+        ])
+
         if (!rl.success) {
           auditLog('LOGIN_RATE_LIMITED', {
             details: { email: credentials.email.substring(0, 3) + '***' },
             success: false
           })
           throw new Error('Te veel inlogpogingen. Probeer het over 15 minuten opnieuw.')
+        }
+
+        if (!verification.success) {
+          auditLog('LOGIN_FAILED', {
+            userId: undefined,
+            details: `Turnstile verification failed for ${credentials.email.substring(0, 3)}***: ${(verification as { success: false; error?: string }).error}`
+          })
+          throw new Error('Beveiligingsverificatie mislukt')
         }
 
         const user = await prisma.user.findUnique({
@@ -113,6 +115,14 @@ export const authOptions: NextAuthOptions = {
             success: false
           })
           return null
+        }
+
+        // Lazy downgrade: cost 12 → 10 zodat volgende logins sneller zijn (~300ms winst)
+        const costFactor = parseInt(user.passwordHash.split('$')[2] ?? '0', 10)
+        if (costFactor > 10) {
+          bcrypt.hash(credentials.password, 10)
+            .then(newHash => prisma.user.update({ where: { id: user.id }, data: { passwordHash: newHash } }))
+            .catch(() => {})
         }
 
         // Check if email is verified (skip for admin accounts)

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash new password
-    const passwordHash = await bcrypt.hash(password, 12)
+    const passwordHash = await bcrypt.hash(password, 10)
 
     // Update password and mark token as used
     await prisma.$transaction([

@@ -255,8 +255,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // 9. Hash password with 12 rounds
-    const hashedPassword = await bcrypt.hash(password, 12)
+    // 9. Hash password
+    const hashedPassword = await bcrypt.hash(password, 10)
 
     // Auto-enable accessibility features based on registration source
     const getAccessibilityDefaults = (source?: string) => {
