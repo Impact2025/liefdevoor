@@ -68,17 +68,14 @@ function getEncryptionKey(): Buffer {
  * const encrypted = encrypt('my-2fa-secret')
  * // Returns: "a1b2c3d4...:e5f6g7h8...:i9j0k1l2..."
  */
-export function encrypt(plaintext: string): string {
+export function encrypt(plaintext: string, key?: Buffer): string {
   if (!plaintext) {
     throw new Error('Cannot encrypt empty string')
   }
 
   try {
-    // Generate random IV (initialization vector)
     const iv = crypto.randomBytes(IV_LENGTH)
-
-    // Create cipher
-    const cipher = crypto.createCipheriv(ALGORITHM, getEncryptionKey(), iv)
+    const cipher = crypto.createCipheriv(ALGORITHM, key ?? getEncryptionKey(), iv)
 
     // Encrypt
     const encrypted = Buffer.concat([
@@ -111,13 +108,12 @@ export function encrypt(plaintext: string): string {
  * const plaintext = decrypt('a1b2c3d4...:e5f6g7h8...:i9j0k1l2...')
  * // Returns: "my-2fa-secret"
  */
-export function decrypt(encrypted: string): string {
+export function decrypt(encrypted: string, key?: Buffer): string {
   if (!encrypted) {
     throw new Error('Cannot decrypt empty string')
   }
 
   try {
-    // Parse encrypted format: iv:authTag:ciphertext
     const parts = encrypted.split(':')
     if (parts.length !== 3) {
       throw new Error('Invalid encrypted format')
@@ -125,12 +121,10 @@ export function decrypt(encrypted: string): string {
 
     const [ivHex, authTagHex, ciphertextHex] = parts
 
-    // Convert from hex
     const iv = Buffer.from(ivHex, 'hex')
     const authTag = Buffer.from(authTagHex, 'hex')
     const ciphertext = Buffer.from(ciphertextHex, 'hex')
 
-    // Validate lengths
     if (iv.length !== IV_LENGTH) {
       throw new Error(`Invalid IV length: expected ${IV_LENGTH}, got ${iv.length}`)
     }
@@ -138,8 +132,7 @@ export function decrypt(encrypted: string): string {
       throw new Error(`Invalid auth tag length: expected ${AUTH_TAG_LENGTH}, got ${authTag.length}`)
     }
 
-    // Create decipher
-    const decipher = crypto.createDecipheriv(ALGORITHM, getEncryptionKey(), iv)
+    const decipher = crypto.createDecipheriv(ALGORITHM, key ?? getEncryptionKey(), iv)
     decipher.setAuthTag(authTag)
 
     // Decrypt
@@ -259,8 +252,7 @@ export function isEncrypted(value: string): boolean {
 // ============================================================================
 
 /**
- * Re-encrypt data with a new key
- * Use this when rotating encryption keys
+ * Re-encrypt data with a new key (key rotation)
  *
  * @param encrypted - Data encrypted with old key
  * @param oldKey - Old encryption key (base64)
@@ -268,23 +260,18 @@ export function isEncrypted(value: string): boolean {
  * @returns Data encrypted with new key
  */
 export function rotateKey(encrypted: string, oldKey: string, newKey: string): string {
-  // Temporarily set old key
-  const originalKey = process.env.ENCRYPTION_KEY
-  process.env.ENCRYPTION_KEY = oldKey
+  const oldKeyBuffer = Buffer.from(oldKey, 'base64')
+  const newKeyBuffer = Buffer.from(newKey, 'base64')
 
-  // Decrypt with old key
-  const plaintext = decrypt(encrypted)
+  if (oldKeyBuffer.length !== KEY_LENGTH) {
+    throw new Error(`Old key must be ${KEY_LENGTH} bytes`)
+  }
+  if (newKeyBuffer.length !== KEY_LENGTH) {
+    throw new Error(`New key must be ${KEY_LENGTH} bytes`)
+  }
 
-  // Set new key
-  process.env.ENCRYPTION_KEY = newKey
-
-  // Encrypt with new key
-  const reencrypted = encrypt(plaintext)
-
-  // Restore original key
-  process.env.ENCRYPTION_KEY = originalKey
-
-  return reencrypted
+  const plaintext = decrypt(encrypted, oldKeyBuffer)
+  return encrypt(plaintext, newKeyBuffer)
 }
 
 // ============================================================================

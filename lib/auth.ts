@@ -9,33 +9,7 @@ import './types'
 import { auditLog } from './audit'
 import { trackRegistrationComplete, trackLoginEvent } from './analytics-events'
 import { verifyTurnstileToken, shouldEnforceTurnstile } from './turnstile'
-
-// Simple in-memory rate limiter for auth (use Redis in production)
-const loginAttempts = new Map<string, { count: number; resetTime: number }>()
-const MAX_LOGIN_ATTEMPTS = 5
-const LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-
-function checkLoginRateLimit(email: string): boolean {
-  const now = Date.now()
-  const key = email.toLowerCase()
-  const entry = loginAttempts.get(key)
-
-  if (!entry || now > entry.resetTime) {
-    loginAttempts.set(key, { count: 1, resetTime: now + LOGIN_WINDOW_MS })
-    return true
-  }
-
-  if (entry.count >= MAX_LOGIN_ATTEMPTS) {
-    return false
-  }
-
-  entry.count++
-  return true
-}
-
-function resetLoginAttempts(email: string): void {
-  loginAttempts.delete(email.toLowerCase())
-}
+import { rateLimitByKey, resetRateLimit } from './redis-rate-limit'
 
 export const authOptions: NextAuthOptions = {
   // PrismaAdapter returns a compatible Adapter type
@@ -64,11 +38,8 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Check if this is an admin account first (to potentially skip Turnstile)
-        const isAdminEmail = credentials.email.toLowerCase() === 'admin@liefdevooriedereen.nl'
-
-        // Turnstile verification (bot protection) - skip for admin accounts
-        if (shouldEnforceTurnstile() && !isAdminEmail) {
+        // Turnstile verificatie (bot-bescherming) — geldt voor alle accounts
+        if (shouldEnforceTurnstile()) {
           if (!credentials.turnstileToken) {
             auditLog('LOGIN_FAILED', {
               userId: undefined,
@@ -88,8 +59,12 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // Rate limit check
-        if (!checkLoginRateLimit(credentials.email)) {
+        // Rate limit check (Redis-backed, werkt correct in distributed omgeving)
+        const rl = await rateLimitByKey(
+          `login:${credentials.email.toLowerCase()}`,
+          { maxRequests: 5, windowMs: 15 * 60 * 1000, keyPrefix: 'auth' },
+        )
+        if (!rl.success) {
           auditLog('LOGIN_RATE_LIMITED', {
             details: { email: credentials.email.substring(0, 3) + '***' },
             success: false
@@ -151,8 +126,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error('EMAIL_NOT_VERIFIED')
         }
 
-        // Reset rate limit on successful login
-        resetLoginAttempts(credentials.email)
+        // Reset rate limit counter na succesvolle login
+        await resetRateLimit(`login:${credentials.email.toLowerCase()}`, 'auth')
 
         // Log successful login
         auditLog('LOGIN_SUCCESS', {

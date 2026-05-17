@@ -206,6 +206,43 @@ export const rateLimiters = {
 }
 
 /**
+ * Rate limit by arbitrary string key — for use outside request context
+ * (e.g. NextAuth authorize callback where no NextRequest is available)
+ */
+export async function rateLimitByKey(
+  key: string,
+  config: RateLimitConfig,
+): Promise<RateLimitResult> {
+  const { windowMs, maxRequests, keyPrefix = 'rl' } = config
+  const redisKey = `${keyPrefix}:${key}`
+  const windowSeconds = Math.ceil(windowMs / 1000)
+
+  const redis = getUpstash()
+  if (redis) {
+    return rateLimitWithUpstash(redis, redisKey, windowSeconds, maxRequests)
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('[RateLimit] Upstash niet beschikbaar in productie — in-memory fallback actief')
+  }
+  return rateLimitWithMemory(redisKey, windowMs, maxRequests, Date.now())
+}
+
+/**
+ * Verwijder een rate limit key — aanroepen na succesvolle authenticatie
+ * zodat de teller gereset wordt (bijv. na succesvolle login)
+ */
+export async function resetRateLimit(key: string, keyPrefix = 'rl'): Promise<void> {
+  const redis = getUpstash()
+  if (!redis) return
+  try {
+    await redis.del(`${keyPrefix}:${key}`)
+  } catch (error) {
+    console.error('[RateLimit] Fout bij resetten van rate limit key:', error)
+  }
+}
+
+/**
  * Create rate limit error response
  */
 export function rateLimitResponse(result: RateLimitResult): NextResponse {

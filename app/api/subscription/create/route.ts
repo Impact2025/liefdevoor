@@ -17,6 +17,46 @@ import {
   LEGACY_PLAN_MAP,
 } from '@/lib/pricing'
 
+/**
+ * Berekent het definitieve bedrag server-side door de coupon te valideren.
+ * Retourneert altijd de originele prijs als de coupon ongeldig is (fail-safe).
+ */
+async function computeDiscountedPrice(
+  originalPrice: number,
+  couponCode: string,
+  userId: string,
+): Promise<number> {
+  try {
+    const now = new Date()
+    const coupon = await prisma.coupon.findUnique({
+      where: { code: couponCode },
+      include: { usages: { where: { userId }, select: { id: true } } },
+    })
+
+    if (!coupon || !coupon.isActive) return originalPrice
+    if (coupon.validFrom && coupon.validFrom > now) return originalPrice
+    if (coupon.validUntil && coupon.validUntil < now) return originalPrice
+    if (coupon.applicableTo === 'CREDITS') return originalPrice
+    if (coupon.minPurchaseAmount && originalPrice < coupon.minPurchaseAmount) return originalPrice
+    if (coupon.maxTotalUses && coupon.currentTotalUses >= coupon.maxTotalUses) return originalPrice
+    if (coupon.usages.length >= coupon.maxUsesPerUser) return originalPrice
+
+    let discount = 0
+    if (coupon.type === 'PERCENTAGE') {
+      discount = (originalPrice * coupon.value) / 100
+      if (coupon.maxDiscountCap && discount > coupon.maxDiscountCap) {
+        discount = coupon.maxDiscountCap
+      }
+    } else if (coupon.type === 'FIXED_AMOUNT') {
+      discount = Math.min(coupon.value, originalPrice)
+    }
+
+    return Math.max(originalPrice - discount, 0)
+  } catch {
+    return originalPrice
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -26,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { planId: rawPlanId, amount, couponCode } = body
+    const { planId: rawPlanId, couponCode } = body
 
     // Map legacy plan IDs naar nieuw formaat
     const planId = LEGACY_PLAN_MAP[rawPlanId] || rawPlanId
@@ -43,9 +83,16 @@ export async function POST(request: NextRequest) {
     const tier: SubscriptionTier = plan.tier
 
     // --------------------------------------------------------
+    // Server-side prijsberekening (nooit de client vertrouwen)
+    // --------------------------------------------------------
+    const finalAmount = plan.price > 0 && couponCode
+      ? await computeDiscountedPrice(plan.price, couponCode.toUpperCase(), session.user.id)
+      : plan.price
+
+    // --------------------------------------------------------
     // Gratis plan of 100% coupon korting → direct activeren
     // --------------------------------------------------------
-    if (plan.price === 0 || amount === 0) {
+    if (plan.price === 0 || finalAmount === 0) {
       await prisma.subscription.updateMany({
         where: { userId: session.user.id, status: 'active' },
         data: { status: 'cancelled', cancelledAt: new Date() },
@@ -90,7 +137,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const message = amount === 0 && couponCode
+      const message = finalAmount === 0 && couponCode
         ? `${plan.name} gratis geactiveerd met couponcode!`
         : 'Basis abonnement geactiveerd'
       return NextResponse.json({ success: true, message })
@@ -139,7 +186,6 @@ export async function POST(request: NextRequest) {
 
     let clientSecret: string
     let stripeSubscriptionId: string | undefined
-    const finalAmount = amount ?? plan.price
     const priceId = getPriceIdForPlan(planId)
 
     if (isLifetimePlan(planId)) {
