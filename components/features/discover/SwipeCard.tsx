@@ -540,7 +540,13 @@ const SwipeCardInner = memo(function SwipeCardInner({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          {profile.bio && (
+            <p className="text-sm text-white/90 mt-1 line-clamp-2 leading-snug">
+              {profile.bio}
+            </p>
+          )}
+
+          <div className="flex items-center gap-2 mt-1">
             <div
               className={`
                 w-2 h-2 rounded-full
