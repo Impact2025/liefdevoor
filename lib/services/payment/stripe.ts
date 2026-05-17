@@ -152,6 +152,20 @@ export async function createStripeSubscription(
 
     if (piField) {
       const piId = typeof piField === 'string' ? piField : piField.id
+
+      // Add iDEAL to the PaymentIntent so it appears in the Payment Element.
+      // iDEAL with setup_future_usage:'off_session' → Stripe auto-creates a
+      // SEPA Direct Debit mandate, which handles all future recurring charges.
+      // (We can't put iDEAL in subscription payment_method_types because that
+      //  path uses charge_automatically, which blocks redirect methods.)
+      await stripe.paymentIntents.update(piId, {
+        payment_method_types: ['card', 'ideal', 'sepa_debit'],
+        payment_method_options: {
+          ideal: { setup_future_usage: 'off_session' },
+          sepa_debit: { setup_future_usage: 'off_session' },
+        },
+      })
+
       const pi = await stripe.paymentIntents.retrieve(piId)
       clientSecret = pi.client_secret
     }
