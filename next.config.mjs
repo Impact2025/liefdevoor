@@ -64,7 +64,7 @@ const cspHeader = `
   style-src ${styleSrc};
   img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://www.liefdevooriedereen.nl https://liefdevooriedereen.nl https://*.stripe.com;
   font-src 'self' data:;
-  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl https://api.stripe.com https://errors.stripe.com;
+  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl https://api.stripe.com https://errors.stripe.com https://js.stripe.com https://m.stripe.com https://m.stripe.network;
   frame-ancestors 'self';
   frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com;
   form-action 'self';
