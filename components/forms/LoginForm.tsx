@@ -6,10 +6,11 @@
 
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Input, Button, Checkbox, Alert, Turnstile, useTurnstile } from '@/components/ui'
+import type { TurnstileHandle } from '@/components/ui'
 import type { LoginFormData } from '@/lib/types'
 
 export interface LoginFormProps {
@@ -19,6 +20,7 @@ export interface LoginFormProps {
 
 export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormProps) {
   const router = useRouter()
+  const turnstileRef = useRef<TurnstileHandle>(null)
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -101,10 +103,19 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
           setError(result.error)
         } else if (result.error.includes('Te veel inlogpogingen')) {
           setError(result.error)
+        } else if (
+          result.error.includes('verificatie') ||
+          result.error.includes('Beveiligings') ||
+          result.error.includes('Turnstile')
+        ) {
+          setError('Beveiligingsverificatie mislukt. Ververs de pagina en probeer opnieuw.')
+          setIsTurnstileError(true)
         } else {
           setError('Ongeldige inloggegevens. Controleer je email en wachtwoord.')
         }
-        resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
+        // Reset Turnstile widget so a fresh token is generated on next attempt
+        turnstileRef.current?.reset()
+        resetTurnstileToken()
         setIsLoading(false)
         return
       }
@@ -155,7 +166,8 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
     } catch (err) {
       console.error('Login error:', err)
       setError('Er is een fout opgetreden. Probeer het opnieuw.')
-      resetTurnstileToken() // Reset token zodat gebruiker opnieuw kan proberen
+      turnstileRef.current?.reset()
+      resetTurnstileToken()
       setIsLoading(false)
     }
   }
@@ -300,6 +312,7 @@ export function LoginForm({ callbackUrl = '/discover', onSuccess }: LoginFormPro
 
       {/* Cloudflare Turnstile - Bot Protection */}
       <Turnstile
+        ref={turnstileRef}
         onSuccess={(token) => { setTurnstileToken(token); setIsTurnstileError(false); setError(null) }}
         onError={() => setIsTurnstileError(true)}
         onExpire={resetTurnstileToken}

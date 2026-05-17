@@ -20,9 +20,13 @@
 
 'use client'
 
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { Shield, CheckCircle2 } from 'lucide-react'
 import type { TurnstileRenderOptions } from '@/lib/types/turnstile'
+
+export interface TurnstileHandle {
+  reset: () => void
+}
 
 export interface TurnstileProps {
   onSuccess: (token: string) => void
@@ -40,7 +44,7 @@ export interface TurnstileProps {
  * Gebruikt 'managed' mode voor maximale betrouwbaarheid.
  * Widget verschijnt alleen wanneer nodig (bij verdachte activiteit).
  */
-export function Turnstile({
+export const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile({
   onSuccess,
   onError,
   onExpire,
@@ -48,7 +52,7 @@ export function Turnstile({
   size = 'normal',
   action,
   className = '',
-}: TurnstileProps) {
+}: TurnstileProps, ref) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const mountedRef = useRef(true)
@@ -166,6 +170,18 @@ export function Turnstile({
       }
     }
   }, [siteKey, theme, size, action])
+
+  useImperativeHandle(ref, () => ({
+    reset() {
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current)
+          setStatus('ready')
+          onExpireRef.current?.()
+        } catch {}
+      }
+    }
+  }), [])
 
   const handleRetry = useCallback(() => {
     if (widgetIdRef.current && window.turnstile) {
@@ -306,7 +322,7 @@ export function Turnstile({
       )}
     </div>
   )
-}
+})
 
 /**
  * Hook om Turnstile token state te beheren met auto-wait functionaliteit

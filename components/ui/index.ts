@@ -35,7 +35,7 @@ export type { CheckboxProps } from './Checkbox'
 
 // Security
 export { Turnstile, useTurnstile } from './Turnstile'
-export type { TurnstileProps } from './Turnstile'
+export type { TurnstileProps, TurnstileHandle } from './Turnstile'
 
 // Modals
 export { Modal } from './Modal'
