@@ -11,6 +11,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js'
+import { useSession } from 'next-auth/react'
 import { getStripePromise } from '@/lib/stripe-client'
 import CouponInput from './CouponInput'
 
@@ -47,9 +48,11 @@ interface StripePaymentFormProps {
   onSuccess: () => void
   subscriptionDbId?: string | null
   isSetupFlow?: boolean
+  userEmail?: string | null
+  userName?: string | null
 }
 
-function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isSetupFlow }: StripePaymentFormProps) {
+function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isSetupFlow, userEmail, userName }: StripePaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -63,13 +66,21 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isS
     setIsSubmitting(true)
     setError(null)
 
+    const billingDetails = {
+      ...(userEmail ? { email: userEmail } : {}),
+      ...(userName ? { name: userName } : {}),
+    }
+
     // SetupIntent flow: recurring subscriptions (iDEAL → SEPA mandate, of kaart/SEPA direct)
     if (isSetupFlow && subscriptionDbId) {
       const returnUrl = `${window.location.origin}/subscription/success?order_id=${subscriptionDbId}`
 
       const { error: stripeError, setupIntent } = await stripe.confirmSetup({
         elements,
-        confirmParams: { return_url: returnUrl },
+        confirmParams: {
+          return_url: returnUrl,
+          payment_method_data: { billing_details: billingDetails },
+        },
         redirect: 'if_required', // iDEAL redirect, kaart/SEPA inline
       })
 
@@ -107,7 +118,10 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isS
 
     const { error: stripeError } = await stripe.confirmPayment({
       elements,
-      confirmParams: { return_url: returnUrl },
+      confirmParams: {
+        return_url: returnUrl,
+        payment_method_data: { billing_details: billingDetails },
+      },
     })
 
     if (stripeError) {
@@ -129,7 +143,19 @@ function StripePaymentForm({ type, finalAmount, onSuccess, subscriptionDbId, isS
         <PaymentElement
           options={{
             layout: 'accordion',
-            defaultValues: { billingDetails: { address: { country: 'NL' } } },
+            defaultValues: {
+              billingDetails: {
+                email: userEmail ?? undefined,
+                name: userName ?? undefined,
+                address: { country: 'NL' },
+              },
+            },
+            fields: {
+              billingDetails: {
+                email: userEmail ? 'never' : 'auto',
+                name: userName ? 'never' : 'auto',
+              },
+            },
           }}
           onReady={() => setIsElementReady(true)}
           onLoadError={(event) => setError(event.error.message ?? 'Betaalveld kon niet laden. Herlaad de pagina.')}
@@ -188,6 +214,7 @@ export default function CheckoutModal({
   credits,
   supportsDirectDebit: _supportsDirectDebit,
 }: CheckoutModalProps) {
+  const { data: session } = useSession()
   const [appliedDiscount, setAppliedDiscount] = useState<DiscountInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -446,6 +473,8 @@ export default function CheckoutModal({
                     onSuccess={() => setIsSuccess(true)}
                     subscriptionDbId={subscriptionDbId}
                     isSetupFlow={isSetupFlow}
+                    userEmail={session?.user?.email}
+                    userName={session?.user?.name}
                   />
                 </div>
               </Elements>
