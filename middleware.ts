@@ -180,6 +180,7 @@ export const config = {
     // API routes for rate limiting
     // NOTE: /api/webhooks/* is intentionally EXCLUDED - webhooks must bypass middleware
     '/api/auth/:path*',
+    '/api/admin/:path*',
     '/api/swipe/:path*',
     '/api/match/:path*',
     '/api/chat/:path*',

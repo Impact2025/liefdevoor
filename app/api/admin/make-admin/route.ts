@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { requireCSRF } from '@/lib/csrf'
+import { auditLogImmediate, getClientInfo } from '@/lib/audit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +44,15 @@ export async function POST(request: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: { role: 'ADMIN' }
+    })
+
+    const clientInfo = getClientInfo(request)
+    await auditLogImmediate('USER_PROMOTED', {
+      userId: session.user.id,
+      targetUserId: user.id,
+      ip: clientInfo.ip,
+      userAgent: clientInfo.userAgent,
+      details: { targetEmail: email, newRole: 'ADMIN' }
     })
 
     return NextResponse.json({ success: true, message: `${email} is now admin` })
