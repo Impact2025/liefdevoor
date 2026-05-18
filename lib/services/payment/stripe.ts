@@ -121,8 +121,6 @@ export async function createStripeSubscription(
 ): Promise<{ subscriptionId: string; clientSecret: string }> {
   const stripe = getStripeClient()
 
-  // payment_method_types expliciet instellen zodat PaymentElement iDEAL, kaart én SEPA toont.
-  // iDEAL-betaling maakt een SEPA-mandaat aan → Stripe charget toekomstige termijnen via SEPA.
   const subscription = await stripe.subscriptions.create(
     {
       customer: customerId,
@@ -130,6 +128,8 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
+        // Geen payment_method_types hier — 'ideal' is niet geldig als recurring methode.
+        // iDEAL wordt toegevoegd aan de PaymentIntent van de eerste factuur (zie hieronder).
       },
       expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,
@@ -140,6 +140,13 @@ export async function createStripeSubscription(
   const invoice = subscription.latest_invoice as Stripe.Invoice
   let clientSecret: string | null = null
 
+  // Extraheer PaymentIntent ID vroeg — nodig om iDEAL toe te voegen aan de eerste factuur
+  const invoiceAny = invoice as unknown as Record<string, unknown>
+  const piExpanded = invoiceAny['payment_intent'] as Stripe.PaymentIntent | string | null | undefined
+  const paymentIntentId: string | null = piExpanded
+    ? (typeof piExpanded === 'string' ? piExpanded : (piExpanded as Stripe.PaymentIntent).id)
+    : null
+
   // Pad 1: confirmation_secret (nieuwste Stripe API — dahlia)
   if (invoice.confirmation_secret?.client_secret) {
     clientSecret = invoice.confirmation_secret.client_secret
@@ -147,12 +154,10 @@ export async function createStripeSubscription(
 
   // Pad 2: direct expanded payment_intent
   if (!clientSecret) {
-    const invoiceAny = invoice as unknown as Record<string, unknown>
-    const pi = invoiceAny['payment_intent'] as Stripe.PaymentIntent | string | null | undefined
-    if (pi && typeof pi === 'object' && (pi as Stripe.PaymentIntent).client_secret) {
-      clientSecret = (pi as Stripe.PaymentIntent).client_secret
-    } else if (pi && typeof pi === 'string') {
-      const retrieved = await stripe.paymentIntents.retrieve(pi)
+    if (piExpanded && typeof piExpanded === 'object' && (piExpanded as Stripe.PaymentIntent).client_secret) {
+      clientSecret = (piExpanded as Stripe.PaymentIntent).client_secret
+    } else if (piExpanded && typeof piExpanded === 'string') {
+      const retrieved = await stripe.paymentIntents.retrieve(piExpanded)
       clientSecret = retrieved.client_secret
     }
   }
@@ -171,6 +176,21 @@ export async function createStripeSubscription(
 
   if (!clientSecret) {
     throw new Error('Stripe subscription heeft geen client_secret teruggegeven')
+  }
+
+  // Voeg iDEAL en SEPA toe aan de PaymentIntent van de EERSTE factuur.
+  // 'ideal' mag niet op de subscription zelf (payment_settings.payment_method_types),
+  // maar is WEL geldig op de losse eenmalige PaymentIntent van factuur #1.
+  // Na iDEAL-betaling maakt Stripe automatisch een SEPA-mandaat aan voor vervolgfacturen.
+  if (paymentIntentId) {
+    try {
+      await stripe.paymentIntents.update(paymentIntentId, {
+        payment_method_types: ['card', 'ideal', 'sepa_debit'],
+      })
+    } catch (err) {
+      // Niet-fataal: PaymentElement toont beschikbare methoden zonder iDEAL als fallback
+      console.warn('[Stripe] PaymentIntent iDEAL update mislukt:', (err as Error).message)
+    }
   }
 
   return {
