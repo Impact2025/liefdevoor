@@ -128,8 +128,7 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        // payment_method_types niet opgeven → Stripe Dashboard configuratie
-        // bepaalt welke methodes beschikbaar zijn (iDEAL, kaart, SEPA)
+        payment_method_types: ['card', 'ideal', 'sepa_debit'],
       },
       expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,

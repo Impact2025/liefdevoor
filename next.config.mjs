@@ -64,7 +64,7 @@ const cspHeader = `
   style-src ${styleSrc};
   img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://www.liefdevooriedereen.nl https://liefdevooriedereen.nl https://*.stripe.com;
   font-src 'self' data:;
-  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl https://api.stripe.com https://errors.stripe.com https://js.stripe.com https://m.stripe.com https://m.stripe.network;
+  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl https://api.stripe.com https://errors.stripe.com https://js.stripe.com https://m.stripe.com https://m.stripe.network https://r.stripe.com wss://*.stripe.com;
   frame-ancestors 'self';
   frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com;
   form-action 'self';
@@ -223,7 +223,7 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(self), microphone=(self), geolocation=(self), interest-cohort=(), payment=()'
+            value: 'camera=(self), microphone=(self), geolocation=(self), interest-cohort=(), payment=(self "https://js.stripe.com" "https://hooks.stripe.com")'
           },
           {
             key: 'Content-Security-Policy',

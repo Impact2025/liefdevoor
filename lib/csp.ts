@@ -124,7 +124,7 @@ export function getSecurityHeaders(): Record<string, string> {
 
     // Permissions policy
     'Permissions-Policy':
-      'camera=(), microphone=(self), geolocation=(self), interest-cohort=(), payment=()',
+      'camera=(self), microphone=(self), geolocation=(self), interest-cohort=(), payment=(self "https://js.stripe.com" "https://hooks.stripe.com")',
 
     // Note: Cross-Origin policies (COEP/COOP/CORP) disabled to allow external resources
     // These headers can block Cloudflare Turnstile, Google Analytics, etc.
