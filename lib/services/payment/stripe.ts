@@ -121,8 +121,7 @@ export async function createStripeSubscription(
 ): Promise<{ subscriptionId: string; clientSecret: string }> {
   const stripe = getStripeClient()
 
-  // Geen payment_method_types instellen → Stripe gebruikt automatische betaalmethode-detectie.
-  // Voor NL-klanten met EUR toont PaymentElement dan automatisch iDEAL, kaart en SEPA-incasso.
+  // payment_method_types expliciet instellen zodat PaymentElement iDEAL, kaart én SEPA toont.
   // iDEAL-betaling maakt een SEPA-mandaat aan → Stripe charget toekomstige termijnen via SEPA.
   const subscription = await stripe.subscriptions.create(
     {
@@ -131,6 +130,7 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
+        payment_method_types: ['card', 'ideal', 'sepa_debit'],
       },
       expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,

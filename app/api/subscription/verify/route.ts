@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { requireAuth, successResponse, handleApiError } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
-import { getStripeClient } from '@/lib/services/payment/stripe'
+import { getStripeClient, getSubscriptionTierForPlan } from '@/lib/services/payment/stripe'
 
 /**
  * GET /api/subscription/verify
@@ -44,34 +44,50 @@ export async function GET(request: NextRequest) {
         const stripeSub = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId)
 
         if (stripeSub.status === 'active') {
+          const tier = getSubscriptionTierForPlan(subscription.plan)
           const itemPeriodEnd = stripeSub.items.data[0]?.current_period_end
-          subscription = await prisma.subscription.update({
-            where: { id: subscription.id },
-            data: {
-              status: 'active',
-              ...(itemPeriodEnd ? {
-                stripeCurrentPeriodEnd: new Date(itemPeriodEnd * 1000),
-                endDate: new Date(itemPeriodEnd * 1000),
-              } : {}),
-            },
-          })
+          const [updatedSub] = await prisma.$transaction([
+            prisma.subscription.update({
+              where: { id: subscription.id },
+              data: {
+                status: 'active',
+                ...(itemPeriodEnd ? {
+                  stripeCurrentPeriodEnd: new Date(itemPeriodEnd * 1000),
+                  endDate: new Date(itemPeriodEnd * 1000),
+                } : {}),
+              },
+            }),
+            prisma.user.update({
+              where: { id: user.id },
+              data: { subscriptionTier: tier },
+            }),
+          ])
+          subscription = updatedSub
         }
       } catch (err) {
         console.error('[Subscription Verify] Stripe check mislukt:', err)
       }
     }
 
-    // Controleer via PaymentIntent (voor lifetime aankopen)
+    // Controleer via PaymentIntent (voor lifetime aankopen en fallback)
     if (subscription.status === 'pending' && paymentIntentId) {
       try {
         const stripe = getStripeClient()
         const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
 
         if (pi.status === 'succeeded') {
-          subscription = await prisma.subscription.update({
-            where: { id: subscription.id },
-            data: { status: 'active' },
-          })
+          const tier = getSubscriptionTierForPlan(subscription.plan)
+          const [updatedSub] = await prisma.$transaction([
+            prisma.subscription.update({
+              where: { id: subscription.id },
+              data: { status: 'active' },
+            }),
+            prisma.user.update({
+              where: { id: user.id },
+              data: { subscriptionTier: tier },
+            }),
+          ])
+          subscription = updatedSub
         }
       } catch (err) {
         console.error('[Subscription Verify] PaymentIntent check mislukt:', err)
