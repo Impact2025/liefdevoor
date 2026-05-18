@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { SubscriptionTier } from '@prisma/client'
 import {
-  createStripeSubscription,
+  createSubscriptionSetupIntent,
   createLifetimePaymentIntent,
   getOrCreateStripeCustomer,
   getPriceIdForPlan,
@@ -213,18 +213,17 @@ export async function POST(request: NextRequest) {
       )
       clientSecret = result.clientSecret
     } else {
-      // Recurring subscription — directe Stripe subscription:
-      // 1. Stripe subscription aanmaken (status: incomplete)
-      // 2. Gebruiker betaalt het volledige bedrag via iDEAL/kaart/SEPA
-      // 3. Webhook activeert het abonnement na betaling
-      const result = await createStripeSubscription(
+      // Recurring subscription via SetupIntent:
+      // 1. SetupIntent verzamelt betaalmethode (iDEAL → SEPA-mandaat, of kaart/SEPA direct)
+      // 2. Na bevestiging: /activate maakt het Stripe-abonnement aan via de opgeslagen betaalmethode
+      // 3. Webhook zet status op active en updatet user tier
+      const result = await createSubscriptionSetupIntent(
         stripeCustomerId,
-        priceId,
         metadata,
-        `sub_${subscription.id}`,
+        `setup_${subscription.id}`,
       )
       clientSecret = result.clientSecret
-      stripeSubscriptionId = result.subscriptionId
+      // stripeSubscriptionId nog niet beschikbaar — wordt gezet in /activate na betaling
     }
 
     // Sla Stripe IDs op in subscription record

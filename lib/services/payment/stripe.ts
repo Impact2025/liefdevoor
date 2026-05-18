@@ -130,7 +130,6 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        payment_method_types: ['card', 'ideal', 'sepa_debit'],
       },
       expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,
