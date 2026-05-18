@@ -128,9 +128,9 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
+        // iDEAL (eerste betaling) → SEPA-mandaat (herhalende betalingen)
+        payment_method_types: ['card', 'ideal', 'sepa_debit', 'link'],
       },
-      // Expand payments so we can fall back to the payment_intent if
-      // confirmation_secret is not yet populated for this account
       expand: ['latest_invoice.payments'],
       metadata,
     },
