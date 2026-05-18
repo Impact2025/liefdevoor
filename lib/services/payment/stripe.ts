@@ -128,28 +128,42 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        // iDEAL (eerste betaling) → SEPA-mandaat (herhalende betalingen)
-        payment_method_types: ['card', 'ideal', 'sepa_debit', 'link'],
+        // payment_method_types niet opgeven → Stripe Dashboard configuratie
+        // bepaalt welke methodes beschikbaar zijn (iDEAL, kaart, SEPA)
       },
-      expand: ['latest_invoice.payments'],
+      expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,
     },
     { idempotencyKey },
   )
 
   const invoice = subscription.latest_invoice as Stripe.Invoice
-  let clientSecret: string | null = invoice.confirmation_secret?.client_secret ?? null
+  let clientSecret: string | null = null
 
+  // Pad 1: confirmation_secret (nieuwste Stripe API)
+  clientSecret = invoice.confirmation_secret?.client_secret ?? null
+
+  // Pad 2: direct expanded payment_intent (cast nodig — Invoice type is niet volledig)
   if (!clientSecret) {
-    // Fall back to the default InvoicePayment's PaymentIntent (v22 payments list)
+    const invoiceAny = invoice as unknown as Record<string, unknown>
+    const pi = invoiceAny['payment_intent'] as Stripe.PaymentIntent | string | null | undefined
+    if (pi && typeof pi === 'object' && (pi as Stripe.PaymentIntent).client_secret) {
+      clientSecret = (pi as Stripe.PaymentIntent).client_secret
+    } else if (pi && typeof pi === 'string') {
+      const retrieved = await stripe.paymentIntents.retrieve(pi)
+      clientSecret = retrieved.client_secret
+    }
+  }
+
+  // Pad 3: invoice.payments list (legacy fallback)
+  if (!clientSecret) {
     const payments = invoice.payments as Stripe.ApiList<Stripe.InvoicePayment> | undefined
     const defaultPayment = payments?.data?.find(p => p.is_default) ?? payments?.data?.[0]
     const piField = defaultPayment?.payment?.payment_intent
-
     if (piField) {
       const piId = typeof piField === 'string' ? piField : piField.id
-      const pi = await stripe.paymentIntents.retrieve(piId)
-      clientSecret = pi.client_secret
+      const retrieved = await stripe.paymentIntents.retrieve(piId)
+      clientSecret = retrieved.client_secret
     }
   }
 

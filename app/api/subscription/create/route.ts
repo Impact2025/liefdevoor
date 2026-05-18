@@ -247,9 +247,10 @@ export async function POST(request: NextRequest) {
       subscriptionId: subscription.id,
     })
   } catch (error) {
-    console.error('[Subscription] Error creating subscription:', error)
+    const stripeMsg = (error as { message?: string })?.message ?? 'Onbekende fout'
+    console.error('[Subscription] Error creating subscription:', stripeMsg, error)
     return NextResponse.json(
-      { error: 'Er is iets misgegaan. Probeer het opnieuw.' },
+      { error: 'Er is iets misgegaan. Probeer het opnieuw.', details: stripeMsg },
       { status: 500 },
     )
   }
