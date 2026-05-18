@@ -39,6 +39,15 @@ export function buildCSP(nonce: string, isDev: boolean): string {
     'https://www.google-analytics.com',
     'https://www.googletagmanager.com',
     'https://region1.google-analytics.com',
+    'https://challenges.cloudflare.com',
+    'https://*.cloudflare.com',
+    // Stripe
+    'https://api.stripe.com',
+    'https://errors.stripe.com',
+    'https://js.stripe.com',
+    'https://m.stripe.com',
+    'https://m.stripe.network',
+    'wss://*.stripe.com',
   ]
 
   // Google Analytics / Tag Manager domains
@@ -49,30 +58,24 @@ export function buildCSP(nonce: string, isDev: boolean): string {
   ]
 
   // CSP Configuration
-  // Note: We need 'unsafe-inline' and 'unsafe-eval' for:
-  // - Framer Motion animations (inline styles)
-  // - Next.js hydration
-  // - Dynamic script loading
-  const scriptSrc = `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com`
+  const scriptSrc = `'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsDomains.join(' ')} https://challenges.cloudflare.com https://js.stripe.com`
 
-  // Style: unsafe-inline is acceptable for styles (less risky than scripts)
-  // Alternative: Use nonces for styles too if you want maximum security
   const styleSrc = `'self' 'unsafe-inline'`
 
   const csp = `
     default-src 'self';
     script-src ${scriptSrc};
     style-src ${styleSrc};
-    img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')};
+    img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://*.stripe.com;
     font-src 'self' data:;
     connect-src ${allowedConnectDomains.join(' ')};
     frame-ancestors 'self';
-    frame-src 'self' https://challenges.cloudflare.com;
+    frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com;
     form-action 'self';
     base-uri 'self';
     object-src 'none';
-    media-src 'self';
-    worker-src 'self' blob:;
+    media-src 'self' blob:;
+    worker-src 'self' blob: https://js.stripe.com;
     manifest-src 'self';
     ${isDev ? '' : 'upgrade-insecure-requests;'}
   `

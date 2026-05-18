@@ -71,7 +71,7 @@ const cspHeader = `
   base-uri 'self';
   object-src 'none';
   media-src 'self' blob: https://utfs.io;
-  worker-src 'self' blob:;
+  worker-src 'self' blob: https://js.stripe.com;
   manifest-src 'self';
   ${isDev ? '' : 'upgrade-insecure-requests;'}
 `.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
