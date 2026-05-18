@@ -36,9 +36,6 @@ export const metadata: Metadata = {
       "nl-BE": "/",
     },
   },
-  verification: {
-    google: 'googlebd66a1e2acb66d78.html',
-  },
   robots: {
     index: true,
     follow: true,
@@ -92,7 +89,7 @@ export const metadata: Metadata = {
     // Twitter images are now dynamically generated via app/twitter-image.tsx
   },
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION,
+    google: process.env.GOOGLE_SITE_VERIFICATION ?? 'googlebd66a1e2acb66d78.html',
   },
   category: "dating",
 };
