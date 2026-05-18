@@ -43,6 +43,7 @@ function SubscriptionSuccessContent() {
     const orderId = searchParams.get('order_id')
     const redirectStatus = searchParams.get('redirect_status')
     const setupIntentId = searchParams.get('setup_intent')
+    const paymentIntentId = searchParams.get('payment_intent')
 
     // ── Stap 1: directe fout/annulering detecteren ──────────────────────────
     if (redirectStatus === 'failed' || redirectStatus === 'canceled') {
@@ -98,7 +99,8 @@ function SubscriptionSuccessContent() {
           return
         }
 
-        const res = await fetch(`/api/subscription/verify?order_id=${orderId}`)
+        const verifyParams = new URLSearchParams({ ...(orderId ? { order_id: orderId } : {}), ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}) })
+        const res = await fetch(`/api/subscription/verify?${verifyParams}`)
         const data = await res.json()
 
         if (data.success && data.data?.subscription?.status === 'active') {

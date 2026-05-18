@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth()
     const { searchParams } = new URL(request.url)
-    const subscriptionId = searchParams.get('subscription_id')
+    // Accepteer zowel subscription_id als order_id (success page stuurt order_id)
+    const subscriptionId = searchParams.get('subscription_id') ?? searchParams.get('order_id')
     const paymentIntentId = searchParams.get('payment_intent')
 
     // Zoek de subscription op

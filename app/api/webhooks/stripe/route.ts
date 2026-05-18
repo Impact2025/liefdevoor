@@ -83,10 +83,37 @@ export async function POST(request: NextRequest) {
 // ============================================
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-  const { purchaseId, userId, credits } = paymentIntent.metadata ?? {}
-  if (!purchaseId || !userId || !credits) return // Subscription PI — wordt via invoice.paid afgehandeld
+  const { purchaseId, userId, credits, subscriptionId, planId } = paymentIntent.metadata ?? {}
+  if (!userId) return
 
-  const creditsCount = parseInt(credits, 10)
+  const creditsCount = parseInt(credits ?? '0', 10)
+
+  // ── Lifetime subscription ─────────────────────────────────────────────────
+  // Metadata: subscriptionId, planId, credits='0' (credits > 0 is credits-aankoop)
+  if (subscriptionId && planId && creditsCount === 0) {
+    const sub = await prisma.subscription.findFirst({
+      where: { id: subscriptionId, userId },
+      select: { id: true, status: true },
+    })
+    if (sub && sub.status === 'pending') {
+      const { getSubscriptionTierForPlan } = await import('@/lib/services/payment/stripe')
+      const tier = getSubscriptionTierForPlan(planId)
+      await prisma.$transaction(async (tx) => {
+        await tx.subscription.update({
+          where: { id: sub.id },
+          data: { status: 'active', updatedAt: new Date() },
+        })
+        await tx.user.update({
+          where: { id: userId },
+          data: { subscriptionTier: tier },
+        })
+      })
+    }
+    return
+  }
+
+  // ── Credits aankoop ───────────────────────────────────────────────────────
+  if (!purchaseId || creditsCount <= 0) return // Subscription PI — via invoice.paid
 
   // Idempotentie: al verwerkt?
   const existing = await prisma.creditPurchase.findUnique({
