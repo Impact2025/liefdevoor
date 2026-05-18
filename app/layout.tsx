@@ -36,6 +36,9 @@ export const metadata: Metadata = {
       "nl-BE": "/",
     },
   },
+  verification: {
+    google: 'googlebd66a1e2acb66d78.html',
+  },
   robots: {
     index: true,
     follow: true,
