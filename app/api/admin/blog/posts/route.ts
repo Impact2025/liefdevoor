@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getUpstash } from '@/lib/upstash'
 import { requireAnyPermission, AdminPermission } from '@/lib/permissions'
 import { revalidateCache, CACHE_TAGS } from '@/lib/cache'
+import { pingIndexNow, pingGoogleIndexingAPI } from '@/lib/indexing'
 
 export async function GET() {
   try {
@@ -180,6 +181,16 @@ export async function POST(request: NextRequest) {
     // Invalidate Next.js cache
     await revalidateCache(CACHE_TAGS.BLOG_POSTS)
     console.log('[Blog Posts] Next.js cache invalidated after post creation')
+
+    // Ping search engines when publishing directly (non-blocking)
+    if (post.published && post.slug) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+      const fullUrl = `${siteUrl}/blog/${post.slug}`
+      await Promise.allSettled([
+        pingIndexNow([fullUrl]),
+        pingGoogleIndexingAPI(fullUrl),
+      ])
+    }
 
     return NextResponse.json({ post })
   } catch (error) {

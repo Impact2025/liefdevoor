@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { revalidateCache, CACHE_TAGS } from '@/lib/cache'
+import { pingIndexNow, pingGoogleIndexingAPI } from '@/lib/indexing'
 
 export async function GET(
   request: NextRequest,
@@ -161,6 +162,16 @@ export async function PATCH(
       console.log('[Blog Posts] Cache invalidated after post update')
     } catch (cacheError) {
       console.warn('[Blog Posts] Cache invalidation failed:', cacheError)
+    }
+
+    // Ping search engines when publishing (non-blocking)
+    if (updateData.published === true && post.slug) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+      const fullUrl = `${siteUrl}/blog/${post.slug}`
+      await Promise.allSettled([
+        pingIndexNow([fullUrl]),
+        pingGoogleIndexingAPI(fullUrl),
+      ])
     }
 
     return NextResponse.json({ post })
