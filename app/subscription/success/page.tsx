@@ -11,7 +11,7 @@
  * - Auto-redirect to discover
  */
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
@@ -34,17 +34,27 @@ function SubscriptionSuccessContent() {
   const [status, setStatus] = useState<'checking' | 'success' | 'error'>('checking')
   const [message, setMessage] = useState('Betaling wordt geverifieerd...')
   const [countdown, setCountdown] = useState(8)
-  const [retryCount, setRetryCount] = useState(0)
-  const maxRetries = 10 // Max 30 seconds of retrying (10 retries × 3 seconds)
+  // Ref voor retry teller — voorkomt stale closure bug in setTimeout callbacks
+  const retryCountRef = useRef(0)
+  const MAX_RETRIES = 10
 
   // Payment verification
   useEffect(() => {
     const orderId = searchParams.get('order_id')
+    const redirectStatus = searchParams.get('redirect_status')
     const setupIntentId = searchParams.get('setup_intent')
 
-    const verifyPayment = async () => {
-      // Returning from iDEAL redirect: activate subscription first, then verify
-      if (setupIntentId && orderId) {
+    // ── Stap 1: directe fout/annulering detecteren ──────────────────────────
+    if (redirectStatus === 'failed' || redirectStatus === 'canceled') {
+      setStatus('error')
+      setMessage('Je hebt de betaling geannuleerd. Je kunt het opnieuw proberen.')
+      return
+    }
+
+    // ── Stap 2: old SetupIntent flow — activeer abonnement na redirect ──────
+    // (alleen voor pending SetupIntents die nog niet via webhook zijn verwerkt)
+    const activateIfNeeded = async () => {
+      if (setupIntentId && orderId && redirectStatus === 'succeeded') {
         try {
           await fetch('/api/subscription/activate', {
             method: 'POST',
@@ -52,90 +62,69 @@ function SubscriptionSuccessContent() {
             body: JSON.stringify({ setupIntentId, subscriptionDbId: orderId }),
           })
         } catch {
-          // Continue: webhook may have already handled it
+          // Webhook may have already handled it — continue
         }
       }
+    }
 
+    // ── Stap 3: polling loop met ref-based teller (geen stale closure) ──────
+    const verifyPayment = async () => {
       try {
-        // If no order_id, try to find user's most recent subscription
         if (!orderId) {
-          // Wait for session to load before showing error
-          if (!session) {
-            // Still loading session, keep checking status
-            return
-          }
-
+          if (!session) return
           if (!session?.user?.id) {
             setStatus('error')
             setMessage('Geen order ID gevonden. Log in om je betaling te controleren.')
             return
           }
-
-          // Check for recent active subscription
           const res = await fetch('/api/subscription')
-
           if (!res.ok) {
             setStatus('error')
-            setMessage('Kon abonnementsstatus niet controleren. Log in en probeer opnieuw.')
+            setMessage('Kon abonnementsstatus niet controleren. Probeer opnieuw.')
             return
           }
-
           const data = await res.json()
-
           if (data.status === 'active' && (data.isPlus || data.isComplete)) {
             setStatus('success')
             setMessage('Je premium abonnement is geactiveerd!')
-            return
-          } else if (data.status === 'pending') {
-            setStatus('checking')
+          } else if (data.status === 'pending' && retryCountRef.current < MAX_RETRIES) {
+            retryCountRef.current += 1
             setMessage('Je betaling wordt nog verwerkt. Even geduld...')
-            // Retry after 3 seconds
             setTimeout(verifyPayment, 3000)
-            return
           } else {
             setStatus('error')
             setMessage('Geen actieve betaling gevonden. Probeer je abonnement opnieuw te activeren.')
-            return
           }
+          return
         }
 
-        // Verify with order_id
-        console.log('[Success Page] Verifying payment:', { orderId, retryCount })
         const res = await fetch(`/api/subscription/verify?order_id=${orderId}`)
         const data = await res.json()
-
-        console.log('[Success Page] Verification response:', data)
 
         if (data.success && data.data?.subscription?.status === 'active') {
           setStatus('success')
           setMessage('Je premium abonnement is geactiveerd!')
-          setRetryCount(0)
         } else if (data.data?.subscription?.status === 'pending') {
-          // Check if we haven't exceeded max retries
-          if (retryCount < maxRetries) {
-            setStatus('checking')
-            setMessage(`Je betaling wordt verwerkt... (${retryCount + 1}/${maxRetries})`)
-            setRetryCount(prev => prev + 1)
-            // Retry after 3 seconds
+          if (retryCountRef.current < MAX_RETRIES) {
+            retryCountRef.current += 1
+            setMessage(`Je betaling wordt verwerkt... (${retryCountRef.current}/${MAX_RETRIES})`)
             setTimeout(verifyPayment, 3000)
           } else {
             setStatus('error')
-            setMessage('De betaling duurt langer dan verwacht. Check je email of neem contact op met support.')
+            setMessage('De betaling duurt langer dan verwacht. Check je e-mail of neem contact op met support.')
           }
         } else {
           setStatus('error')
-          const errorMsg = data.error || data.message || 'Betaling kon niet worden geverifieerd'
-          setMessage(errorMsg)
-          console.error('[Success Page] Verification failed:', { orderId, error: errorMsg, data })
+          setMessage(data.error || data.message || 'Betaling kon niet worden geverifieerd.')
         }
-      } catch (error) {
+      } catch {
         setStatus('error')
-        setMessage('Er is een fout opgetreden bij het verifieren van je betaling')
+        setMessage('Er is een fout opgetreden bij het verifiëren van je betaling.')
       }
     }
 
-    verifyPayment()
-  }, [searchParams, router, session])
+    activateIfNeeded().then(verifyPayment)
+  }, [searchParams, session])
 
   // Confetti celebration effect (only on success)
   useEffect(() => {
@@ -364,7 +353,7 @@ function SubscriptionSuccessContent() {
             {/* Error Message */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-slate-900 mb-3">
-                Er ging iets mis
+                {message.includes('geannuleerd') ? 'Betaling geannuleerd' : 'Er ging iets mis'}
               </h1>
               <p className="text-lg text-slate-600">{message}</p>
             </div>
@@ -372,10 +361,10 @@ function SubscriptionSuccessContent() {
             {/* Error Actions */}
             <div className="space-y-3">
               <button
-                onClick={() => router.push('/subscription')}
+                onClick={() => router.push('/prijzen')}
                 className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold text-lg rounded-xl transition-colors"
               >
-                Probeer opnieuw
+                Opnieuw proberen
               </button>
               <button
                 onClick={() => router.push('/discover')}
