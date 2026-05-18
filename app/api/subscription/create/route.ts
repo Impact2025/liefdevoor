@@ -174,18 +174,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Verwijder verlopen pending records (>2u) — voorkomt ophoping van verlaten checkouts
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+    // Verwijder alle pending records voor deze gebruiker+plan — elke nieuwe betaalpoging
+    // krijgt een vers DB-record en daarmee een nieuwe Stripe idempotency key.
+    // Dit voorkomt Stripe "idempotent key used with different params" fouten.
     await prisma.subscription.deleteMany({
-      where: { userId: session.user.id, status: 'pending', createdAt: { lt: twoHoursAgo } },
+      where: { userId: session.user.id, plan: planId, status: 'pending' },
     })
 
-    // Idempotentie: hergebruik bestaand recent pending record om dubbele aanmaken te voorkomen
-    const existingPending = await prisma.subscription.findFirst({
-      where: { userId: session.user.id, plan: planId, status: 'pending' },
-      orderBy: { createdAt: 'desc' },
-    })
-    const subscription = existingPending ?? await prisma.subscription.create({
+    const subscription = await prisma.subscription.create({
       data: { userId: session.user.id, plan: planId, status: 'pending' },
     })
 
