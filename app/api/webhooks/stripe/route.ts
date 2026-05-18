@@ -3,7 +3,15 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import React from 'react'
 import { render } from '@react-email/render'
-import { constructWebhookEvent, getSubscriptionTierForPlan, stripeAmountToEuros } from '@/lib/services/payment/stripe'
+import {
+  constructWebhookEvent,
+  getSubscriptionTierForPlan,
+  stripeAmountToEuros,
+  getStripeClient,
+  getPriceIdForPlan,
+  createSubscriptionFromSepaMandate,
+} from '@/lib/services/payment/stripe'
+import { getPlanDurationDays } from '@/lib/pricing'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email/send'
 import PaymentConfirmationEmail from '@/lib/email/templates/transactional/payment-confirmation'
@@ -83,10 +91,16 @@ export async function POST(request: NextRequest) {
 // ============================================
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-  const { purchaseId, userId, credits, subscriptionId, planId } = paymentIntent.metadata ?? {}
+  const { purchaseId, userId, credits, subscriptionId, planId, type } = paymentIntent.metadata ?? {}
   if (!userId) return
 
   const creditsCount = parseInt(credits ?? '0', 10)
+
+  // ── Eerste betaling recurring subscription (iDEAL → SEPA-mandaat) ─────────
+  if (type === 'subscription_first_payment' && subscriptionId && planId) {
+    await handleFirstSubscriptionPayment(paymentIntent, userId, planId, subscriptionId)
+    return
+  }
 
   // ── Lifetime subscription ─────────────────────────────────────────────────
   // Metadata: subscriptionId, planId, credits='0' (credits > 0 is credits-aankoop)
@@ -331,6 +345,74 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 // ============================================
+// HANDLER: eerste betaling recurring subscription
+// ============================================
+
+async function handleFirstSubscriptionPayment(
+  paymentIntent: Stripe.PaymentIntent,
+  userId: string,
+  planId: string,
+  subscriptionDbId: string,
+) {
+  // Idempotentie: al verwerkt als subscription al actief of Stripe-ID al gezet
+  const sub = await prisma.subscription.findFirst({
+    where: { id: subscriptionDbId, userId },
+    select: { id: true, status: true, stripeSubscriptionId: true },
+  })
+  if (!sub || sub.status === 'active' || sub.stripeSubscriptionId) return
+
+  const paymentMethodId = typeof paymentIntent.payment_method === 'string'
+    ? paymentIntent.payment_method
+    : paymentIntent.payment_method?.id
+  if (!paymentMethodId) return
+
+  const customerId = typeof paymentIntent.customer === 'string'
+    ? paymentIntent.customer
+    : paymentIntent.customer?.id
+  if (!customerId) return
+
+  // Bereken einde van eerste betaalperiode (trial_end) zodat Stripe geen dubbele factuur stuurt
+  const durationDays = getPlanDurationDays(planId)
+  const periodEnd = new Date()
+  periodEnd.setDate(periodEnd.getDate() + durationDays)
+
+  const priceId = getPriceIdForPlan(planId)
+  const tier = getSubscriptionTierForPlan(planId)
+  const metadata = { userId, planId, subscriptionId: subscriptionDbId }
+
+  // Maak Stripe-subscription aan voor automatische verlenging via SEPA-mandaat
+  const { subscriptionId: stripeSubId } = await createSubscriptionFromSepaMandate(
+    customerId,
+    priceId,
+    paymentMethodId,
+    periodEnd,
+    metadata,
+    `sepa_${subscriptionDbId}`,
+  )
+
+  // Activeer in DB
+  await prisma.$transaction([
+    prisma.subscription.update({
+      where: { id: sub.id },
+      data: {
+        status: 'active',
+        stripeSubscriptionId: stripeSubId,
+        stripePriceId: priceId,
+        endDate: periodEnd,
+        stripeCurrentPeriodEnd: periodEnd,
+      },
+    }),
+    prisma.user.update({
+      where: { id: userId },
+      data: { subscriptionTier: tier },
+    }),
+  ])
+
+  // Bevestigingsmail (non-blocking)
+  sendConfirmationEmailForSubscription(userId, planId, paymentIntent).catch(console.error)
+}
+
+// ============================================
 // STATUS MAPPING
 // ============================================
 
@@ -355,6 +437,35 @@ function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): string {
 // ============================================
 // EMAIL HELPERS
 // ============================================
+
+async function sendConfirmationEmailForSubscription(
+  userId: string,
+  planId: string,
+  paymentIntent: Stripe.PaymentIntent,
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true },
+  })
+  if (!user?.email) return
+
+  const html = await render(
+    React.createElement(PaymentConfirmationEmail, {
+      userName: user.name ?? 'daar',
+      planName: planId,
+      amount: `€${stripeAmountToEuros(paymentIntent.amount).toFixed(2).replace('.', ',')}`,
+      transactionId: paymentIntent.id,
+    }),
+  )
+
+  await sendEmail({
+    to: user.email,
+    subject: '✓ Je abonnement is geactiveerd!',
+    html,
+    category: 'PAYMENT_SUBSCRIPTION',
+    userId,
+  })
+}
 
 async function sendConfirmationEmailForCredits(
   userId: string,

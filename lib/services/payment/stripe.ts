@@ -110,7 +110,71 @@ export async function createPaymentIntent(
 }
 
 // ============================================
-// SUBSCRIPTION (recurring)
+// SUBSCRIPTION — eerste betaling via losse PaymentIntent
+// ============================================
+
+// Stripe staat iDEAL NIET toe in subscription.payment_settings.payment_method_types
+// én NIET als update op een invoice-gekoppelde PaymentIntent.
+// Oplossing: losse PaymentIntent (niet van een factuur) met iDEAL/kaart/SEPA.
+// Na betaling maakt de webhook een Stripe-subscription aan via het SEPA-mandaat.
+export async function createSubscriptionFirstPaymentIntent(
+  customerId: string,
+  amountEuros: number,
+  metadata: Record<string, string>,
+  idempotencyKey: string,
+): Promise<{ clientSecret: string }> {
+  const stripe = getStripeClient()
+
+  const pi = await stripe.paymentIntents.create(
+    {
+      amount: Math.round(amountEuros * 100),
+      currency: 'eur',
+      customer: customerId,
+      payment_method_types: ['card', 'ideal', 'sepa_debit'],
+      setup_future_usage: 'off_session', // sla betaalmethode op voor SEPA-vervolgfacturen
+      metadata: { ...metadata, type: 'subscription_first_payment' },
+    },
+    { idempotencyKey },
+  )
+
+  if (!pi.client_secret) throw new Error('Geen client_secret ontvangen van Stripe')
+  return { clientSecret: pi.client_secret }
+}
+
+// ============================================
+// SUBSCRIPTION — maak subscription aan via bestaand betaalmiddel (webhook gebruik)
+// ============================================
+
+export async function createSubscriptionFromSepaMandate(
+  customerId: string,
+  priceId: string,
+  paymentMethodId: string,
+  trialEndDate: Date,
+  metadata: Record<string, string>,
+  idempotencyKey: string,
+): Promise<{ subscriptionId: string }> {
+  const stripe = getStripeClient()
+
+  const subscription = await stripe.subscriptions.create(
+    {
+      customer: customerId,
+      items: [{ price: priceId }],
+      default_payment_method: paymentMethodId,
+      // trial_end = einde eerste betaalperiode → geen dubbele factuur
+      trial_end: Math.floor(trialEndDate.getTime() / 1000),
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
+      },
+      metadata,
+    },
+    { idempotencyKey },
+  )
+
+  return { subscriptionId: subscription.id }
+}
+
+// ============================================
+// SUBSCRIPTION (recurring, legacy — intern gebruik)
 // ============================================
 
 export async function createStripeSubscription(
