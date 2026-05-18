@@ -21,16 +21,26 @@ const allowedConnectDomains = [
   "'self'",
   'https://api.uploadthing.com',
   'https://uploadthing.com',
-  'https://utfs.io',  // UploadThing file storage CDN
-  'https://*.ingest.uploadthing.com',  // UploadThing file upload
+  'https://utfs.io',
+  'https://*.ingest.uploadthing.com',
   'https://nominatim.openstreetmap.org',
   'https://openrouter.ai',
-  'https://*.ingest.sentry.io',  // Sentry error tracking
+  'https://*.ingest.sentry.io',          // Sentry US datacenter
+  'https://*.ingest.de.sentry.io',       // Sentry EU datacenter
   'https://www.google-analytics.com',
   'https://www.googletagmanager.com',
   'https://region1.google-analytics.com',
-  'https://challenges.cloudflare.com',  // Cloudflare Turnstile
-  'https://*.cloudflare.com',  // Cloudflare CDN
+  'https://challenges.cloudflare.com',
+  'https://*.cloudflare.com',
+  // Stripe — alle benodigde endpoints voor Payment Element + dahlia API
+  'https://api.stripe.com',
+  'https://js.stripe.com',
+  'https://hooks.stripe.com',
+  'https://errors.stripe.com',
+  'https://m.stripe.com',
+  'https://m.stripe.network',
+  'https://r.stripe.com',
+  'wss://*.stripe.com',
 ];
 
 // Google Analytics domains
@@ -64,7 +74,7 @@ const cspHeader = `
   style-src ${styleSrc};
   img-src 'self' blob: data: ${allowedImageDomains.map(d => `https://${d}`).join(' ')} https://www.liefdevooriedereen.nl https://liefdevooriedereen.nl https://*.stripe.com;
   font-src 'self' data:;
-  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl https://api.stripe.com https://errors.stripe.com https://js.stripe.com https://m.stripe.com https://m.stripe.network https://r.stripe.com wss://*.stripe.com;
+  connect-src ${allowedConnectDomains.join(' ')} wss://*.liefdevooriedereen.nl wss://www.liefdevooriedereen.nl;
   frame-ancestors 'self';
   frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com;
   form-action 'self';
