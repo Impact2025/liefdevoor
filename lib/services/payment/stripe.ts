@@ -128,8 +128,6 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        // Geen payment_method_types hier — 'ideal' is niet geldig als recurring methode.
-        // iDEAL wordt toegevoegd aan de PaymentIntent van de eerste factuur (zie hieronder).
       },
       expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,
@@ -138,64 +136,47 @@ export async function createStripeSubscription(
   )
 
   const invoice = subscription.latest_invoice as Stripe.Invoice
-  let clientSecret: string | null = null
 
-  // Extraheer PaymentIntent ID vroeg — nodig om iDEAL toe te voegen aan de eerste factuur
+  // Stap 1: Haal PaymentIntent ID op uit de factuur (meerdere paden voor robuustheid)
+  let paymentIntentId: string | null = null
+
   const invoiceAny = invoice as unknown as Record<string, unknown>
   const piExpanded = invoiceAny['payment_intent'] as Stripe.PaymentIntent | string | null | undefined
-  const paymentIntentId: string | null = piExpanded
-    ? (typeof piExpanded === 'string' ? piExpanded : (piExpanded as Stripe.PaymentIntent).id)
-    : null
-
-  // Pad 1: confirmation_secret (nieuwste Stripe API — dahlia)
-  if (invoice.confirmation_secret?.client_secret) {
-    clientSecret = invoice.confirmation_secret.client_secret
+  if (piExpanded) {
+    paymentIntentId = typeof piExpanded === 'string' ? piExpanded : (piExpanded as Stripe.PaymentIntent).id
   }
 
-  // Pad 2: direct expanded payment_intent
-  if (!clientSecret) {
-    if (piExpanded && typeof piExpanded === 'object' && (piExpanded as Stripe.PaymentIntent).client_secret) {
-      clientSecret = (piExpanded as Stripe.PaymentIntent).client_secret
-    } else if (piExpanded && typeof piExpanded === 'string') {
-      const retrieved = await stripe.paymentIntents.retrieve(piExpanded)
-      clientSecret = retrieved.client_secret
-    }
-  }
-
-  // Pad 3: invoice.payments list (legacy fallback)
-  if (!clientSecret) {
+  if (!paymentIntentId) {
     const payments = invoice.payments as Stripe.ApiList<Stripe.InvoicePayment> | undefined
     const defaultPayment = payments?.data?.find(p => p.is_default) ?? payments?.data?.[0]
     const piField = defaultPayment?.payment?.payment_intent
     if (piField) {
-      const piId = typeof piField === 'string' ? piField : piField.id
-      const retrieved = await stripe.paymentIntents.retrieve(piId)
-      clientSecret = retrieved.client_secret
+      paymentIntentId = typeof piField === 'string' ? piField : piField.id
     }
   }
 
-  if (!clientSecret) {
-    throw new Error('Stripe subscription heeft geen client_secret teruggegeven')
+  if (!paymentIntentId) {
+    throw new Error('Geen PaymentIntent gevonden op de eerste factuur')
   }
 
-  // Voeg iDEAL en SEPA toe aan de PaymentIntent van de EERSTE factuur.
-  // 'ideal' mag niet op de subscription zelf (payment_settings.payment_method_types),
-  // maar is WEL geldig op de losse eenmalige PaymentIntent van factuur #1.
+  // Stap 2: Update de PaymentIntent om iDEAL en SEPA toe te staan.
+  // 'ideal' kan niet op de subscription zelf (payment_settings.payment_method_types
+  // gooit een Stripe-fout), maar WEL op de eenmalige PaymentIntent van factuur #1.
   // Na iDEAL-betaling maakt Stripe automatisch een SEPA-mandaat aan voor vervolgfacturen.
-  if (paymentIntentId) {
-    try {
-      await stripe.paymentIntents.update(paymentIntentId, {
-        payment_method_types: ['card', 'ideal', 'sepa_debit'],
-      })
-    } catch (err) {
-      // Niet-fataal: PaymentElement toont beschikbare methoden zonder iDEAL als fallback
-      console.warn('[Stripe] PaymentIntent iDEAL update mislukt:', (err as Error).message)
-    }
+  await stripe.paymentIntents.update(paymentIntentId, {
+    payment_method_types: ['card', 'ideal', 'sepa_debit'],
+  })
+
+  // Stap 3: Haal de bijgewerkte client_secret op van de PaymentIntent zelf.
+  // confirmation_secret (dahlia API) negeren — die reflecteert de PI-update niet.
+  const updatedPi = await stripe.paymentIntents.retrieve(paymentIntentId)
+  if (!updatedPi.client_secret) {
+    throw new Error('PaymentIntent heeft geen client_secret na update')
   }
 
   return {
     subscriptionId: subscription.id,
-    clientSecret,
+    clientSecret: updatedPi.client_secret,
   }
 }
 
