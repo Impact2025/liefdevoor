@@ -121,10 +121,9 @@ export async function createStripeSubscription(
 ): Promise<{ subscriptionId: string; clientSecret: string }> {
   const stripe = getStripeClient()
 
-  // iDEAL mag NIET in payment_settings.payment_method_types voor charge_automatically subscriptions.
-  // We zetten 'card' + 'sepa_debit' op de subscription (voor recurring betalingen).
-  // De eerste PaymentIntent updaten we daarna apart met 'ideal' erbij, zodat de gebruiker
-  // iDEAL kan kiezen als betaalmethode — iDEAL maakt automatisch een SEPA-mandaat aan.
+  // Geen payment_method_types instellen → Stripe gebruikt automatische betaalmethode-detectie.
+  // Voor NL-klanten met EUR toont PaymentElement dan automatisch iDEAL, kaart en SEPA-incasso.
+  // iDEAL-betaling maakt een SEPA-mandaat aan → Stripe charget toekomstige termijnen via SEPA.
   const subscription = await stripe.subscriptions.create(
     {
       customer: customerId,
@@ -132,7 +131,6 @@ export async function createStripeSubscription(
       payment_behavior: 'default_incomplete',
       payment_settings: {
         save_default_payment_method: 'on_subscription',
-        payment_method_types: ['card', 'sepa_debit'],
       },
       expand: ['latest_invoice.payment_intent', 'latest_invoice.payments'],
       metadata,
@@ -142,28 +140,19 @@ export async function createStripeSubscription(
 
   const invoice = subscription.latest_invoice as Stripe.Invoice
   let clientSecret: string | null = null
-  let firstPaymentIntentId: string | null = null
 
-  // Pad 1: confirmation_secret (nieuwste Stripe API)
+  // Pad 1: confirmation_secret (nieuwste Stripe API — dahlia)
   if (invoice.confirmation_secret?.client_secret) {
     clientSecret = invoice.confirmation_secret.client_secret
-    // confirmation_secret.payment_intent bevat het PI-ID (format: pi_xxx)
-    const csAny = invoice.confirmation_secret as unknown as Record<string, unknown>
-    const piFromCs = csAny['payment_intent']
-    if (typeof piFromCs === 'string' && piFromCs.startsWith('pi_')) {
-      firstPaymentIntentId = piFromCs
-    }
   }
 
-  // Pad 2: direct expanded payment_intent (cast nodig — Invoice type is niet volledig)
+  // Pad 2: direct expanded payment_intent
   if (!clientSecret) {
     const invoiceAny = invoice as unknown as Record<string, unknown>
     const pi = invoiceAny['payment_intent'] as Stripe.PaymentIntent | string | null | undefined
     if (pi && typeof pi === 'object' && (pi as Stripe.PaymentIntent).client_secret) {
       clientSecret = (pi as Stripe.PaymentIntent).client_secret
-      firstPaymentIntentId = (pi as Stripe.PaymentIntent).id
     } else if (pi && typeof pi === 'string') {
-      firstPaymentIntentId = pi
       const retrieved = await stripe.paymentIntents.retrieve(pi)
       clientSecret = retrieved.client_secret
     }
@@ -176,7 +165,6 @@ export async function createStripeSubscription(
     const piField = defaultPayment?.payment?.payment_intent
     if (piField) {
       const piId = typeof piField === 'string' ? piField : piField.id
-      firstPaymentIntentId = piId
       const retrieved = await stripe.paymentIntents.retrieve(piId)
       clientSecret = retrieved.client_secret
     }
@@ -184,16 +172,6 @@ export async function createStripeSubscription(
 
   if (!clientSecret) {
     throw new Error('Stripe subscription heeft geen client_secret teruggegeven')
-  }
-
-  // Voeg iDEAL toe aan de eerste PaymentIntent zodat de gebruiker iDEAL kan kiezen.
-  // iDEAL → SEPA-mandaat, daarna gebruikt Stripe automatisch SEPA voor recurring betalingen.
-  if (firstPaymentIntentId) {
-    await stripe.paymentIntents.update(firstPaymentIntentId, {
-      payment_method_types: ['card', 'ideal', 'sepa_debit'],
-    }).catch(() => {
-      // Niet-fataal: betaling gaat door met card + sepa als fallback
-    })
   }
 
   return {
