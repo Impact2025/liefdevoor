@@ -167,11 +167,11 @@ export function generateOrganizationStructuredData(
 }
 
 // Utility function to calculate word count from HTML/Markdown content
-export function calculateWordCount(content: string): number {
-  // Remove HTML tags and markdown syntax
+export function calculateWordCount(content: string | null | undefined): number {
+  if (!content) return 0;
   const text = content
-    .replace(/<[^>]*>/g, '')  // Remove HTML tags
-    .replace(/[#*_`\[\]]/g, '')  // Remove markdown syntax
+    .replace(/<[^>]*>/g, '')
+    .replace(/[#*_`\[\]]/g, '')
     .trim();
 
   const words = text.split(/\s+/).filter(word => word.length > 0);

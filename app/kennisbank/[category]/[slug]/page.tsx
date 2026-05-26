@@ -90,7 +90,7 @@ async function getRelatedArticles(articleId: string, categoryId: string, keyword
   // Score by keyword overlap, pillar articles first
   const scored = sameCategoryArticles
     .map((a) => {
-      const articleKeywords = (a.keywords as string[]).map((k) => k.toLowerCase())
+      const articleKeywords = ((a.keywords as string[] | null) ?? []).map((k) => k.toLowerCase())
       const overlap = keywords.filter((k) => articleKeywords.includes(k.toLowerCase())).length
       return { article: a, score: overlap + (a.isPillarPage ? 5 : 0) }
     })
@@ -165,7 +165,7 @@ export default async function ArticlePage({ params }: PageProps) {
   const relatedArticles = await getRelatedArticles(
     article.id,
     article.categoryId,
-    article.keywords as string[]
+    (article.keywords as string[] | null) ?? []
   )
 
   const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app'
