@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl'
   const canonicalUrl = `${baseUrl}/blog/${params.slug}`
 
   const keywords = Array.isArray(post.keywords)
@@ -96,7 +96,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound()
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl'
   const postUrl = `${baseUrl}/blog/${params.slug}`
 
   // Generate Article structured data

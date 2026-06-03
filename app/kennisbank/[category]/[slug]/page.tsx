@@ -138,7 +138,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl'
   const canonicalUrl = article.canonicalUrl || `${baseUrl}/kennisbank/${params.category}/${params.slug}`
 
   return generateArticleMetadata({
@@ -168,7 +168,7 @@ export default async function ArticlePage({ params }: PageProps) {
     (article.keywords as string[] | null) ?? []
   )
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl'
   const articleUrl = `${baseUrl}/kennisbank/${params.category}/${params.slug}`
 
   // Generate Article structured data

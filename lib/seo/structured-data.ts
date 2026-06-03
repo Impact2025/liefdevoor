@@ -31,7 +31,7 @@ export function generateArticleStructuredData(
     isPillarPage = false,
   } = options;
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl';
   const imageUrl = image
     ? (image.startsWith('http') ? image : `${baseUrl}${image}`)
     : `${baseUrl}/og-image.png`;
@@ -82,7 +82,7 @@ export interface BreadcrumbItem {
 export function generateBreadcrumbStructuredData(
   items: BreadcrumbItem[]
 ): WithContext<BreadcrumbList> {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl';
 
   return {
     '@context': 'https://schema.org',

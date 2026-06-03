@@ -27,7 +27,7 @@ export function generateArticleMetadata(options: ArticleMetadataOptions): Metada
     tags = [],
   } = options;
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl';
   const imageUrl = featuredImage
     ? (featuredImage.startsWith('http') ? featuredImage : `${baseUrl}${featuredImage}`)
     : `${baseUrl}/og-image.png`;
@@ -98,7 +98,7 @@ export function generateCategoryMetadata(options: CategoryMetadataOptions): Meta
     icon,
   } = options;
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://liefdevoor.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.liefdevooriedereen.nl';
   const imageUrl = icon
     ? (icon.startsWith('http') ? icon : `${baseUrl}${icon}`)
     : `${baseUrl}/og-image.png`;

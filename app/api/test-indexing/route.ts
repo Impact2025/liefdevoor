@@ -7,7 +7,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 })
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://liefdevoor.vercel.app'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.liefdevooriedereen.nl'
   const testUrl = `${siteUrl}/blog/test-indexing-check`
 
   const results = await Promise.allSettled([
