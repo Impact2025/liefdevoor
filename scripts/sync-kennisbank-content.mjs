@@ -73,13 +73,15 @@ async function main() {
   const authorId = adminUser?.id || (await prisma.user.findFirst({ select: { id: true } }))?.id
   if (!authorId) { console.error('❌ Geen gebruiker'); process.exit(1) }
 
+  const lvbCat = await prisma.knowledgeBaseCategory.findUnique({ where: { slug: 'inclusief-daten-lvb' } })
+  if (!lvbCat) console.warn('⚠️  Inclusief-daten-lvb categorie niet gevonden, valt terug op veiligheid')
+
   const categoryMap = {
     'veilig-online-daten.md': veiligheidCat.id,
     'romance-scam-herkennen.md': veiligheidCat.id,
     'waarom-liefde-voor-iedereen-anders.md': inclusiefCat?.id || veiligheidCat.id,
+    'veilig-daten-lvb-faq.md': lvbCat?.id || veiligheidCat.id,
   }
-
-  console.log(`\n📁 ${files.length} artikelen gevonden\n`)
 
   for (const file of files) {
     const filePath = path.join(BASE, file)

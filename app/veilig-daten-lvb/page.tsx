@@ -27,15 +27,15 @@ export const metadata: Metadata = {
     'daten lvb begeleider',
   ],
   openGraph: {
-    title: 'Veilig Daten met LVB | Liefde Voor Iedereen',
-    description: 'De veiligste datingsite voor mensen met LVB. Simpele knoppen, duidelijke tekst en begeleiding wanneer je dat wilt. Gratis aanmelden.',
+    title: 'Datingsite voor Mensen met LVB | Liefde Voor Iedereen',
+    description: 'De veiligste datingsite voor mensen met LVB. Grote knoppen, simpele tekst en begeleiding wanneer je dat wilt. Gratis aanmelden.',
     url: `${BASE_URL}/veilig-daten-lvb`,
     siteName: 'Liefde Voor Iedereen',
     locale: 'nl_NL',
     type: 'website',
     images: [
       {
-        url: `${BASE_URL}/images/og-lvb.jpg`,
+        url: `${BASE_URL}/api/og?title=Veilig%20Daten%20met%20LVB&description=Grote%20knoppen%2C%20simpele%20tekst%2C%20begeleider%20mag%20helpen`,
         width: 1200,
         height: 630,
         alt: 'Veilig Daten met LVB - Liefde Voor Iedereen',
