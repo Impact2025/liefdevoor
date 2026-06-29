@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Dating Tips & Advies - Blog',
     description: 'Ontdek tips voor succesvol online daten',
-    url: 'https://liefdevooriederen.nl/blog',
+    url: 'https://liefdevooriedereen.nl/blog',
     type: 'website',
   },
   twitter: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: 'Ontdek tips voor succesvol online daten',
   },
   alternates: {
-    canonical: 'https://liefdevooriederen.nl/blog',
+    canonical: 'https://liefdevooriedereen.nl/blog',
   },
   robots: {
     index: true,

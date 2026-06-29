@@ -180,6 +180,9 @@ export function Navigation() {
             <Link href="/terms" className="hover:text-gray-600 block">Algemene voorwaarden</Link>
             <Link href="/privacy" className="hover:text-gray-600 block">Privacybeleid</Link>
             <Link href="/safety" className="hover:text-gray-600 block">Veiligheid</Link>
+            <div className="pt-2 mt-2 border-t border-gray-50 text-[10px] text-gray-300">
+              <a href="https://weareimpact.nl" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 block">Onderdeel van WeAreImpact</a>
+            </div>
           </div>
         </div>
       </aside>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   alternates: {
-    canonical: 'https://liefdevoorIedereen.nl/kennisbank',
+    canonical: 'https://liefdevooriedereen.nl/kennisbank',
   },
 }
 

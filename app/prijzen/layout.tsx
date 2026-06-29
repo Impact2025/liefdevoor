@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Abonnementen & Prijzen - Liefde Voor Iedereen',
     description: 'Van gratis tot premium - kies het abonnement dat bij jou past',
-    url: 'https://liefdevooriederen.nl/prijzen',
+    url: 'https://liefdevooriedereen.nl/prijzen',
     type: 'website',
   },
   twitter: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: 'Van gratis tot premium - kies je abonnement',
   },
   alternates: {
-    canonical: 'https://liefdevooriederen.nl/prijzen',
+    canonical: 'https://liefdevooriedereen.nl/prijzen',
   },
   robots: {
     index: true,

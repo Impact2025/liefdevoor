@@ -178,7 +178,7 @@ async function generateDefaultImage({
             color: 'rgba(255,255,255,0.7)',
           }}
         >
-          liefdevooriederen.nl
+          liefdevooriedereen.nl
         </div>
       </div>
     ),
@@ -349,7 +349,7 @@ async function generateProfileImage({
               color: 'rgba(255,255,255,0.6)',
             }}
           >
-            liefdevooriederen.nl
+            liefdevooriedereen.nl
           </span>
         </div>
       </div>

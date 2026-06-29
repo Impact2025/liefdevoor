@@ -98,6 +98,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
 
+    // SEO Landing Pages
+    {
+      url: `${baseUrl}/veilig-daten-lvb`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/daten-adhd-hsp`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/ambassadeur`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/feedback`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+
     // Authentication Pages
     {
       url: `${baseUrl}/login`,
@@ -138,7 +164,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
 
-    // Kennisbank Main Page
+    // Kennisbank - Main Pages
     {
       url: `${baseUrl}/kennisbank`,
       lastModified: new Date(),
@@ -162,6 +188,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.6,
+    },
+
+    // Knowledge Base Tools (static pages)
+    {
+      url: `${baseUrl}/kennisbank/tools/compatibility-quiz`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/kennisbank/tools/dating-readiness`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/kennisbank/tools/hechtingsstijl-quiz`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/kennisbank/tools/icebreaker-generator`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/kennisbank/tools/liefdetaal-quiz`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/kennisbank/tools/red-flag-checklist`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/kennisbank/tools/scam-checker`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
     },
 
     // Professionals Portal
@@ -200,8 +270,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Dynamic Blog Posts
     ...blogPostUrls,
-
-    // Note: Authenticated pages (discover, matches, chat, etc.) are excluded
-    // as they require login and shouldn't be indexed
   ]
 }

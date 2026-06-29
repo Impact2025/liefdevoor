@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Inloggen - Liefde Voor Iedereen',
     description: 'Log in op je account en ontdek lokale singles',
-    url: 'https://liefdevooriederen.nl/login',
+    url: 'https://liefdevooriedereen.nl/login',
     type: 'website',
   },
   twitter: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: 'Log in op je account en ontdek lokale singles',
   },
   alternates: {
-    canonical: 'https://liefdevooriederen.nl/login',
+    canonical: 'https://liefdevooriedereen.nl/login',
   },
   robots: {
     index: true,

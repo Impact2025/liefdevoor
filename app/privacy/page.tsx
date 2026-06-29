@@ -133,7 +133,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="mt-4 space-y-2 text-gray-700">
                 <li>
-                  <strong>E-mail:</strong> privacy@liefdevooriederen.nl
+                  <strong>E-mail:</strong> privacy@liefdevooriedereen.nl
                 </li>
                 <li>
                   <strong>Privacy instellingen:</strong>{' '}
