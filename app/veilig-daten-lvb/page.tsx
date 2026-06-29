@@ -7,19 +7,24 @@ import { FaqAccordion } from './FaqAccordion'
 const BASE_URL = 'https://www.liefdevooriedereen.nl'
 
 export const metadata: Metadata = {
-  title: 'Veilig Daten met LVB | Datingsite voor Mensen met een Licht Verstandelijke Beperking',
-  description: 'Veilig daten met LVB op Liefde Voor Iedereen. Grote knoppen, simpele tekst en hulp van je begeleider. Alle profielen worden gecontroleerd. Gratis aanmelden.',
+  title: 'Datingsite voor Mensen met LVB | Veilig Daten met Beperking | Liefde Voor Iedereen',
+  description: 'De enige échte datingsite voor mensen met LVB in Nederland. Grote knoppen, simpele tekst, begeleider mag helpen en alle profielen gecontroleerd. Al 15+ jaar ervaring.',
   keywords: [
     'veilig daten lvb',
-    'dating lvb',
+    'datingsite lvb',
+    'lvb dating',
     'daten met licht verstandelijke beperking',
+    'datingsite voor mensen met een beperking',
     'lvb dating app',
+    'dating voor mensen met verstandelijke beperking',
     'dating begeleiding lvb',
     'veilig online daten lvb',
-    'datingsite lvb',
     'daten met beperking',
     'lvb vrienden maken',
     'daten met begeleiding',
+    'toegankelijke datingsite',
+    'datingsite nederland beperking',
+    'daten lvb begeleider',
   ],
   openGraph: {
     title: 'Veilig Daten met LVB | Liefde Voor Iedereen',
@@ -310,6 +315,24 @@ export default function VeiligDatenLVBPage() {
                 In 4 stappen naar je eerste contact — zo makkelijk is het
               </p>
             </div>
+
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "HowTo",
+                  name: "Veilig daten met LVB in 4 stappen",
+                  description: "Zo begin je veilig met daten op Liefde Voor Iedereen als je een licht verstandelijke beperking hebt.",
+                  step: [
+                    { "@type": "HowToStep", position: 1, name: "Profiel aanmaken", text: "Maak een profiel aan met een paar woorden over jezelf. Je begeleider mag helpen. Een foto toevoegen is niet verplicht." },
+                    { "@type": "HowToStep", position: 2, name: "Zoek een leuke match", text: "Zie je iemand die je leuk vindt? Stuur een hartje, berichtje of spraakbericht." },
+                    { "@type": "HowToStep", position: 3, name: "Chat en leer elkaar kennen", text: "Praat eerst via berichten voordat je afspreekt. Zo leer je elkaar veilig kennen." },
+                    { "@type": "HowToStep", position: 4, name: "Spreek af op een veilige plek", text: "Ontmoet elkaar op een drukke, openbare plek zoals een café. Vertel je begeleider waar je naartoe gaat." },
+                  ],
+                }),
+              }}
+            />
 
             <ol className="grid grid-cols-1 md:grid-cols-2 gap-8" role="list">
               {[
@@ -604,9 +627,9 @@ export default function VeiligDatenLVBPage() {
                   icon: <MessageCircle className="w-6 h-6" aria-hidden="true" />,
                 },
                 {
-                  href: '/dating-met-beperking',
-                  title: 'Dating met beperking',
-                  desc: 'Informatie voor mensen met een fysieke of cognitieve beperking.',
+                  href: '/veilig-daten-lvb#voordelen',
+                  title: 'Waarom deze site?',
+                  desc: 'Ontdek waarom Liefde Voor Iedereen de beste keuze is voor veilig daten met LVB.',
                   icon: <Heart className="w-6 h-6" aria-hidden="true" />,
                 },
                 {
