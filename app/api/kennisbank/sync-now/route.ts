@@ -9,7 +9,7 @@ const ARTICLES = [
     title: 'Alles over veilig online daten: zo bescherm jij jezelf',
     titleNl: 'Alles over veilig online daten: zo bescherm jij jezelf',
     excerptNl: 'Veilig online daten begint bij goede voorbereiding. Lees hoe je nep profielen herkent, je privacy beschermt en veilig afspreekt.',
-    metaTitle: 'Veilig Online Daten: bescherm jezelf | Liefde Voor Iedereen',
+    metaTitle: 'Veilig online daten: bescherm jezelf | Liefde Voor Iedereen',
     metaDescription: 'Veilig online daten: zo herken je nep profielen, bescherm je privacy en plan je een veilige eerste date.',
     isPillarPage: true,
   },
@@ -18,7 +18,7 @@ const ARTICLES = [
     title: 'Zo herken je een romance scam: 7 waarschuwingssignalen',
     titleNl: 'Zo herken je een romance scam: 7 waarschuwingssignalen',
     excerptNl: 'Leer romance scam herkennen met 7 praktische waarschuwingssignalen uit 15+ jaar ervaring in de datingsector.',
-    metaTitle: 'Romance Scam Herkennen: 7 Waarschuwingssignalen | Liefde Voor Iedereen',
+    metaTitle: 'Romance Scams Herkennen: 7 Signalen | Liefde Voor Iedereen',
     metaDescription: 'Leer romance scams herkennen met 7 waarschuwingssignalen. Praktische tips van experts met 15+ jaar ervaring.',
     isPillarPage: false,
   },
@@ -27,7 +27,7 @@ const ARTICLES = [
     title: 'Waarom Liefde Voor Iedereen anders is dan andere dating apps',
     titleNl: 'Waarom Liefde Voor Iedereen anders is dan andere dating apps',
     excerptNl: 'Liefde Voor Iedereen is geen gewone datingapp. Ontdek waarom wij écht anders zijn — met AI-matching, DatingAssistent en dating zonder spelletjes.',
-    metaTitle: 'Waarom Liefde Voor Iedereen Anders Is | Dating zonder Spelletjes',
+    metaTitle: 'Waarom LVI Anders Is | Dating zonder Spelletjes',
     metaDescription: 'Andere apps verdienen aan jouw eenzaamheid. Liefde Voor Iedereen niet. Ontdek het verschil. Gratis aanmelden.',
     isPillarPage: false,
   },
@@ -43,7 +43,7 @@ export async function GET() {
   }
 
   const adminUser = await prisma.user.findFirst({
-    where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+    where: { role: 'ADMIN' },
     select: { id: true, email: true },
   })
   if (!adminUser) {
@@ -69,7 +69,7 @@ export async function GET() {
           isPublished: true,
         },
       })
-      results.push({ slug: article.slug, status: 'updated (metadata only)' })
+      results.push({ slug: article.slug, status: 'updated' })
     } else {
       await prisma.knowledgeBaseArticle.create({
         data: {
@@ -92,7 +92,7 @@ export async function GET() {
           authorId: adminUser.id,
         },
       })
-      results.push({ slug: article.slug, status: 'created (without body)' })
+      results.push({ slug: article.slug, status: 'created' })
     }
   }
 
