@@ -41,7 +41,7 @@ export async function GET() {
   }
 
   const adminUser = await prisma.user.findFirst({
-    where: { role: { in: 'ADMIN' } },
+    where: { role: 'ADMIN' },
     select: { id: true, email: true },
   })
   if (!adminUser) {
