@@ -40,14 +40,15 @@ async function main() {
     where: { role: 'ADMIN' },
     select: { id: true, email: true },
   })
+  let authorId: string
   if (!adminUser) {
     const anyUser = await prisma.user.findFirst({ select: { id: true, email: true } })
     if (!anyUser) { console.error('❌ Geen gebruikers'); process.exit(1) }
     console.warn(`⚠️  Geen admin, valt terug op: ${anyUser.email}`)
-    var authorId = anyUser.id
+    authorId = anyUser.id
   } else {
     console.log(`✅ Admin: ${adminUser.email}`)
-    var authorId = adminUser.id
+    authorId = adminUser.id
   }
 
   console.log(`\n📁 ${files.length} artikelen gevonden\n`)
