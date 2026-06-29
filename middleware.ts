@@ -43,6 +43,11 @@ async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Skip middleware for kennisbank sync (needs to bypass auth to read filesystem)
+  if (pathname.startsWith('/api/admin/kennisbank/sync-markdown')) {
+    return NextResponse.next()
+  }
+
   // Apply rate limiting to API routes
   if (pathname.startsWith('/api')) {
     let rateLimit
