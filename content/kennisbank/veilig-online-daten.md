@@ -2,6 +2,99 @@
 title: "Alles over veilig online daten: zo bescherm jij jezelf"
 description: "Veilig online daten begint bij goede voorbereiding. Lees hoe je nep profielen herkent, je privacy beschermt en veilig afspreekt met onze praktische tips."
 meta_description: "Veilig online daten: zo herken je nep profielen, bescherm je privacy en plan je een veilige eerste date. Praktische tips van de redactie van Liefde Voor Iedereen."
+hasEasyRead: true
+easyReadContent: |
+  # Veilig daten: hoe bescherm jij jezelf?
+
+  "Klopt dit wel?" Vraag jij je dat wel eens af als je een profiel ziet?
+  Een foto die er te mooi uitziet. Een verhaal dat te gek klinkt.
+  Of iemand die vraagt om geld.
+
+  Wij helpen jou met veilig daten.
+  Wij hebben 15 jaar ervaring met datingsites.
+  Wij weten wat nep is en wat echt is.
+
+  ## Hoe herken je een nep profiel?
+
+  Dit zijn de belangrijkste signalen:
+
+  1. **De foto's zijn te mooi**
+  Lijkt het alsof de foto van een model is?
+  Check of de foto ook op andere sites staat.
+  Vraag ons om te helpen.
+
+  2. **Het verhaal is te mooi om waar te zijn**
+  "Ik ben zakenman en werk veel in het buitenland."
+  Dat klinkt als een smoes om niet te kunnen afspreken.
+
+  3. **Ze willen snel naar WhatsApp**
+  Waarom willen ze niet op onze site blijven chatten?
+  Omdat wij dan niet meer kunnen helpen als er iets misgaat.
+
+  4. **Ze vragen naar geld**
+  Dit gebeurt vaak pas na een paar weken.
+  Iemand zegt: "Ik heb een noodgeval, kun je mij geld sturen?"
+  Doe dat nooit!
+
+  5. **Geen videogesprek**
+  Willen ze niet even bellen via video?
+  Dan klopt er vaak iets niet.
+
+  > **Ons advies:** Voelt iets niet goed? Luister dan naar je gevoel.
+  > Gebruik ook onze [red flag checklist](/kennisbank/tools/red-flag-checklist).
+
+  ## Zo bescherm jij je privacy
+
+  ### Deel niet te veel informatie
+  Je voornaam is genoeg in het begin.
+  Geef je adres, telefoonnummer of werkplek pas als je iemand goed kent.
+  Lees ook onze [veilige LVB pagina](/veilig-daten-lvb) voor meer tips.
+
+  ### Blijf op de site chatten
+  Gebruik de chat van Liefde Voor Iedereen.
+  Dan kunnen wij helpen als er iets verdachts gebeurt.
+
+  ### Koppel geen social media
+  Wacht met Instagram en Facebook tot na jullie eerste date.
+
+  ## Veilige eerste date: de regels
+
+  - **Kies een drukke plek** — een café, restaurant of museum
+  - **Niet bij iemand thuis** — ook niet als het makkelijker lijkt
+  - **Regel je eigen vervoer** — dan kun je zelf weggaan wanneer jij wilt
+  - **Vertel iemand waar je bent** — stuur een appje naar je begeleider of familie
+  - **Betaal zelf** — dan heb je geen verplichtingen
+
+  ## Wat doe je als er iets misgaat?
+
+  1. Blokkeer het profiel met de rode knop
+  2. Praat erover met iemand die je vertrouwt
+  3. Maak screenshots van berichten (bewijs)
+  4. Doe aangifte bij de politie als er geld weg is
+
+  Ons team staat voor je klaar.
+  Mail ons via onze [safety pagina](/safety).
+
+  ## Veelgestelde vragen (LVB)
+
+  ### Kan ik veilig daten als ik niet zo handig ben met de computer?
+  Ja! Je hoeft geen computer-expert te zijn.
+  De regels zijn simpel:
+  - Geen geld sturen
+  - Geen privégegevens delen
+  - Afspreken op een drukke plek
+  Vraag iemand om mee te kijken als je twijfelt.
+
+  ### Hoe weet ik of iemand echt is?
+  Kijk naar het **blauwe vinkje**.
+  Dat betekent dat wij het profiel hebben gecontroleerd.
+  Geen vinkje? Vraag dan om een nieuwe foto.
+
+  ### Wat doet Liefde Voor Iedereen om mij te beschermen?
+  Wij checken elk profiel. Wij blokkeren verdachte mensen.
+  Wij hebben een veiligheidsteam dat jouw meldingen onderzoekt.
+
+  [Maak een gratis account aan](/register) — het kost niets!
 ---
 
 # Veilig online daten

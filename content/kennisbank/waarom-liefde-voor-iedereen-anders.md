@@ -2,6 +2,87 @@
 title: Waarom Liefde Voor Iedereen anders is dan andere dating apps
 description: Liefde Voor Iedereen is geen gewone datingapp. Ontdek waarom wij écht anders zijn — met AI-matching, DatingAssistent en dating zonder spelletjes.
 positionering: Dating zonder spelletjes
+hasEasyRead: true
+easyReadContent: |
+  # Waarom is Liefde Voor Iedereen anders?
+
+  Herken je dit?
+  Je zoekt een leuke date, maar andere apps zijn te moeilijk.
+  Te veel knoppen. Te veel tekst. Te veel gedoe.
+
+  Bij Liefde Voor Iedereen doen wij het anders.
+  Wij maken daten makkelijk en veilig.
+  Ook als je niet zo handig bent met de computer.
+
+  ## 1. Wij helpen jou
+
+  Andere apps laten jou zwemmen in een zee van profielen.
+  Jij mag zelf uitzoeken wie bij je past.
+
+  Bij ons helpt de **DatingAssistent** jou.
+  Geen idee wat je moet schrijven? De assistent helpt.
+  Twijfel je over een bericht? De assistent leest mee.
+  Het is alsof een vriend(in) naast je staat.
+
+  ## 2. Geen nep profielen
+
+  Wij controleren elk profiel.
+  Voordat iemand actief wordt, vragen wij om een video.
+  Zo weten we zeker dat iemand echt is.
+
+  Zie je een **blauw vinkje**? Dan is het profiel gecontroleerd.
+
+  ## 3. Makkelijke modus
+
+  Niet iedereen is handig met de computer.
+  Daarom hebben wij een **Eenvoudige modus**.
+  Alles is groter, duidelijker en simpeler.
+  Grote knoppen, korte zinnen, geen gedoe.
+
+  Lees ook over [veilig daten met LVB](/veilig-daten-lvb).
+
+  ## 4. Je mag hulp krijgen
+
+  Vind je daten spannend?
+  Je mag iemand vragen om te helpen.
+  Een vriend(in), je moeder of je begeleider.
+  Die kan via ons **begeleiderportaal** meekijken.
+
+  Die persoon helpt alleen. Jij blijft de baas.
+
+  ## 5. Geen spelletjes
+
+  Andere apps willen dat jij blijft scrollen.
+  Hoe langer jij zoekt, hoe meer geld zij verdienen.
+
+  Wij willen dat jij iemand vindt.
+  Ook als je daarna weggaat bij ons.
+  Dat vinden wij prima.
+
+  ## Voor wie is Liefde Voor Iedereen?
+
+  - **Mensen met LVB** die veilig willen daten
+  - **Mensen met autisme, ADHD of HSP** die rust nodig hebben
+  - **Iedereen** die klaar is met spelletjes
+
+  Of je 25 bent of 65. Of je voor het eerst datet of al vaker.
+  Iedereen is welkom.
+
+  ## Wat zeggen anderen?
+
+  > "De grote knoppen en duidelijke tekst helpen mij enorm. Ik voel me hier veilig."
+
+  > "Mijn begeleider heeft mij geholpen met aanmelden. Nu chat ik zelf!"
+
+  ## Klaar om te beginnen?
+
+  [Maak gratis een profiel aan](/register?source=lvb).
+  Het is gratis en duurt maar 2 minuten.
+  Je begeleider mag helpen.
+
+  **Verder lezen:**
+  - [Veilig daten met LVB](/veilig-daten-lvb)
+  - [Al onze prijzen](/prijzen)
 ---
 
 # Waarom Liefde Voor Iedereen anders is dan andere dating apps

@@ -4,6 +4,128 @@ description: "Leer romance scam herkennen met 7 praktische waarschuwingssignalen
 slug: "romance-scam-herkennen"
 author: "Redactie Liefde Voor Iedereen | Veiligheid & Preventie"
 date: 2026-06-29
+hasEasyRead: true
+easyReadContent: |
+  # Hoe herken je een romance scammer? 7 signalen
+
+  Stel je voor: je krijgt een bericht van een leuke man.
+  Hij heet Mark en is zakenman.
+  Jullie appen elke dag.
+  Het voelt alsof je hem al jaren kent.
+
+  Maar klopt het wel?
+  Soms is "Mark" niet wie hij zegt dat hij is.
+  Hij wil je geld.
+
+  Dit heet een **romance scam**.
+  Een romance scam is als iemand doet alsof hij verliefd op je is,
+  maar eigenlijk alleen je geld wil.
+
+  Wij geven jou 7 signalen.
+  Zo kun je een oplichter herkennen.
+
+  ## 1. Het profiel is te perfect
+
+  De foto's lijken op een model.
+  Het verhaal is te mooi: "Ik ben zakenman en woon in Londen."
+  Het account is vaak maar een paar dagen oud.
+
+  Wat kun je doen?
+  Vraag of je een nieuwe foto kunt krijgen.
+  Bij een **blauw vinkje** is het profiel gecontroleerd.
+
+  ## 2. Het gaat heel snel
+
+  Binnen een paar dagen zegt iemand:
+  "Jij bent de ware" of "Ik ben nog nooit zo verliefd geweest."
+  Ze willen meteen naar WhatsApp.
+
+  Wat kun je doen?
+  Echte liefde heeft geen haast.
+  Blijf rustig en neem de tijd.
+
+  ## 3. Ze willen niet afspreken
+
+  Elke keer als jullie willen afspreken, gaat het niet door.
+  "Mijn camera is stuk" of "Ik werk in het buitenland."
+  Videobellen? Dat lukt nooit.
+
+  Wat kun je doen?
+  Iemand die jou echt wil zien, zorgt dat het gebeurt.
+
+  ## 4. De verhalen kloppen niet
+
+  De ene keer zegt iemand dat hij in Amerika woont,
+  de andere keer in Londen.
+  Vraag je door? Dan wordt hij boos.
+
+  Wat kun je doen?
+  Stel gewoon vragen. Echte mensen hebben daar geen probleem mee.
+
+  ## 5. Geld! Geld! Geld!
+
+  Dit is het belangrijkste signaal.
+  Iemand vraagt om geld voor:
+  - Een vliegticket
+  - Een operatie
+  - Een cadeau dat vastzit bij de douane
+  - Een investering in een bedrijf
+
+  Wat kun je doen?
+  **Stuur nooit geld naar iemand die je online hebt ontmoet.**
+  Ook niet als het verhaal heel zielig klinkt.
+  Overleg altijd met je begeleider of iemand die je vertrouwt.
+
+  ## 6. Ze willen niet dat je met anderen praat
+
+  "Vertel het nog niet aan je familie."
+  "Onze relatie is privé."
+  Dat klinkt romantisch, maar het is gevaarlijk.
+
+  Wat kun je doen?
+  Praat altijd met iemand die je vertrouwt over je nieuwe date.
+  Lees ook onze [veilige LVB pagina](/veilig-daten-lvb).
+
+  ## 7. Geheimen, geheimen, geheimen
+
+  "Zeg maar niet dat je mij hebt ontmoet."
+  Of: "Houd onze relatie geheim voor je kinderen."
+  Dat is een groot alarmsignaal.
+
+  Wat kun je doen?
+  Een echte relatie is open en eerlijk.
+  Geheimen zijn niet oké.
+
+  ## Wat moet je doen?
+
+  Herken je één of meer signalen?
+  Doe dan dit:
+
+  1. **Stop met praten** — stuur geen berichten meer
+  2. **Maak screenshots** van de berichten (bewijs)
+  3. **Blokkeer het profiel** met de rode knop
+  4. **Bel de politie** als je geld hebt overgemaakt: 0900-8844
+  5. **Praat erover** — het is niet jouw schuld!
+  6. **Bel Slachtofferhulp** als je er verdrietig van bent: 0900-0101
+
+  ## Veelgestelde vragen
+
+  ### Hoe weet ik of iemand een oplichter is?
+  Gebruik de 7 signalen hierboven.
+  Let vooral op: snel praten over liefde, geen videocontact,
+  nooit willen afspreken, vragen om geld.
+
+  ### Ik heb al geld overgemaakt. Wat nu?
+  Bel meteen je bank! Vraag of ze het geld terug kunnen halen.
+  Bel dan de politie: 0900-8844.
+  Stop met praten met die persoon.
+
+  ### Is het mijn schuld?
+  Nee! Oplichters zijn heel overtuigend.
+  Zij doen dit de hele dag. Het is niet jouw fout.
+
+  *Bij twijfel: praat met iemand die je vertrouwt.
+  Echte liefde heeft geen haast en vraagt geen geld.*
 ---
 
 # Zo herken je een romance scam: 7 waarschuwingssignalen
