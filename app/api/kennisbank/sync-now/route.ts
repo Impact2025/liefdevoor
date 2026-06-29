@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 const ARTICLES = [
   {
     slug: 'veilig-online-daten',
@@ -41,7 +43,7 @@ export async function GET() {
   }
 
   const adminUser = await prisma.user.findFirst({
-    where: { role: 'ADMIN' },
+    where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
     select: { id: true, email: true },
   })
   if (!adminUser) {
