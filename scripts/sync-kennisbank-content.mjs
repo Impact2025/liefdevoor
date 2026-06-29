@@ -76,11 +76,15 @@ async function main() {
   const lvbCat = await prisma.knowledgeBaseCategory.findUnique({ where: { slug: 'inclusief-daten-lvb' } })
   if (!lvbCat) console.warn('⚠️  Inclusief-daten-lvb categorie niet gevonden, valt terug op veiligheid')
 
+  const adhdHspCat = await prisma.knowledgeBaseCategory.findUnique({ where: { slug: 'inclusief-daten-autisme' } })
+  if (!adhdHspCat) console.warn('⚠️  Inclusief-daten-autisme categorie niet gevonden')
+
   const categoryMap = {
     'veilig-online-daten.md': veiligheidCat.id,
     'romance-scam-herkennen.md': veiligheidCat.id,
     'waarom-liefde-voor-iedereen-anders.md': inclusiefCat?.id || veiligheidCat.id,
     'veilig-daten-lvb-faq.md': lvbCat?.id || veiligheidCat.id,
+    'daten-met-adhd-hsp-complete-gids.md': adhdHspCat?.id || inclusiefCat?.id || veiligheidCat.id,
   }
 
   for (const file of files) {

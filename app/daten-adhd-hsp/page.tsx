@@ -7,21 +7,25 @@ import { FaqAccordion } from './FaqAccordion'
 const BASE_URL = 'https://www.liefdevooriedereen.nl'
 
 export const metadata: Metadata = {
-  title: 'Daten met ADHD & HSP | Dating voor Hoogsensitieve & ADHD Singles',
-  description: 'Daten met ADHD of HSP op Liefde Voor Iedereen. Geen oordeel over impulsiviteit of gevoeligheid. Vind iemand die jou begrijpt. Gratis aanmelden.',
+  title: 'Daten met ADHD & HSP | Neurodiversiteit Dating | Liefde Voor Iedereen',
+  description: 'Daten met ADHD of als HSP hoogsensitief persoon. Vind dating zonder oordeel over impulsiviteit of gevoeligheid. Neurodiversiteit is hier de norm. Gratis aanmelden.',
   keywords: [
-    'daten adhd hsp',
-    'dating met adhd',
+    'daten met adhd',
     'hsp dating',
-    'dating hoogsensitief',
-    'adhd relatie',
+    'hoogsensitief daten',
+    'neurodiversiteit dating',
+    'adhd relatie tips',
     'daten als hsp',
     'dating neurodiversiteit',
-    'hsp partner vinden',
+    'hsp relatie',
     'adhd dating tips',
-    'hoogsensitief daten',
-    'dating adhd hoogsensitief',
-    'relatie adhd hsp',
+    'hoogsensitief in de liefde',
+    'partner met adhd',
+    'daten adhd hsp',
+    'neurodiversiteit en relaties',
+    'adhd en relaties',
+    'hsp partner vinden',
+    'datingsite neurodiversiteit',
   ],
   openGraph: {
     title: 'Daten met ADHD & HSP | Liefde Voor Iedereen',
@@ -30,7 +34,7 @@ export const metadata: Metadata = {
     siteName: 'Liefde Voor Iedereen',
     locale: 'nl_NL',
     type: 'website',
-    images: [{ url: `${BASE_URL}/images/og-adhd-hsp.jpg`, width: 1200, height: 630, alt: 'Daten met ADHD en HSP' }],
+    images: [{ url: `${BASE_URL}/api/og?title=Daten%20met%20ADHD%20%26%20HSP&description=Neurodiversiteit%20dating%20zonder%20oordeel`, width: 1200, height: 630, alt: 'Daten met ADHD en HSP' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -209,6 +213,25 @@ export default function DatenAdhdHspPage() {
                 Beide eigenschappen worden hier begrepen. Niet weggewuifd, niet gecorrigeerd.
               </p>
             </div>
+
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "HowTo",
+                  name: "Zo date je succesvol met ADHD of als HSP",
+                  description: "Stappenplan voor neurodiverse daters om fijne en veilige dates te hebben.",
+                  step: [
+                    { "@type": "HowToStep", position: 1, name: "Kies het juiste platform", text: "Kies een platform dat neurodiversiteit begrijpt. Liefde Voor Iedereen is ontworpen voor ADHD- en HSP-daters." },
+                    { "@type": "HowToStep", position: 2, name: "Stel een eerlijk profiel op", text: "Schrijf wie je bent. Vermeld je ADHD of HSP als het goed voelt. Eerlijkheid trekt de juiste mensen aan." },
+                    { "@type": "HowToStep", position: 3, name: "Bepaal je eigen tempo", text: "Jij bepaalt wanneer je reageert. HSP: vaste momenten. ADHD: gebruik hyperfocus voor goede gesprekken." },
+                    { "@type": "HowToStep", position: 4, name: "Kies een passende date", text: "Rustig café voor HSP, actieve wandeling voor ADHD. Vermijd overprikkelende plekken." },
+                    { "@type": "HowToStep", position: 5, name: "Communiceer duidelijk", text: "Wees eerlijk. ADHD: directe communicatie. HSP: diepgang en rust. Een goede match begrijpt dit." },
+                  ],
+                }),
+              }}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <article className="border border-slate-200 rounded-2xl p-8">
