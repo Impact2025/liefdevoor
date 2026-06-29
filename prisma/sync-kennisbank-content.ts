@@ -37,7 +37,7 @@ async function main() {
   if (!veiligheidCategory) { console.error('❌ Veiligheid categorie niet gevonden'); process.exit(1) }
 
   const adminUser = await prisma.user.findFirst({
-    where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+    where: { role: 'ADMIN' },
     select: { id: true, email: true },
   })
   if (!adminUser) {

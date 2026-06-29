@@ -57,7 +57,7 @@ async function main() {
 
   // Get eerste admin user for authorId
   const adminUser = await prisma.user.findFirst({
-    where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+    where: { role: 'ADMIN' },
     select: { id: true, name: true, email: true },
   })
   if (!adminUser) {
