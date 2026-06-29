@@ -5,10 +5,8 @@ import * as path from 'path'
 
 /**
  * Sync markdown knowledge base articles to database.
- * Runs on Vercel infrastructure where DATABASE_URL is set (no local auth issues).
- * 
- * POST /api/admin/kennisbank/sync-markdown
- * GET  /api/admin/kennisbank/sync-markdown (dry-run)
+ * POST /api/kennisbank/sync-markdown  - execute
+ * GET  /api/kennisbank/sync-markdown   - dry-run
  */
 
 export async function POST(request: NextRequest) {
@@ -21,7 +19,7 @@ export async function GET(request: NextRequest) {
 
 async function syncArticles(dryRun: boolean) {
   const BASE = path.resolve(process.cwd(), 'content/kennisbank')
-  
+
   if (!fs.existsSync(BASE)) {
     return NextResponse.json({ success: false, error: 'Content directory not found' }, { status: 404 })
   }
@@ -29,7 +27,6 @@ async function syncArticles(dryRun: boolean) {
   const files = fs.readdirSync(BASE).filter(f => f.endsWith('.md'))
   const results: { slug: string; status: string; error?: string }[] = []
 
-  // Get veiligheid category
   const veiligheidCategory = await prisma.knowledgeBaseCategory.findUnique({
     where: { slug: 'veiligheid' },
   })
@@ -37,7 +34,6 @@ async function syncArticles(dryRun: boolean) {
     return NextResponse.json({ success: false, error: 'Veiligheid category not found in DB' }, { status: 500 })
   }
 
-  // Find first admin user as author
   const adminUser = await prisma.user.findFirst({
     where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
     select: { id: true, email: true },
@@ -50,13 +46,8 @@ async function syncArticles(dryRun: boolean) {
     try {
       const filePath = path.join(BASE, file)
       const content = fs.readFileSync(filePath, 'utf-8')
-      
-      // Parse frontmatter
       const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
-      if (!match) {
-        results.push({ slug: file, status: 'skipped', error: 'No frontmatter' })
-        continue
-      }
+      if (!match) { results.push({ slug: file, status: 'skipped', error: 'No frontmatter' }); continue }
 
       const frontmatter: Record<string, string> = {}
       for (const line of match[1].split('\n')) {
@@ -73,15 +64,11 @@ async function syncArticles(dryRun: boolean) {
 
       if (dryRun) {
         const existing = await prisma.knowledgeBaseArticle.findUnique({ where: { slug } })
-        results.push({
-          slug,
-          status: existing ? 'would-update' : 'would-create',
-        })
+        results.push({ slug, status: existing ? 'would-update' : 'would-create' })
         continue
       }
 
       const existing = await prisma.knowledgeBaseArticle.findUnique({ where: { slug } })
-
       if (existing) {
         await prisma.knowledgeBaseArticle.update({
           where: { slug },
