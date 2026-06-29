@@ -9,7 +9,7 @@ const ARTICLES = [
     title: 'Alles over veilig online daten: zo bescherm jij jezelf',
     titleNl: 'Alles over veilig online daten: zo bescherm jij jezelf',
     excerptNl: 'Veilig online daten begint bij goede voorbereiding. Lees hoe je nep profielen herkent, je privacy beschermt en veilig afspreekt.',
-    metaTitle: 'Veilig Online Daten: zo bescherm jij jezelf | Liefde Voor Iedereen',
+    metaTitle: 'Veilig Online Daten: bescherm jezelf | Liefde Voor Iedereen',
     metaDescription: 'Veilig online daten: zo herken je nep profielen, bescherm je privacy en plan je een veilige eerste date.',
     isPillarPage: true,
   },
@@ -43,7 +43,7 @@ export async function GET() {
   }
 
   const adminUser = await prisma.user.findFirst({
-    where: { role: 'ADMIN' },
+    where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
     select: { id: true, email: true },
   })
   if (!adminUser) {
