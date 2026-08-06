@@ -3,6 +3,7 @@
  */
 
 import { Metadata } from 'next'
+import { canonical } from '@/lib/site-url'
 
 export const metadata: Metadata = {
   title: 'Gratis Aanmelden - Liefde Voor Iedereen',
@@ -11,11 +12,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Gratis Aanmelden - Liefde Voor Iedereen',
     description: 'Start vandaag gratis met online daten',
-    url: 'https://liefdevooriedereen.nl/register',
+    url: canonical('/register'),
     type: 'website',
     images: [
       {
-        url: 'https://liefdevooriedereen.nl/og-register.png',
+        url: canonical('/og-register.png'),
         width: 1200,
         height: 630,
         alt: 'Gratis aanmelden bij Liefde Voor Iedereen',
@@ -26,10 +27,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Gratis Aanmelden - Liefde Voor Iedereen',
     description: 'Start vandaag gratis met online daten',
-    images: ['https://liefdevooriedereen.nl/og-register.png'],
+    images: [canonical('/og-register.png')],
   },
   alternates: {
-    canonical: 'https://liefdevooriedereen.nl/register',
+    canonical: canonical('/register'),
   },
   robots: {
     index: true,

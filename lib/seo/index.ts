@@ -1,6 +1,7 @@
 export {
   generateArticleMetadata,
   generateCategoryMetadata,
+  buildPageTitle,
   type ArticleMetadataOptions,
   type CategoryMetadataOptions,
 } from './metadata'

@@ -8,40 +8,51 @@
  */
 
 import { MetadataRoute } from 'next'
+import { SITE_URL } from '@/lib/site-url'
+
+/**
+ * Privé- en accountroutes die geen enkele crawler hoort te indexeren.
+ *
+ * Eén gedeelde lijst, want in robots.txt geldt per bot uitsluitend de meest
+ * specifieke user-agent groep. Er stond een aparte Googlebot-regel met een
+ * kortere disallow-lijst, waardoor Googlebot juist méér mocht crawlen dan de
+ * sterretjes-regel toestond: /settings, /likes, /subscription en /welkom waren
+ * voor Google gewoon open.
+ */
+const PRIVE_PADEN = [
+  '/api/*',           // API endpoints
+  '/admin/*',         // Admin panel
+  '/discover/*',      // Authenticated discovery
+  '/matches/*',       // User matches
+  '/chat/*',          // Private chats
+  '/profile/*',       // User profiles
+  '/onboarding/*',    // Onboarding flow
+  '/settings/*',      // User settings
+  '/search/*',        // Authenticated search
+  '/likes/*',         // User likes
+  '/notifications/*', // User notifications
+  '/subscription/*',  // Billing/subscription flow
+  '/verify-email/*',  // Email verification flow
+  '/forgot-password/*',
+  '/reset-password/*',
+  '/welkom/*',        // Post-signup onboarding
+  '/_next/*',         // Next.js internals
+  '/vercel.svg',      // Assets
+  '/next.svg',
+]
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.liefdevooriedereen.nl'
-
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/api/*',           // API endpoints
-          '/admin/*',         // Admin panel
-          '/discover/*',      // Authenticated discovery
-          '/matches/*',       // User matches
-          '/chat/*',          // Private chats
-          '/profile/*',       // User profiles
-          '/onboarding/*',    // Onboarding flow
-          '/settings/*',      // User settings
-          '/_next/*',         // Next.js internals
-          '/vercel.svg',      // Assets
-          '/next.svg',
-        ],
+        disallow: PRIVE_PADEN,
       },
-      // Specific rules for good bots
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: [
-          '/api/*',
-          '/admin/*',
-          '/discover/*',
-          '/matches/*',
-          '/chat/*',
-        ],
+        disallow: PRIVE_PADEN,
       },
       // Block bad bots
       {
@@ -54,7 +65,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   }
 }

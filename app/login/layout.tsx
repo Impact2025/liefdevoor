@@ -3,6 +3,7 @@
  */
 
 import { Metadata } from 'next'
+import { canonical } from '@/lib/site-url'
 
 export const metadata: Metadata = {
   title: 'Inloggen - Liefde Voor Iedereen',
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Inloggen - Liefde Voor Iedereen',
     description: 'Log in op je account en ontdek lokale singles',
-    url: 'https://liefdevooriedereen.nl/login',
+    url: canonical('/login'),
     type: 'website',
   },
   twitter: {
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     description: 'Log in op je account en ontdek lokale singles',
   },
   alternates: {
-    canonical: 'https://liefdevooriedereen.nl/login',
+    canonical: canonical('/login'),
   },
   robots: {
     index: true,
