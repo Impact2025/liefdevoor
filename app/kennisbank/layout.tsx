@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { canonical } from '@/lib/site-url'
 
 export const metadata: Metadata = {
   title: {
@@ -12,14 +13,14 @@ export const metadata: Metadata = {
     description: 'De complete dating encyclopedie van Nederland. Veiligheid, inclusiviteit, en praktische tips.',
     type: 'website',
     locale: 'nl_NL',
-    url: 'https://liefdevooriedereen.nl/kennisbank',
+    url: canonical('/kennisbank'),
   },
   robots: {
     index: true,
     follow: true,
   },
   alternates: {
-    canonical: 'https://liefdevooriedereen.nl/kennisbank',
+    canonical: canonical('/kennisbank'),
   },
 }
 

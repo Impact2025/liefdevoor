@@ -9,9 +9,26 @@
 
 import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
+import { alleDoelgroepen } from '@/lib/doelgroepen-data'
+import { SITE_URL } from '@/lib/site-url'
+
+/**
+ * Houdt per URL alleen de eerste vermelding over. De statische lijst en de
+ * database-categorieën overlapten (/kennisbank/begrippen, /kennisbank/tools) en
+ * /veilig-daten-lvb stond zowel hardcoded als via alleDoelgroepen in de sitemap.
+ */
+function dedupe(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
+  const gezien = new Set<string>()
+  return entries.filter((entry) => {
+    const url = entry.url.replace(/\/+$/, '')
+    if (gezien.has(url)) return false
+    gezien.add(url)
+    return true
+  })
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.liefdevooriedereen.nl'
+  const baseUrl = SITE_URL
 
   // Fetch kennisbank categories
   let kennisbankCategories: any[] = []
@@ -69,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [
+  return dedupe([
     // Homepage - Highest Priority
     {
       url: baseUrl,
@@ -111,6 +128,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    // Doelgroep landingpagina's (autisme, beperking, burnout, slechtziend,
+    // alleenstaande ouders, 50+) — al eerder ontbrekend terwijl ze al
+    // meetbaar zoekverkeer trekken, zie SEO-audit.
+    ...alleDoelgroepen
+      // /dating-met-adhd redirect 301 naar /daten-adhd-hsp; een sitemap hoort
+      // geen doorverwijzende URL's te bevatten.
+      .filter((doelgroep) => doelgroep.slug !== 'dating-met-adhd')
+      .map((doelgroep) => ({
+        url: `${baseUrl}/${doelgroep.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.85,
+      })),
     {
       url: `${baseUrl}/ambassadeur`,
       lastModified: new Date(),
@@ -270,5 +300,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Dynamic Blog Posts
     ...blogPostUrls,
-  ]
+  ])
 }

@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { getDoelgroepBySlug, alleDoelgroepen } from '@/lib/doelgroepen-data'
+import { SITE_URL } from '@/lib/site-url'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -16,7 +17,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: data.metaTitle,
+    // absolute: de root-layout plakt er anders nóg een "| Liefde Voor Iedereen"
+    // achter, wat de title over de SERP-limiet duwde.
+    title: { absolute: `${data.metaTitle} | Liefde Voor Iedereen` },
     description: data.metaDescription,
     keywords: data.contentTags.join(', '),
     openGraph: {
@@ -40,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: data.metaDescription,
     },
     alternates: {
-      canonical: `https://liefdevooriedereen.nl/${data.slug}`,
+      canonical: `${SITE_URL}/${data.slug}`,
     },
   }
 }

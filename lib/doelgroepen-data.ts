@@ -36,6 +36,14 @@ export interface DoelgroepData {
   metaTitle: string
   metaDescription: string
 
+  /**
+   * Zoekwoordgerichte H1. De heroTitle is emotionele copy zonder zoekwoord,
+   * waardoor deze pagina's op positie 20-50 bleven hangen terwijl de
+   * handgebouwde /veilig-daten-lvb (H1 "Veilig Daten met LVB") wel scoort.
+   * Staat deze gezet, dan wordt de heroTitle de zichtbare subkop.
+   */
+  seoH1?: string
+
   // Hero Section
   heroTitle: string
   heroSubtitle: string
@@ -80,9 +88,10 @@ export const autismeData: DoelgroepData = {
   slug: 'dating-met-autisme',
   zuil: 'neurodiversiteit',
 
-  metaTitle: 'Dating met Autisme | Liefde Voor Iedereen',
-  metaDescription: 'Vind liefde die jouw taal spreekt. Dating zonder onduidelijke signalen, met focus op eerlijkheid en duidelijke communicatie. Speciaal voor mensen met autisme.',
+  metaTitle: 'Daten met Autisme: Datingsite zonder Spelletjes',
+  metaDescription: 'Daten met autisme zonder onduidelijke signalen. Een Nederlandse datingsite met duidelijke communicatie, rust in het tempo en leden die je niet hoeven te begrijpen — ze snappen het al.',
 
+  seoH1: 'Daten met Autisme',
   heroTitle: 'Vind liefde die jouw taal spreekt',
   heroSubtitle: 'Dating zonder spelletjes',
   heroPainPoint: 'Moe van onduidelijke signalen op Tinder? Hier draait het om eerlijkheid en duidelijke communicatie.',
@@ -143,9 +152,10 @@ export const adhdData: DoelgroepData = {
   slug: 'dating-met-adhd',
   zuil: 'neurodiversiteit',
 
-  metaTitle: 'Dating met ADHD | Liefde Voor Iedereen',
+  metaTitle: 'Daten met ADHD: Dating zonder Oordeel',
   metaDescription: 'Dating met ADHD kan overweldigend zijn. Wij begrijpen dat. Vind iemand die jouw energie waardeert en niet afschrikt van je spontaniteit.',
 
+  seoH1: 'Daten met ADHD',
   heroTitle: 'Jouw energie is een superkracht',
   heroSubtitle: 'Dating zonder oordeel',
   heroPainPoint: 'Snel afgeleid of juist hyperfocused op liefde? Wij snappen het. Hier word je niet veroordeeld.',
@@ -195,9 +205,10 @@ export const lvbData: DoelgroepData = {
   slug: 'veilig-daten-lvb',
   zuil: 'cognitief',
 
-  metaTitle: 'Veilig Daten met Begeleiding | Liefde Voor Iedereen',
+  metaTitle: 'Veilig Daten met LVB: Datingsite met Begeleiding',
   metaDescription: 'Veilig daten met extra uitleg en hulp. Duidelijke knoppen, eenvoudige tekst en begeleiding wanneer je dat wilt. Voor iedereen die het rustig aan wil doen.',
 
+  seoH1: 'Veilig Daten met LVB',
   heroTitle: 'Veilig daten doe je hier',
   heroSubtitle: 'Met hulp wanneer je wilt',
   heroPainPoint: 'Andere apps zijn ingewikkeld. Wij maken het makkelijk en veilig.',
@@ -265,9 +276,10 @@ export const slechtziendData: DoelgroepData = {
   slug: 'dating-voor-slechtzienden',
   zuil: 'fysiek',
 
-  metaTitle: 'Dating voor Slechtzienden & Blinden | Liefde Voor Iedereen',
+  metaTitle: 'Daten voor Blinden en Slechtzienden',
   metaDescription: 'Volledig toegankelijke dating met screenreader ondersteuning, audio profielen en text-to-speech. Liefde zien we met het hart.',
 
+  seoH1: 'Daten voor Blinden en Slechtzienden',
   heroTitle: 'Liefde zien we met het hart',
   heroSubtitle: 'Volledig toegankelijk',
   heroPainPoint: 'De meeste dating apps zijn niet gebouwd voor screenreaders. Wij wel.',
@@ -332,9 +344,10 @@ export const beperkingData: DoelgroepData = {
   slug: 'dating-met-beperking',
   zuil: 'fysiek',
 
-  metaTitle: 'Dating met een Beperking | Liefde Voor Iedereen',
-  metaDescription: 'Kijk verder dan de beperking. Een dating platform waar toegankelijkheid de standaard is. Voor rolstoelgebruikers, mensen met een chronische ziekte en iedereen die erbij hoort.',
+  metaTitle: 'Datingsite voor Mensen met een Beperking',
+  metaDescription: 'Daten met een beperking op een Nederlandse datingsite waar toegankelijkheid de standaard is. Voor rolstoelgebruikers, mensen met een chronische ziekte en iedereen die er gewoon bij hoort.',
 
+  seoH1: 'Daten met een Beperking',
   heroTitle: 'Kijk verder dan de beperking',
   heroSubtitle: 'Toegankelijkheid is hier de standaard',
   heroPainPoint: 'Op andere apps wordt je beperking het eerste wat mensen zien. Hier leren ze eerst jou kennen.',
@@ -395,9 +408,10 @@ export const burnoutData: DoelgroepData = {
   slug: 'daten-met-burnout',
   zuil: 'mentaal',
 
-  metaTitle: 'Daten met Burn-out | Liefde Voor Iedereen',
+  metaTitle: 'Daten met Burn-out: Dating op Jouw Tempo',
   metaDescription: 'Je hoeft niet perfect te zijn om liefde te vinden. Dating op jouw tempo, met begrip voor waar je doorheen gaat.',
 
+  seoH1: 'Daten met Burn-out',
   heroTitle: 'Je hoeft niet perfect te zijn',
   heroSubtitle: 'Dating op jouw tempo',
   heroPainPoint: '"Ik ben niet energiek genoeg voor dates." Wij snappen het. Hier mag je zijn wie je bent, ook op moeilijke dagen.',
@@ -443,9 +457,10 @@ export const alleenstaandeOudersData: DoelgroepData = {
   slug: 'dating-alleenstaande-ouders',
   zuil: 'mentaal',
 
-  metaTitle: 'Dating voor Alleenstaande Ouders | Liefde Voor Iedereen',
+  metaTitle: 'Daten als Alleenstaande Ouder: Serieus Daten',
   metaDescription: 'Je kinderen zijn geen dealbreaker, maar deel van wie je bent. Vind iemand die dat begrijpt en waardeert.',
 
+  seoH1: 'Daten als Alleenstaande Ouder',
   heroTitle: 'Je kinderen zijn een bonus',
   heroSubtitle: 'Liefde vinden als ouder',
   heroPainPoint: 'Op andere apps voelt het alsof kinderen een nadeel zijn. Hier zijn ze deel van het verhaal.',
@@ -495,9 +510,10 @@ export const vijftigPlusData: DoelgroepData = {
   slug: 'dating-50-plus',
   zuil: 'mentaal',
 
-  metaTitle: '50+ Dating | Liefde Voor Iedereen',
+  metaTitle: 'Daten 50 Plus: Serieuze Dating voor 50-plussers',
   metaDescription: 'Nooit te laat voor de liefde. Een serieus dating platform voor 50-plussers die op zoek zijn naar een betekenisvolle connectie.',
 
+  seoH1: 'Daten 50 Plus',
   heroTitle: 'Nooit te laat voor liefde',
   heroSubtitle: 'Serieuze dating voor 50+',
   heroPainPoint: 'De meeste dating apps voelen als een jongerenfeestje. Wij zijn er voor volwassen liefde.',
@@ -544,10 +560,12 @@ export const vijftigPlusData: DoelgroepData = {
 // ALLE DOELGROEPEN EXPORT
 // =============================================================================
 
+// adhdData en lvbData zijn hier bewust uitgesloten: ADHD heeft een eigen,
+// uitgebreidere static route op /daten-adhd-hsp en LVB op /veilig-daten-lvb.
+// Die routes winnen toch van deze catch-all, dus meedraaien hier levert
+// alleen een dode, onbereikbare tweede URL per doelgroep op (zie SEO-audit).
 export const alleDoelgroepen: DoelgroepData[] = [
   autismeData,
-  adhdData,
-  lvbData,
   slechtziendData,
   beperkingData,
   burnoutData,

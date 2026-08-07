@@ -24,7 +24,9 @@
     "postinstall": "prisma generate",
     "rotate-credentials": "node scripts/rotate-credentials.js",
     "security-check": "npm audit && npm run lint && npm run test:security",
-    "seed:demo": "tsx scripts/create-demo-accounts.ts"
+    "seed:demo": "tsx scripts/create-demo-accounts.ts",
+    "seo:gsc": "node scripts/gsc-report.mjs",
+    "seo:consolidate": "node scripts/seo-consolidate-duplicates.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

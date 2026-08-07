@@ -1,5 +1,25 @@
 import { Metadata } from 'next';
 
+const BRAND = 'Liefde Voor Iedereen';
+
+/**
+ * Bouwt de complete <title>. Nodig omdat de kennisbank-layout een template
+ * ('%s | Kennisbank - Liefde Voor Iedereen') toepast bovenop metaTitles die het
+ * merk vaak al bevatten. Dat gaf titels als
+ * "Romance Scams Herkennen: 7 Signalen | Liefde Voor Iedereen | Kennisbank -
+ * Liefde Voor Iedereen" — ruim over de SERP-limiet, met het zoekwoord
+ * weggekapt. Door een absolute title terug te geven omzeilen we de template en
+ * staat het merk er precies één keer achter.
+ */
+export function buildPageTitle(rawTitle: string): string {
+  const base = rawTitle
+    .replace(/\s*[|–-]\s*Kennisbank\s*[-–|]\s*Liefde Voor Iedereen\s*$/i, '')
+    .replace(/\s*[|–-]\s*Liefde Voor Iedereen\s*$/i, '')
+    .trim();
+
+  return `${base} | ${BRAND}`;
+}
+
 export interface ArticleMetadataOptions {
   title: string;
   description: string;
@@ -33,7 +53,7 @@ export function generateArticleMetadata(options: ArticleMetadataOptions): Metada
     : `${baseUrl}/og-image.png`;
 
   return {
-    title,
+    title: { absolute: buildPageTitle(title) },
     description,
     keywords: keywords.length > 0 ? keywords.join(', ') : undefined,
     authors: [{ name: author }],
@@ -104,7 +124,7 @@ export function generateCategoryMetadata(options: CategoryMetadataOptions): Meta
     : `${baseUrl}/og-image.png`;
 
   return {
-    title,
+    title: { absolute: buildPageTitle(title) },
     description,
     keywords: keywords.length > 0 ? keywords.join(', ') : undefined,
     openGraph: {

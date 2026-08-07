@@ -198,6 +198,29 @@ const nextConfig = {
         destination: '/admin',
         permanent: false,
       },
+      // Doelgroep-URL's: canoniseer naar de uitgebreide static routes
+      // zodat er per doelgroep maar één indexeerbare URL is (zie SEO-audit).
+      {
+        source: '/dating-met-adhd',
+        destination: '/daten-adhd-hsp',
+        permanent: true,
+      },
+      // Kennisbank: dubbele pillar pages over hetzelfde onderwerp. Beide
+      // varianten kregen vertoningen op dezelfde zoekwoorden en bleven daardoor
+      // allebei op pagina 2 hangen. We consolideren naar de sterkste van de twee
+      // (meeste content + beste positie/CTR in Search Console).
+      {
+        // 4.5k tekens, positie 14, CTR 0,7% -> naar de 13k-versie op positie 6,7
+        source: '/kennisbank/veiligheid/romance-scams-herkennen-complete-gids',
+        destination: '/kennisbank/veiligheid/romance-scam-herkennen',
+        permanent: true,
+      },
+      {
+        // 1,5k tekens dunne variant -> naar de uitgebreide gids
+        source: '/kennisbank/inclusief-daten/daten-met-autisme-gids',
+        destination: '/kennisbank/inclusief-daten/daten-met-autisme-complete-gids',
+        permanent: true,
+      },
     ];
   },
 
