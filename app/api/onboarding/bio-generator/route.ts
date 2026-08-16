@@ -88,7 +88,7 @@ Geef alleen de bio tekst terug, geen aanhalingstekens of extra uitleg.`;
         'X-Title': 'Liefde Voor Iedereen Dating App',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: 'anthropic/claude-haiku-4.5',
         messages: [
           {
             role: 'user',

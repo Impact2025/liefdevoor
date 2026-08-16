@@ -7,14 +7,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { sendReEngagementEmails } from '@/lib/cron/re-engagement'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 
 export const maxDuration = 300 // 5 minutes
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCronRequest(request)) {
     console.error('[Cron] Unauthorized re-engagement attempt')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

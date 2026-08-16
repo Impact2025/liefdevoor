@@ -18,6 +18,14 @@ const ONBOARDING_ROUTES = [
   '/onboarding',
 ]
 
+// Routes that call an LLM and therefore burn API credits.
+// These live outside /api/ai/* but must share the stricter AI rate limit.
+const LLM_BACKED_ROUTES = [
+  '/api/onboarding/bio-generator',
+  '/api/onboarding/generate-profile',
+  '/api/chatbot/chat',
+]
+
 // Public routes that don't require auth
 const PUBLIC_ROUTES = [
   '/login',
@@ -58,7 +66,10 @@ async function middleware(request: NextRequest) {
       rateLimit = await rateLimiters.api(request)  // 100/min instead of 5/min
     } else if (pathname.includes('/auth/') || pathname.includes('/register')) {
       rateLimit = await rateLimiters.auth(request)
-    } else if (pathname.includes('/ai/')) {
+    } else if (
+      pathname.includes('/ai/') ||
+      LLM_BACKED_ROUTES.some(route => pathname.startsWith(route))
+    ) {
       rateLimit = await rateLimiters.ai(request)
     } else if (pathname.includes('/report')) {
       rateLimit = await rateLimiters.report(request)
@@ -191,6 +202,8 @@ export const config = {
     '/api/chat/:path*',
     '/api/report/:path*',
     '/api/ai/:path*',
+    '/api/onboarding/:path*',
+    '/api/chatbot/:path*',
     '/api/cron/:path*',
   ],
 }

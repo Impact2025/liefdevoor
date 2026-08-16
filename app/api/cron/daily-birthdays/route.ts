@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { sendAllBirthdayEmails } from '@/lib/email/birthday-system'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -18,10 +19,7 @@ export async function GET(request: NextRequest) {
     console.log('[Cron] Birthday email job started')
 
     // Security: Check authorization header (Vercel Cron Secret)
-    const authHeader = request.headers.get('authorization')
-    const expectedAuth = `Bearer ${process.env.CRON_SECRET || 'dev-secret-change-in-production'}`
-
-    if (authHeader !== expectedAuth) {
+    if (!isAuthorizedCronRequest(request)) {
       console.warn('[Cron] Unauthorized attempt to run birthday job')
       return NextResponse.json(
         { error: 'Unauthorized' },

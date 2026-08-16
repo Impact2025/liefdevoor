@@ -156,7 +156,7 @@ Geef precies 3 profielen, gescheiden door "---".`;
         'X-Title': 'Liefde Voor Iedereen - Profile Generator',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: 'anthropic/claude-haiku-4.5',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },

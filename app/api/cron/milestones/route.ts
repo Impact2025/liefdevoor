@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { checkActivityMilestones } from '@/lib/email/milestone-triggers'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120 // 2 minutes
@@ -17,12 +18,8 @@ export const maxDuration = 120 // 2 minutes
 export async function GET(request: NextRequest) {
   try {
     // Verify cron secret
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      const vercelCron = request.headers.get('x-vercel-cron')
-      if (!vercelCron && process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    if (!isAuthorizedCronRequest(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[Cron] Starting activity milestones check...')

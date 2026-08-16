@@ -63,7 +63,7 @@ export async function optimizeBlogContent(
           'X-Title': 'Wereldklasse Dating App - Blog Optimizer',
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-3-haiku',
+          model: 'anthropic/claude-haiku-4.5',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 4000,
           temperature: 0.7,

@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { processDailyMigrationEmails, getMigrationDashboardStats } from '@/lib/migration/migration-engine'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 minutes for processing all emails
@@ -18,12 +19,8 @@ export const maxDuration = 300 // 5 minutes for processing all emails
 export async function GET(request: NextRequest) {
   try {
     // Verify cron secret
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      const vercelCron = request.headers.get('x-vercel-cron')
-      if (!vercelCron && process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    if (!isAuthorizedCronRequest(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[Cron] Starting migration email campaign processing...')
@@ -66,8 +63,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify authorization
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!isAuthorizedCronRequest(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

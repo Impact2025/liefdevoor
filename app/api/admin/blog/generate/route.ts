@@ -225,7 +225,7 @@ Begin nu met het schrijven van de blog post over "${primaryKeyword}".`;
             'X-Title': 'Wereldklasse Dating App',
           },
           body: JSON.stringify({
-            model: 'anthropic/claude-3-haiku',
+            model: 'anthropic/claude-haiku-4.5',
             messages: [
               {
                 role: 'user',

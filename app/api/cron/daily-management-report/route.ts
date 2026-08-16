@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { render } from '@react-email/render'
 import { sendEmail } from '@/lib/email/send'
 import DailyManagementReport from '@/lib/email/templates/admin/daily-management-report'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 
 /**
  * Daily Management Report Cron Job
@@ -15,10 +16,8 @@ import DailyManagementReport from '@/lib/email/templates/admin/daily-management-
 export async function GET(request: Request) {
   try {
     // Verify cron secret
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!isAuthorizedCronRequest(request)) {
       console.log('[Daily Report] Unauthorized cron request')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

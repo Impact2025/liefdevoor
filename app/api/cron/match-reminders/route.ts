@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 import {
   sendNewMatchReminders,
   sendUnansweredMessageReminders,
@@ -22,13 +23,8 @@ export const maxDuration = 300 // 5 minutes
 export async function GET(request: NextRequest) {
   try {
     // Verify cron secret
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      // Also allow Vercel cron
-      const vercelCron = request.headers.get('x-vercel-cron')
-      if (!vercelCron && process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    if (!isAuthorizedCronRequest(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[Cron] Starting match reminders job...')

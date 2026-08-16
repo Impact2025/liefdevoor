@@ -7,14 +7,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { autoEndABTests } from '@/lib/email/ab-testing'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 
 export const maxDuration = 60 // 1 minute
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCronRequest(request)) {
     console.error('[Cron] Unauthorized A/B test check attempt')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

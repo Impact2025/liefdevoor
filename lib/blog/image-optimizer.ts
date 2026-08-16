@@ -199,7 +199,7 @@ Geef alleen de alt text terug, geen extra tekst.`
         'X-Title': 'Wereldklasse Dating App - Alt Text Generator',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: 'anthropic/claude-haiku-4.5',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 100,
         temperature: 0.7,

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import {
   searchFAQArticles,
-  generateChatbotResponse,
+  generateAIChatbotResponse,
   isGreeting,
   getGreetingResponse
 } from '@/lib/chatbot-ai'
@@ -116,8 +116,8 @@ export async function POST(request: NextRequest) {
     // Search FAQ for relevant articles
     const relevantArticles = await searchFAQArticles(message)
 
-    // Generate AI response
-    const aiResponse = await generateChatbotResponse({
+    // Generate AI response (falls back to rule-based when the LLM is unavailable)
+    const aiResponse = await generateAIChatbotResponse({
       userMessage: message,
       conversationHistory: conversation.messages.map(m => ({
         role: m.role,
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         conversationId: conversation.id,
         role: 'assistant',
         content: aiResponse.message,
-        wasAIGenerated: true,
+        wasAIGenerated: aiResponse.usedAI ?? false,
         suggestedArticles: aiResponse.suggestedArticleIds
       }
     })

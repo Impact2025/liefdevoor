@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getPlanById } from '@/lib/pricing'
+import { isAuthorizedCronRequest } from '@/lib/cron-auth'
 import {
   sendSubscriptionExpiredEmail,
   sendSubscriptionExpiringEmail,
@@ -17,10 +18,8 @@ import {
  */
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!isAuthorizedCronRequest(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

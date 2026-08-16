@@ -136,7 +136,7 @@ Geef output als JSON (geen markdown, geen \`\`\`):
         'X-Title': 'Liefde Voor Iedereen SEO Assistant',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: 'anthropic/claude-haiku-4.5',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1500,
         temperature: 0.3,

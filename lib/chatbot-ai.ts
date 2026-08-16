@@ -14,6 +14,8 @@ interface ChatbotResponse {
   message: string
   suggestedArticleIds: string[]
   suggestEscalation: boolean
+  /** True when the answer came from the LLM, false for rule-based fallback */
+  usedAI?: boolean
 }
 
 /**
@@ -97,7 +99,8 @@ Als je antwoord niet compleet is, kan ik je vraag doorsturen naar ons support te
     return {
       message,
       suggestedArticleIds: relevantArticles.map(a => a.id),
-      suggestEscalation: false
+      suggestEscalation: false,
+      usedAI: false
     }
   }
 
@@ -132,7 +135,8 @@ Ik kan je vraag doorsturen naar ons support team, zodat een medewerker je persoo
 Wil je een support ticket aanmaken?
       `.trim(),
       suggestedArticleIds: [],
-      suggestEscalation: true
+      suggestEscalation: true,
+      usedAI: false
     }
   }
 
@@ -146,7 +150,8 @@ Kun je je vraag misschien anders formuleren? Of vertel me meer details, dan kan 
 Je kunt ook onze veelgestelde vragen doorbladeren, of ik kan je vraag doorsturen naar het support team.
     `.trim(),
     suggestedArticleIds: [],
-    suggestEscalation: false
+    suggestEscalation: false,
+    usedAI: false
   }
 }
 
@@ -233,7 +238,7 @@ ${faqContext ? `**Beschikbare FAQ Kennisbank:**\n${faqContext}` : '**Geen releva
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet', // or 'openai/gpt-4-turbo'
+        model: 'anthropic/claude-haiku-4.5',
         messages,
         temperature: 0.7,
         max_tokens: 400
@@ -262,7 +267,8 @@ ${faqContext ? `**Beschikbare FAQ Kennisbank:**\n${faqContext}` : '**Geen releva
     return {
       message: aiMessage,
       suggestedArticleIds: relevantArticles.map(a => a.id),
-      suggestEscalation
+      suggestEscalation,
+      usedAI: true
     }
   } catch (error) {
     console.error('Error calling OpenRouter AI:', error)

@@ -101,7 +101,7 @@ Geef je antwoord als geldig JSON (geen markdown):
           'X-Title': 'Wereldklasse Dating App',
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-3-haiku',
+          model: 'anthropic/claude-haiku-4.5',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 1000,
           temperature: 0.3,
