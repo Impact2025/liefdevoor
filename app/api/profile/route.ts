@@ -3,6 +3,7 @@ import { requireAuth, successResponse, handleApiError, validationError } from '@
 import { prisma } from '@/lib/prisma'
 import type { UserProfile, UserPreferences, PsychProfileData, DealbreakersData } from '@/lib/types'
 import type { Gender, ConflictStyle } from '@prisma/client'
+import { applyPrefsToUser } from '@/lib/user-preferences'
 
 // Geocode postcode to lat/lng
 async function geocodePostcode(postcode: string): Promise<{ lat: number; lng: number } | null> {
@@ -238,6 +239,16 @@ async function updateProfile(userId: string, data: ProfileUpdateData): Promise<U
   if (interests !== undefined) updateData.interests = interests ? interests.trim() : null
   // Prisma handles JSON serialization automatically for Json fields - don't use JSON.stringify()
   if (preferences !== undefined) updateData.preferences = preferences || null
+
+  // BUG-FIX: houd user.lookingFor / minAgePreference / maxAgePreference in sync met de
+  // preferences-JSON, zodat discover (normalizeUserPrefs) dezelfde voorkeur ziet als de
+  // settings-pagina. Voorkomt "mijn wensen veranderen steeds" / verkeerde matches.
+  if (preferences) {
+    const synced = applyPrefsToUser(preferences)
+    if (synced.lookingFor !== undefined) updateData.lookingFor = synced.lookingFor
+    if (synced.minAgePreference !== undefined) updateData.minAgePreference = synced.minAgePreference
+    if (synced.maxAgePreference !== undefined) updateData.maxAgePreference = synced.maxAgePreference
+  }
   // Lifestyle fields
   if (occupation !== undefined) updateData.occupation = occupation ? occupation.trim() : null
   if (education !== undefined) updateData.education = education ? education.trim() : null

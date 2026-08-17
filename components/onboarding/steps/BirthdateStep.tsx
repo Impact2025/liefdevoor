@@ -77,7 +77,11 @@ export default function BirthdateStep({ onComplete, initialDate }: BirthdateStep
       return;
     }
 
-    const dateString = birthDate.toISOString().split('T')[0];
+    // BUG-FIX: gebruik de LOKALE datumstring (geen toISOString()).
+    // toISOString() converteert naar UTC en kan de dag 1 opschuiven als de gebruiker
+    // 's avonds invult -> "geboortedatum verandert steeds".
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const dateString = `${yearNum}-${pad(monthNum)}-${pad(dayNum)}`;
 
     setIsSaving(true);
     try {

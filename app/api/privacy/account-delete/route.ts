@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { sendAccountDeletionEmail } from '@/lib/email/account-deletion'
 
 /**
  * POST - Request account deletion
@@ -69,8 +70,12 @@ export async function POST(request: NextRequest) {
     // In production: Send confirmation email
     console.log(`[Account Deletion] Scheduled for user ${userId} on ${scheduledFor}`)
 
-    // TODO: Send email notification
-    // await sendAccountDeletionEmail(session.user.email, scheduledFor)
+    // BUG-FIX: stuur bevestigingsmail (voorheen alleen een TODO -> gebruikers dachten
+    // dat de knop niet werkte omdat er geen feedback kwam).
+    const userEmail = session.user.email
+    if (userEmail) {
+      await sendAccountDeletionEmail(userEmail, scheduledFor)
+    }
 
     return NextResponse.json({
       success: true,

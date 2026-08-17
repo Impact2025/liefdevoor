@@ -5,6 +5,7 @@ import type { DiscoverUser, DiscoverFilters, UserPreferences } from '@/lib/types
 import type { Prisma } from '@prisma/client'
 import { calculateCompatibility } from '@/lib/services/matching/compatibility-engine'
 import { hasFeature } from '@/lib/subscription'
+import { normalizeUserPrefs, lookingForToGender } from '@/lib/user-preferences'
 
 /**
  * 🎭 INTELLIGENT FALLBACK SYSTEEM
@@ -269,7 +270,11 @@ export async function GET(request: NextRequest) {
       throw new Error('User profile not found')
     }
 
-    const prefs: UserPreferences = (currentUser.preferences as UserPreferences) || {}
+    // BUG-FIX: lees voorkeuren uit ÉÉN centrale bron (user.lookingFor +
+    // user.minAgePreference/maxAgePreference + user.preferences). Voorheen las discover
+    // alleen user.preferences.*, waardoor onboarding-voorkeuren (user.lookingFor) genegeerd
+    // werden -> gebruikers kregen matches van het verkeerde geslacht / alle leeftijden.
+    const prefs: UserPreferences = normalizeUserPrefs(currentUser)
 
     // Check if passport mode is active
     const now = new Date()

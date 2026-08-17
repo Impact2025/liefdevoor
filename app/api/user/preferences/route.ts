@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Gender } from '@prisma/client'
+import { applyPrefsToUser } from '@/lib/user-preferences'
 
 export async function GET(req: NextRequest) {
   try {
@@ -64,13 +65,22 @@ export async function PUT(req: NextRequest) {
     if (emailNotifications !== undefined) preferences.emailNotifications = emailNotifications
     if (pushNotifications !== undefined) preferences.pushNotifications = pushNotifications
 
+    // BUG-FIX: houd de `User`-kolommen (lookingFor, minAgePreference, maxAgePreference)
+    // in sync met user.preferences, zodat discover (dat user.lookingFor leest via
+    // normalizeUserPrefs) dezelfde voorkeur ziet als de settings-pagina.
+    const userColumns = applyPrefsToUser(preferences)
+
     const user = await prisma.user.update({
       where: { email: session.user.email },
       data: {
         preferences: preferences,
+        ...userColumns,
       },
       select: {
         preferences: true,
+        lookingFor: true,
+        minAgePreference: true,
+        maxAgePreference: true,
       },
     })
 

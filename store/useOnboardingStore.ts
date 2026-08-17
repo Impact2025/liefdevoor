@@ -229,8 +229,10 @@ export const useOnboardingStore = create<OnboardingState>()(
             userData: {
               name: data.userData?.name || '',
               email: data.userData?.email || '',
+              // BUG-FIX: knip een eventuele tijdzone-shift weg door alleen de datum uit de
+              // ISO-string te houden (geen toISOString() conversie die de dag kan opschuiven).
               birthDate: data.userData?.birthDate ?
-                new Date(data.userData.birthDate).toISOString().split('T')[0] : '',
+                String(data.userData.birthDate).slice(0, 10) : '',
               gender: data.userData?.gender || '',
               lookingFor: data.userData?.lookingFor || '',
               photos: data.userData?.photos?.map((p: { id: string; url: string; order: number }) => ({

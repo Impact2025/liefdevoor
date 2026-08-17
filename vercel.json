@@ -62,6 +62,10 @@
     {
       "path": "/api/cron/ambassador-expiry",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/account-delete",
+      "schedule": "30 3 * * *"
     }
   ],
   "functions": {

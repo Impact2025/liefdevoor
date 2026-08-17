@@ -306,11 +306,12 @@ export function ProfileForm({ initialData, onSuccess }: ProfileFormProps) {
 
     if (!validateForm()) return
 
-    // Combine day/month/year into birthDate format (YYYY-MM-DD)
+    // BUG-FIX: gebruik LOKALE datumstring, geen toISOString() (UTC-shift kan de dag
+    // 1 opschuiven -> "geboortedatum verandert steeds").
     let birthDate: string | undefined = undefined
     if (birthDay && birthMonth && birthYear) {
-      const date = new Date(parseInt(birthYear), parseInt(birthMonth) - 1, parseInt(birthDay))
-      birthDate = date.toISOString().split('T')[0]
+      const pad = (n: string) => String(n).padStart(2, '0')
+      birthDate = `${birthYear}-${pad(birthMonth)}-${pad(birthDay)}`
     }
 
     const preferences: UserPreferences = {
