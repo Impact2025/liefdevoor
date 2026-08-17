@@ -87,10 +87,17 @@ export async function PATCH(
       details: auditDetails
     })
 
-    // TODO: Send email notification to user about status change
-    // if (validation.data.status && ticket.user.email) {
-    //   await sendTicketStatusChangedEmail({ ... })
-    // }
+    // Send email notification to user about status change (non-blocking)
+    if (validation.data.status && ticket.user.email) {
+      const { sendTicketStatusChangedEmail } = await import('@/lib/email/helpdesk-templates')
+      sendTicketStatusChangedEmail({
+        to: ticket.user.email,
+        name: ticket.user.name || 'Unknown User',
+        ticketId,
+        subject: ticket.subject,
+        status: validation.data.status
+      }).catch(err => console.error('[Ticket] Member status notification failed:', err))
+    }
 
     return NextResponse.json({
       success: true,

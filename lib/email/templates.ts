@@ -243,47 +243,61 @@ interface WelcomeEmailData {
 }
 
 export function getWelcomeEmailHtml(data: WelcomeEmailData): string {
+  const onboardingUrl = data.loginUrl.replace(/\/login.*$/, '/onboarding')
   const content = `
     <!-- Content -->
     <tr>
       <td style="padding: 40px;">
-        <h1 style="margin: 0 0 24px; color: ${BRAND.textColor}; font-size: 24px; font-weight: 600; line-height: 1.3;">
-          Je account is geactiveerd
+        <h1 style="margin: 0 0 8px; color: ${BRAND.textColor}; font-size: 26px; font-weight: 600; line-height: 1.3;">
+          Welkom, ${data.name} 💛
         </h1>
 
-        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
-          Hoi ${data.name},
+        <p style="margin: 0 0 20px; color: ${BRAND.primaryColor}; font-size: 15px; font-weight: 600;">
+          Je account is actief. En eerlijk? Wij zijn blij dat je er bent.
         </p>
 
         <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
-          Je emailadres is geverifieerd en je account is nu actief. Je kunt direct beginnen met het ontdekken van nieuwe mensen.
+          Liefde Voor Iedereen is het datingplatform waar <strong>eerlijkheid wint</strong>.
+          Niet oppervlakkig swipen, maar échte verbinding — ook (en juist) als je autisme,
+          ADHD, een lichamelijke beperking, LVB, mentale gezondheidsuitdagingen,
+          slechtziendheid, HSP of 50+ bent. Jij mag zijn wie je bent.
         </p>
 
-        <!-- Features list -->
-        <div style="margin: 24px 0; padding: 20px; background-color: ${BRAND.bgColor}; border-radius: 6px;">
+        <!-- Eerste stap -->
+        <div style="margin: 24px 0; padding: 20px; background-color: ${BRAND.bgColor}; border-radius: 6px; border-left: 3px solid ${BRAND.primaryColor};">
           <p style="margin: 0 0 12px; color: ${BRAND.textColor}; font-size: 14px; font-weight: 600;">
-            Wat je nu kunt doen:
+            Je eerste stap (5 minuten):
           </p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td style="padding: 6px 0; color: ${BRAND.textColor}; font-size: 14px; line-height: 1.5;">
-                Ontdek nieuwe mensen in je omgeving
+                ✅ Vul je profiel aan — een foto en een paar woorden over jou
               </td>
             </tr>
             <tr>
               <td style="padding: 6px 0; color: ${BRAND.textColor}; font-size: 14px; line-height: 1.5;">
-                Stuur likes en maak matches
+                💬 Voeg een stem-intro toe — zo horen mensen de échte jij
               </td>
             </tr>
             <tr>
               <td style="padding: 6px 0; color: ${BRAND.textColor}; font-size: 14px; line-height: 1.5;">
-                Chat met je matches
+                🔍 Ontdek wie in je buurt op hetzelfde zoekt
               </td>
             </tr>
           </table>
         </div>
 
-        ${getPrimaryButton('Ga naar de app', data.loginUrl)}
+        <p style="margin: 0 0 16px; color: ${BRAND.textColor}; font-size: 15px; line-height: 1.6;">
+          Een vraag of vastgelopen? Onze helpdesk antwoordt persoonlijk op
+          <a href="mailto:${BRAND.email}" style="color: ${BRAND.primaryColor}; text-decoration: none;">${BRAND.email}</a>.
+          Geen bots, geen wachtrijen — een mens van ons team.
+        </p>
+
+        ${getPrimaryButton('Start je profiel', onboardingUrl)}
+
+        <p style="margin: 24px 0 0; color: ${BRAND.textMuted}; font-size: 13px; line-height: 1.6;">
+          Veel liefs,<br />Het team van Liefde Voor Iedereen
+        </p>
       </td>
     </tr>
   `
@@ -291,24 +305,28 @@ export function getWelcomeEmailHtml(data: WelcomeEmailData): string {
 }
 
 export function getWelcomeEmailText(data: WelcomeEmailData): string {
+  const onboardingUrl = data.loginUrl.replace(/\/login.*$/, '/onboarding')
   return `
-Je account is geactiveerd
+Welkom, ${data.name}
 
-Hoi ${data.name},
+Je account is actief. En eerlijk? Wij zijn blij dat je er bent.
 
-Je emailadres is geverifieerd en je account is nu actief. Je kunt direct beginnen met het ontdekken van nieuwe mensen.
+Liefde Voor Iedereen is het datingplatform waar eerlijkheid wint. Niet oppervlakkig
+swipen, maar echte verbinding — ook (en juist) als je autisme, ADHD, een lichamelijke
+beperking, LVB, mentale gezondheidsuitdagingen, slechtziendheid, HSP of 50+ bent.
 
-Wat je nu kunt doen:
-- Ontdek nieuwe mensen in je omgeving
-- Stuur likes en maak matches
-- Chat met je matches
+Je eerste stap (5 minuten):
+- Vul je profiel aan (foto + een paar woorden)
+- Voeg een stem-intro toe
+- Ontdek wie in je buurt hetzelfde zoekt
 
-GA NAAR DE APP:
-${data.loginUrl}
+Vraag of vastgelopen? Mail ons op ${BRAND.email} — een mens van ons team antwoordt persoonlijk.
 
----
-${BRAND.name}
-${BRAND.email}
+START JE PROFIEL:
+${onboardingUrl}
+
+Veel liefs,
+Het team van Liefde Voor Iedereen
   `.trim()
 }
 

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { auditLog, getClientInfo } from '@/lib/audit'
 import { sendTicketReplyAdminAlert } from '@/lib/email/admin-notification-service'
+import { sendTicketReplyEmail } from '@/lib/email/helpdesk-templates'
 
 const createMessageSchema = z.object({
   message: z.string().min(1, 'Bericht mag niet leeg zijn').max(5000),
@@ -108,6 +109,17 @@ export async function POST(
         replyMessage: validation.data.message,
         userName: ticket.user.name || 'Unknown User'
       }).catch(err => console.error('[Ticket] Admin reply alert failed:', err))
+    }
+
+    // Send notification to the member when the team replies (non-blocking)
+    if (isAdmin && !isInternal) {
+      sendTicketReplyEmail({
+        to: ticket.user.email || '',
+        name: ticket.user.name || 'Unknown User',
+        ticketId,
+        subject: ticket.subject,
+        replyMessage: validation.data.message
+      }).catch(err => console.error('[Ticket] Member reply notification failed:', err))
     }
 
     return NextResponse.json({

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { auditLog, getClientInfo } from '@/lib/audit'
 import { sendNewTicketAdminAlert } from '@/lib/email/admin-notification-service'
+import { sendTicketCreatedEmail } from '@/lib/email/helpdesk-templates'
 
 // Validation schema
 const createTicketSchema = z.object({
@@ -127,6 +128,14 @@ export async function POST(request: NextRequest) {
       category,
       userName: ticket.user.name || 'Unknown User'
     }).catch(err => console.error('[Ticket] Admin alert failed:', err))
+
+    // Send confirmation to the member (non-blocking)
+    sendTicketCreatedEmail({
+      to: ticket.user.email || '',
+      name: ticket.user.name || 'Unknown User',
+      ticketId: ticket.id,
+      subject
+    }).catch(err => console.error('[Ticket] Member confirmation failed:', err))
 
     return NextResponse.json({
       success: true,
