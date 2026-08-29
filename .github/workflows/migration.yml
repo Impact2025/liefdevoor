@@ -177,7 +177,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download migration results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: migration-results-${{ github.run_id }}
 
@@ -254,7 +254,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download backup
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: database-backup-${{ env.BACKUP_TIMESTAMP }}
 
